@@ -1,0 +1,55 @@
+{
+  "progress": "Step {{current}} of {{total}}",
+  "welcome": {
+    "title": "Train with purpose.",
+    "description": "Plan your training, track every session, and build lasting progress.",
+    "cta": "Get started"
+  },
+  "language": {
+    "title": "Your language.",
+    "description": "Choose how JIMO speaks to you."
+  },
+  "goal": {
+    "title": "What drives you?",
+    "description": "Choose your main training goal."
+  },
+  "level": {
+    "title": "Your starting point.",
+    "description": "Choose the level that best reflects your experience."
+  },
+  "days": {
+    "title": "Make space for training.",
+    "description": "How many days a week do you usually want to train?",
+    "option": "{{count}} day per week",
+    "option_other": "{{count}} days per week"
+  },
+  "equipment": {
+    "title": "Your tools.",
+    "description": "Select all the equipment available to you."
+  },
+  "start": {
+    "title": "How do you want to start?",
+    "description": "Choose an approach. For now, we will just save your preference.",
+    "finish": "Start using JIMO"
+  },
+  "goals": {
+    "strength": "Build strength",
+    "muscle": "Build muscle",
+    "endurance": "Improve endurance",
+    "fitness": "General fitness",
+    "ownProgram": "Track my own program"
+  },
+  "levels": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
+  },
+  "equipmentOptions": {
+    "bodyweight": "Bodyweight",
+    "pullUpBar": "Pull-up bar",
+    "dumbbells": "Dumbbells",
+    "barbell": "Barbell",
+    "machines": "Gym machines",
+    "fullGym": "Full gym"
+  }
+}

@@ -1,6 +1,6 @@
 # JIMO
 
-JIMO è una futura app fitness per Android e iOS. Questa prima base contiene soltanto una home Expo Router e una API Fastify con health check. Non include database, autenticazione, AI o logica di allenamento.
+JIMO è una futura app fitness per Android e iOS. L'attuale application shell include design system dark, splash e transizione brand, onboarding di sette passaggi, preferenze locali, traduzioni IT/EN e cinque tab con stati vuoti professionali. Non include database, autenticazione, AI o logica di allenamento.
 
 ## Stack e prerequisiti
 
@@ -9,6 +9,7 @@ JIMO è una futura app fitness per Android e iOS. Questa prima base contiene sol
 - Expo SDK 57, React Native 0.86, React 19, Expo Router.
 - Fastify 5, Zod 4, TypeScript 5.9 strict e Turborepo 2.
 - ESLint 9 con configurazione Expo condivisa e Prettier 3.
+- Inter, i18next/react-i18next, expo-localization, AsyncStorage, Reanimated e icone Lucide.
 
 Per provare il mobile su un dispositivo serve Expo Go compatibile con SDK 57, oppure un development build. Emulatori Android e simulatori iOS richiedono i rispettivi SDK; il simulatore iOS richiede macOS.
 
@@ -34,7 +35,7 @@ pnpm dev
 
 Turbo compila le dipendenze workspace prima di avviare le app. Con `pnpm dev` avvia anche i watcher dei package condivisi; dopo modifiche ai package durante l'avvio di una sola app, eseguire `pnpm build` o usare `pnpm dev`.
 
-La home mostra **JIMO** e **Train. Track. Progress.**. Expo offre i comandi per aprire Android, iOS o il browser. In un ambiente cloud usare `pnpm --filter @jimo/mobile dev --localhost` per controlli interni; l'accesso da telefono richiede una rete raggiungibile e non è validato dal cloud.
+Al primo avvio si apre l'onboarding; dopo il completamento si aprono le tab Home, Programma, Allenamento, Progressi e Profilo. Lingua e scelte onboarding sono salvate localmente. Da Profilo si può passare subito a Italiano, English o Sistema. Expo offre i comandi per aprire Android, iOS o il browser. In un ambiente cloud usare `pnpm --filter @jimo/mobile dev --localhost` per controlli interni; l'accesso da telefono richiede una rete raggiungibile e non è validato dal cloud.
 
 L'API ascolta sulla porta 3001 e su `0.0.0.0`. Per cambiare porta:
 
@@ -68,15 +69,20 @@ pnpm format:check
 pnpm --filter @jimo/mobile check
 ```
 
-`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano il contratto HTTP e la validazione della porta. Per formattare: `pnpm format`.
+`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano il contratto HTTP e la validazione della porta; i test mobile coprono onboarding, lingua e preferenze. Per formattare: `pnpm format`.
 
 ## Struttura
 
 ```text
 apps/
-  mobile/              Expo Router, home minimale
+  mobile/              Expo Router, application shell
     app/_layout.tsx
-    app/index.tsx
+    app/onboarding.tsx
+    app/(tabs)/
+    app/program/create.tsx
+    src/
+    test/
+    e2e/
   api/                 Fastify
     src/app.ts
     src/server.ts
@@ -86,12 +92,12 @@ apps/
 packages/
   config/              ESLint e Prettier condivisi
   types/               HealthStatus
-  schemas/             healthStatusSchema Zod
-  ui/                  APP_NAME, nessun design system
+  schemas/             Health, onboarding e preferenze Zod
+  ui/                  Design tokens e componenti React Native
 docs/                  Note tecniche e verifica
 ```
 
-`@jimo/schemas` importa `HealthStatus` da `@jimo/types`; l'API importa entrambi. Il mobile importa `APP_NAME` da `@jimo/ui`. I package runtime esportano JavaScript e dichiarazioni compilati in `dist`, senza alias TypeScript che nascondano problemi di risoluzione.
+`@jimo/schemas` importa `HealthStatus` da `@jimo/types`; l'API importa entrambi. Il mobile importa componenti e token da `@jimo/ui` e gli schemi da `@jimo/schemas`. I package runtime esportano JavaScript e dichiarazioni compilati in `dist`, senza alias TypeScript che nascondano problemi di risoluzione.
 
 `tsconfig.base.json` abilita `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride` e `noFallthroughCasesInSwitch`. Il mobile estende anche la configurazione Expo. `skipLibCheck` salta soltanto il controllo interno delle dichiarazioni delle dipendenze, non i controlli del codice applicativo.
 
@@ -121,3 +127,5 @@ EXPO_OFFLINE=1 CI=1 pnpm --filter @jimo/mobile dev --localhost --port 8081
 ESLint 9 è mantenuto qui per compatibilità con la configurazione e i plugin Expo SDK 57; il registry ne segnala la fine del supporto. Un passaggio a ESLint 10 va effettuato insieme alla compatibilità dei plugin Expo.
 
 `EXPO_UNSTABLE_HEADLESS=1` è l'opzione Expo per il runner senza interfaccia grafica: evita l'avvio dei DevTools desktop, che non funzionano nel sandbox. Metro e il bundling restano disponibili.
+
+La struttura della shell, i flussi, le decisioni tecniche e i test end-to-end sono documentati in [docs/application-shell.md](docs/application-shell.md). Il report Task 1 in `docs/verification.md` resta una verifica storica del bootstrap.

@@ -10,4 +10,4 @@ Il checkout JIMO è la radice del monorepo, senza un'ulteriore cartella `jimo/` 
 - TypeScript resta strict; nessun controllo viene disabilitato per correggere errori applicativi.
 - L'export Expo verifica il bundle per le tre piattaforme; non sostituisce prove su dispositivi o build native firmate.
 
-Nessuna infrastruttura dati, autenticazione o funzionalità fitness viene introdotta in questa fase.
+Il Task 2 aggiunge la application shell mobile e le preferenze locali; struttura e decisioni sono descritte in [application-shell.md](application-shell.md). Nessuna infrastruttura backend dati, autenticazione o funzionalità fitness viene introdotta.

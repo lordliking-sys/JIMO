@@ -1,0 +1,55 @@
+{
+  "progress": "Passaggio {{current}} di {{total}}",
+  "welcome": {
+    "title": "Allenati con un obiettivo.",
+    "description": "Organizza gli allenamenti, registra ogni sessione e costruisci progressi duraturi.",
+    "cta": "Inizia"
+  },
+  "language": {
+    "title": "La tua lingua.",
+    "description": "Scegli come JIMO comunica con te."
+  },
+  "goal": {
+    "title": "Cosa ti motiva?",
+    "description": "Scegli il tuo obiettivo principale."
+  },
+  "level": {
+    "title": "Il tuo punto di partenza.",
+    "description": "Scegli il livello che rispecchia la tua esperienza."
+  },
+  "days": {
+    "title": "Fai spazio all'allenamento.",
+    "description": "Quanti giorni a settimana vuoi allenarti di solito?",
+    "option": "{{count}} giorno a settimana",
+    "option_other": "{{count}} giorni a settimana"
+  },
+  "equipment": {
+    "title": "I tuoi strumenti.",
+    "description": "Seleziona tutta l'attrezzatura a tua disposizione."
+  },
+  "start": {
+    "title": "Come vuoi iniziare?",
+    "description": "Scegli un approccio. Per ora salveremo soltanto la tua preferenza.",
+    "finish": "Entra in JIMO"
+  },
+  "goals": {
+    "strength": "Aumentare la forza",
+    "muscle": "Aumentare massa muscolare",
+    "endurance": "Migliorare la resistenza",
+    "fitness": "Fitness generale",
+    "ownProgram": "Seguire la mia scheda"
+  },
+  "levels": {
+    "beginner": "Principiante",
+    "intermediate": "Intermedio",
+    "advanced": "Avanzato"
+  },
+  "equipmentOptions": {
+    "bodyweight": "Corpo libero",
+    "pullUpBar": "Sbarra",
+    "dumbbells": "Manubri",
+    "barbell": "Bilanciere",
+    "machines": "Macchine palestra",
+    "fullGym": "Palestra completa"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "brand": {
+    "name": "JIMO",
+    "tagline": "Train. Track. Progress."
+  },
+  "continue": "Continua",
+  "back": "Indietro",
+  "selected": "Selezionato",
+  "comingSoon": "In arrivo",
+  "retry": "Riprova",
+  "loading": "Preparazione di JIMO…",
+  "startupError": "Non è stato possibile caricare le preferenze. Riprova.",
+  "saveError": "Non è stato possibile salvare le modifiche. Riprova.",
+  "language": "Lingua",
+  "languages": {
+    "system": "Sistema",
+    "it": "Italiano",
+    "en": "English"
+  },
+  "home": {
+    "greeting": "Buonasera",
+    "today": "Allenamento di oggi",
+    "empty": "Nessun programma ancora",
+    "create": "Crea il tuo primo programma",
+    "description": "La tua prossima sessione parte da qui."
+  },
+  "program": {
+    "empty": "Non hai ancora un programma.",
+    "description": "Costruisci una routine adatta a te.",
+    "createTitle": "Crea un programma",
+    "createDescription": "Scegli il tuo approccio. Questi strumenti saranno disponibili prossimamente."
+  },
+  "workout": {
+    "empty": "Nessun allenamento in corso.",
+    "description": "Le tue sessioni appariranno qui quando avrai un programma."
+  },
+  "progress": {
+    "empty": "Completa i tuoi primi allenamenti per vedere i progressi.",
+    "description": "Qui la costanza diventa visibile."
+  },
+  "profile": {
+    "description": "Rendi JIMO tuo.",
+    "languageHelp": "Sistema segue la lingua del dispositivo."
+  },
+  "methods": {
+    "ai": "Crea con AI",
+    "import": "Importa una scheda",
+    "manual": "Crea manualmente"
+  },
+  "methodDescriptions": {
+    "ai": "Un punto di partenza guidato, costruito intorno a te.",
+    "import": "Porta con te la tua scheda di allenamento.",
+    "manual": "Costruisci la routine a modo tuo."
+  }
+}

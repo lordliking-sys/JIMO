@@ -1,0 +1,55 @@
+{
+  "brand": {
+    "name": "JIMO",
+    "tagline": "Train. Track. Progress."
+  },
+  "continue": "Continue",
+  "back": "Back",
+  "selected": "Selected",
+  "comingSoon": "Coming soon",
+  "retry": "Try again",
+  "loading": "Preparing JIMO…",
+  "startupError": "Your preferences could not be loaded. Please try again.",
+  "saveError": "Your changes could not be saved. Please try again.",
+  "language": "Language",
+  "languages": {
+    "system": "System",
+    "it": "Italiano",
+    "en": "English"
+  },
+  "home": {
+    "greeting": "Good evening",
+    "today": "Today's workout",
+    "empty": "No program yet",
+    "create": "Create your first program",
+    "description": "Your next session starts here."
+  },
+  "program": {
+    "empty": "You don't have a program yet.",
+    "description": "Build a routine that works for you.",
+    "createTitle": "Create a program",
+    "createDescription": "Choose your approach. These tools are coming soon."
+  },
+  "workout": {
+    "empty": "No workout in progress.",
+    "description": "Your sessions will appear here when you have a program."
+  },
+  "progress": {
+    "empty": "Complete your first workouts to see your progress.",
+    "description": "Consistency becomes visible here."
+  },
+  "profile": {
+    "description": "Make JIMO yours.",
+    "languageHelp": "System follows the language of your device."
+  },
+  "methods": {
+    "ai": "Create with AI",
+    "import": "Import a program",
+    "manual": "Create manually"
+  },
+  "methodDescriptions": {
+    "ai": "A guided starting point, built around you.",
+    "import": "Bring your existing training plan.",
+    "manual": "Shape your routine, your way."
+  }
+}
