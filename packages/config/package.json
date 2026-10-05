@@ -1,0 +1,16 @@
+{
+  "name": "@jimo/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./eslint": "./eslint.cjs",
+    "./prettier": "./prettier.cjs"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "eslint-config-expo": "57.0.2",
+    "globals": "^16.0.0"
+  }
+}

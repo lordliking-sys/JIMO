@@ -1,0 +1,13 @@
+node_modules/
+.pnpm-store/
+.turbo/
+dist/
+.expo/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+*.log
+.DS_Store
+apps/mobile/android/
+apps/mobile/ios/

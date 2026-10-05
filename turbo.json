@@ -1,0 +1,38 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true,
+      "env": ["PORT"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    }
+  },
+  "globalPassThroughEnv": [
+    "EXPO_NO_TELEMETRY",
+    "EXPO_OFFLINE",
+    "XDG_CACHE_HOME",
+    "XDG_DATA_HOME",
+    "EXPO_UNSTABLE_HEADLESS"
+  ],
+  "globalDependencies": [
+    "tsconfig.base.json",
+    "eslint.config.cjs",
+    "prettier.config.cjs",
+    "packages/config/**"
+  ]
+}
