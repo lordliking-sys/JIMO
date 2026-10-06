@@ -9,7 +9,7 @@
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
-      "env": ["PORT"]
+      "env": ["PORT", "NODE_ENV"]
     },
     "lint": {
       "dependsOn": ["^build"]
@@ -20,6 +20,11 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": []
+    },
+    "test:integration": {
+      "dependsOn": ["^build", "build"],
+      "cache": false,
+      "outputs": []
     }
   },
   "globalPassThroughEnv": [
@@ -27,7 +32,16 @@
     "EXPO_OFFLINE",
     "XDG_CACHE_HOME",
     "XDG_DATA_HOME",
-    "EXPO_UNSTABLE_HEADLESS"
+    "EXPO_UNSTABLE_HEADLESS",
+    "DATABASE_URL",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "NO_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "no_proxy",
+    "NODE_EXTRA_CA_CERTS"
   ],
   "globalDependencies": [
     "tsconfig.base.json",

@@ -1,5 +1,6 @@
 import { z } from 'zod';
-export const localePreferenceSchema = z.enum(['system', 'it', 'en']);
+import { localePreferences } from '@jimo/types';
+export const localePreferenceSchema = z.enum(localePreferences);
 export const goals = [
   'strength',
   'muscle',
@@ -32,7 +33,7 @@ export const onboardingSchema = z.object({
     .refine((items) => new Set(items).size === items.length),
   startMethod: z.enum(startMethods),
 });
-export type LocalePreference = z.infer<typeof localePreferenceSchema>;
+export type { LocalePreference } from '@jimo/types';
 export type OnboardingData = z.infer<typeof onboardingSchema>;
 export const preferencesSchema = z
   .object({

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1791279376416,
+      "tag": "0000_tidy_robbie_robertson",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791279391138,
+      "tag": "0001_audit_timestamps",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791280481108,
+      "tag": "0002_users_locale_text",
+      "breakpoints": true
+    }
+  ]
+}

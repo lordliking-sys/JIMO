@@ -14,7 +14,8 @@
     "@jimo/types": "workspace:*",
     "@jimo/schemas": "workspace:*",
     "fastify": "5.12.5",
-    "zod": "4.6.5"
+    "zod": "4.6.5",
+    "@jimo/database": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "24.19.1",

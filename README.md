@@ -1,6 +1,6 @@
 # JIMO
 
-JIMO è una futura app fitness per Android e iOS. L'attuale application shell include design system dark, splash e transizione brand, onboarding di sette passaggi, preferenze locali, traduzioni IT/EN e cinque tab con stati vuoti professionali. Non include database, autenticazione, AI o logica di allenamento.
+JIMO è una futura app fitness per Android e iOS. L'attuale application shell include design system dark, splash e transizione brand, onboarding di sette passaggi, preferenze locali, traduzioni IT/EN e cinque tab con stati vuoti professionali. Il Task 3 aggiunge il database Neon/Drizzle, le migration versionate e la readiness API. Non include autenticazione, AI o servizi di allenamento.
 
 ## Stack e prerequisiti
 
@@ -43,7 +43,7 @@ L'API ascolta sulla porta 3001 e su `0.0.0.0`. Per cambiare porta:
 PORT=4321 pnpm dev:api
 ```
 
-`.env.example` documenta `PORT`. Il file `.env` non viene caricato automaticamente: esportare la variabile nel processo, oppure usare il supporto nativo Node per il server compilato:
+`.env.example` documenta `PORT`, `NODE_ENV` e `DATABASE_URL`; il secret Neon deve essere disponibile nel processo API. Il file `.env` non viene caricato automaticamente: iniettare le variabili nel processo, oppure usare il supporto nativo Node per il server compilato:
 
 ```sh
 cp .env.example .env
@@ -51,11 +51,13 @@ pnpm build
 node --env-file=.env apps/api/dist/server.js
 ```
 
-Zod rifiuta porte non intere o fuori dall'intervallo 1–65535 e interrompe l'avvio. Nessun segreto è richiesto.
+Zod rifiuta porte non intere o fuori dall'intervallo 1–65535 e interrompe l'avvio. Zod richiede inoltre `DATABASE_URL` valido; gli errori non espongono il suo valore.
 
 ```sh
 curl --fail http://localhost:3001/health
 # {"status":"ok","service":"jimo-api"}
+curl --fail http://localhost:3001/ready
+# {"status":"ready","database":"ok"}
 ```
 
 ## Controlli
@@ -69,7 +71,7 @@ pnpm format:check
 pnpm --filter @jimo/mobile check
 ```
 
-`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano il contratto HTTP e la validazione della porta; i test mobile coprono onboarding, lingua e preferenze. Per formattare: `pnpm format`.
+`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano health/readiness e configurazione; i test database verificano snapshot e validation, con integrazione Neon tramite `pnpm test:db`; i test mobile coprono onboarding, lingua e preferenze. Per formattare: `pnpm format`.
 
 ## Struttura
 
@@ -92,7 +94,8 @@ apps/
 packages/
   config/              ESLint e Prettier condivisi
   types/               HealthStatus
-  schemas/             Health, onboarding e preferenze Zod
+  database/            Schema Drizzle, Neon HTTP, migration e seed
+  schemas/             Health, onboarding e validation DB Zod
   ui/                  Design tokens e componenti React Native
 docs/                  Note tecniche e verifica
 ```
@@ -103,7 +106,7 @@ docs/                  Note tecniche e verifica
 
 ## Ambito
 
-Neon, PostgreSQL, Drizzle, autenticazione, OpenAI, AI Coach, importazione foto/PDF, workout engine, statistiche, pagamenti, notifiche e sincronizzazione offline saranno trattati in task successivi. Nessuno di questi servizi è configurato qui.
+Autenticazione, OpenAI, AI Coach, importazione foto/PDF, workout engine, statistiche, pagamenti, notifiche e sincronizzazione offline saranno trattati in task successivi. La base dati Neon/Drizzle è documentata in [docs/database.md](docs/database.md), con comandi, snapshot, policy di cancellazione e test controllati.
 
 ## Note per questo ambiente cloud
 
