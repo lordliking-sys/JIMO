@@ -6,6 +6,7 @@ import { usePrograms } from '../../src/api/queries';
 import { ErrorNotice } from '../../src/programs/components';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useGreeting } from '../../src/home/useGreeting';
+import { ScreenHeader } from '../../src/components/ScreenHeader';
 export default function HomeScreen() {
   const { t } = useTranslation(['common', 'programs']);
   const query = usePrograms();
@@ -14,12 +15,11 @@ export default function HomeScreen() {
   const greeting = useGreeting();
   return (
     <Screen bottomInset={false}>
-      <Text variant="label" color={colors.secondary}>
-        {t('brand.name')}
-      </Text>
-      <Text variant="h1" accessibilityRole="header">
-        {t(`home.greetings.${greeting}`)}
-      </Text>
+      <ScreenHeader
+        title={t(`home.greetings.${greeting}`)}
+        subtitle={t('home.subtitle')}
+        settings
+      />
       <Text variant="label" color={colors.secondary}>
         {t('home.today')}
       </Text>
@@ -52,7 +52,7 @@ export default function HomeScreen() {
         >
           <Button
             label={t('home.create')}
-            onPress={() => router.push('/program/create')}
+            onPress={() => router.push('/program/manual')}
           />
         </EmptyState>
       )}

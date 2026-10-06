@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { dayInputSchema, type DayDto, type DayInput } from '@jimo/schemas';
-import { Screen, Text, Button } from '@jimo/ui';
+import { Button, Card } from '@jimo/ui';
 import {
   useProgram,
   useProgramMutation,
@@ -14,9 +14,12 @@ import {
   Field,
   ErrorNotice,
   QueryState,
+  FormScreen,
 } from '../../../src/programs/components';
-import { integerInput } from '../../../src/programs/helpers';
+import { integerInput, stepInteger } from '../../../src/programs/helpers';
 import { ApiClientError } from '../../../src/api/client';
+import { NumberControl } from '../../../src/programs/NumberControl';
+import { ScreenHeader } from '../../../src/components/ScreenHeader';
 function Form({ id, day }: { id: string; day?: DayDto }) {
   const { t } = useTranslation('programs'),
     router = useRouter(),
@@ -29,52 +32,69 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
     programsApi.saveDay(id, day?.id, input, locale),
   );
   return (
-    <Screen>
+    <FormScreen
+      invalid={invalid}
+      footer={
+        <Button
+          label={t('saveDay')}
+          busy={mutation.isPending}
+          onPress={() => {
+            if (mutation.isPending) return;
+            try {
+              const input = dayInputSchema.parse({
+                name,
+                dayOfWeek: weekday.trim() ? integerInput(weekday) : null,
+                notes: notes.trim() || null,
+              });
+              setInvalid(false);
+              mutation.mutate(input, { onSuccess: () => router.back() });
+            } catch {
+              setInvalid(true);
+            }
+          }}
+        />
+      }
+    >
       <Back />
-      <Text variant="h1">{t(day ? 'editDay' : 'addDay')}</Text>
-      <Field
-        label={t('dayName')}
-        value={name}
-        onChangeText={setName}
-        maxLength={160}
-      />
-      <Field
-        label={t('weekday')}
-        value={weekday}
-        onChangeText={setWeekday}
-        keyboardType="number-pad"
-      />
-      <Text>{t('weekdayHint')}</Text>
-      <Field
-        label={t('notes')}
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        maxLength={2000}
-      />
-      {invalid ? (
-        <Text accessibilityRole="alert">{t('invalidForm')}</Text>
-      ) : null}
-      {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
-      <Button
-        label={t('saveDay')}
-        busy={mutation.isPending}
-        onPress={() => {
-          if (mutation.isPending) return;
-          try {
-            const input = dayInputSchema.parse({
-              name,
-              dayOfWeek: weekday.trim() ? integerInput(weekday) : null,
-              notes: notes.trim() || null,
-            });
-            setInvalid(false);
-            mutation.mutate(input, { onSuccess: () => router.back() });
-          } catch {
-            setInvalid(true);
+      <ScreenHeader title={t(day ? 'editDay' : 'addDay')} light />
+      <Card>
+        <Field
+          label={t('dayName')}
+          value={name}
+          onChangeText={setName}
+          maxLength={160}
+          placeholder={t('dayPlaceholder')}
+        />
+        <NumberControl
+          label={t('weekday')}
+          value={weekday}
+          onChange={setWeekday}
+          min={1}
+          max={7}
+          hint={
+            /^[1-7]$/.test(weekday)
+              ? t(`weekdays.${weekday as '1'}`)
+              : t('weekdayHint')
           }
-        }}
-      />
-    </Screen>
+          presets={[{ value: '', label: t('unspecified') }]}
+          onStep={(direction) => {
+            try {
+              setWeekday(stepInteger(weekday, direction, { min: 1, max: 7 }));
+            } catch {
+              setInvalid(true);
+            }
+          }}
+        />
+        <Field
+          label={t('notes')}
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          maxLength={2000}
+        />
+      </Card>
+      {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
+    </FormScreen>
   );
 }
 export default function Day() {

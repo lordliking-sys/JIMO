@@ -136,6 +136,11 @@ test('complete onboarding, reload, change language and open program placeholders
   await page
     .getByRole('button', { name: 'Crea il tuo primo programma', exact: true })
     .click();
+  await expect(
+    page.getByRole('textbox', { name: 'Nome programma', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await page.goto('/program/create');
   await expect(page.getByText('In arrivo', { exact: true })).toHaveCount(2);
   await checkWidths(page);
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();

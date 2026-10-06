@@ -1,3 +1,11 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -6,11 +14,26 @@ import {
   StyleSheet,
   Text as NativeText,
   View,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import type { StyleProp, TextProps, ViewProps, ViewStyle } from 'react-native';
+import type {
+  StyleProp,
+  TextInput,
+  TextProps,
+  ViewProps,
+  ViewStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radius, sizes, spacing, typography } from './tokens';
 import type { TextVariant } from './tokens';
+import { scrollToReveal } from './keyboard';
+
+const FormFocusContext = createContext<(input: TextInput | null) => void>(
+  () => {},
+);
+export const useFormFocus = () => useContext(FormFocusContext);
 
 export function Text({
   variant = 'body',
@@ -25,10 +48,68 @@ export function Text({
 export function Screen({
   children,
   bottomInset = true,
+  keyboardAware = false,
+  footer,
+  dismissKeyboardLabel,
 }: {
   children: ReactNode;
   bottomInset?: boolean;
+  keyboardAware?: boolean;
+  footer?: ReactNode;
+  dismissKeyboardLabel?: string;
 }) {
+  const scroll = useRef<ScrollView>(null);
+  const viewport = useRef<View>(null);
+  const focused = useRef<TextInput | null>(null);
+  const offset = useRef(0);
+  const keyboardTop = useRef(Number.POSITIVE_INFINITY);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const reveal = useCallback(() => {
+    if (!keyboardAware || !focused.current || !scroll.current) return;
+    viewport.current?.measureInWindow((_x, top, _width, height) => {
+      focused.current?.measureInWindow(
+        (_inputX, fieldTop, _inputWidth, fieldHeight) => {
+          const next = scrollToReveal({
+            fieldTop,
+            fieldHeight,
+            viewportTop: top,
+            viewportBottom: Math.min(top + height, keyboardTop.current),
+            offset: offset.current,
+          });
+          if (Math.abs(next - offset.current) > 1)
+            scroll.current?.scrollTo({ y: next, animated: false });
+        },
+      );
+    });
+  }, [keyboardAware]);
+  const focus = useCallback(
+    (input: TextInput | null) => {
+      focused.current = input;
+      requestAnimationFrame(reveal);
+    },
+    [reveal],
+  );
+  useEffect(() => {
+    if (!keyboardAware) return;
+    const shown = Keyboard.addListener('keyboardDidShow', (event) => {
+      keyboardTop.current = event.endCoordinates.screenY;
+      setKeyboardVisible(true);
+      requestAnimationFrame(reveal);
+    });
+    const changed = Keyboard.addListener('keyboardWillChangeFrame', (event) => {
+      keyboardTop.current = event.endCoordinates.screenY;
+      requestAnimationFrame(reveal);
+    });
+    const hidden = Keyboard.addListener('keyboardDidHide', () => {
+      keyboardTop.current = Number.POSITIVE_INFINITY;
+      setKeyboardVisible(false);
+    });
+    return () => {
+      shown.remove();
+      changed.remove();
+      hidden.remove();
+    };
+  }, [keyboardAware, reveal]);
   return (
     <SafeAreaView
       style={styles.screen}
@@ -38,12 +119,48 @@ export function Screen({
           : ['top', 'left', 'right']
       }
     >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        {children}
-      </ScrollView>
+      <FormFocusContext.Provider value={focus}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          enabled={keyboardAware}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View
+            ref={viewport}
+            style={{ flex: 1 }}
+            onLayout={() => requestAnimationFrame(reveal)}
+          >
+            <ScrollView
+              ref={scroll}
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={
+                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              }
+              onLayout={() => requestAnimationFrame(reveal)}
+              onContentSizeChange={() => requestAnimationFrame(reveal)}
+              onScroll={(event) => {
+                offset.current = event.nativeEvent.contentOffset.y;
+              }}
+              scrollEventThrottle={16}
+            >
+              {children}
+            </ScrollView>
+          </View>
+          {footer || (keyboardVisible && dismissKeyboardLabel) ? (
+            <View style={styles.footer}>
+              {keyboardVisible && dismissKeyboardLabel ? (
+                <Button
+                  label={dismissKeyboardLabel}
+                  variant="secondary"
+                  onPress={() => Keyboard.dismiss()}
+                />
+              ) : null}
+              {footer ? <View style={{ flex: 1 }}>{footer}</View> : null}
+            </View>
+          ) : null}
+        </KeyboardAvoidingView>
+      </FormFocusContext.Provider>
     </SafeAreaView>
   );
 }
@@ -136,6 +253,19 @@ export function Divider() {
 }
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  footer: {
+    width: '100%',
+    maxWidth: sizes.content,
+    alignSelf: 'center',
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
+  },
   content: {
     flexGrow: 1,
     width: '100%',

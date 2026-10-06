@@ -39,6 +39,7 @@ export default function TabsLayout() {
         tabBarLabelPosition: 'below-icon',
         tabBarAllowFontScaling: true,
         tabBarInactiveTintColor: colors.secondary,
+        tabBarActiveBackgroundColor: colors.elevated,
         tabBarStyle: {
           backgroundColor: colors.surface,
           height: 72 + Math.max(0, fontScale - 1) * 40 + insets.bottom,

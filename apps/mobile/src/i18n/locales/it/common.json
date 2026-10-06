@@ -26,7 +26,8 @@
       "morning": "Buongiorno",
       "afternoon": "Buon pomeriggio",
       "evening": "Buonasera"
-    }
+    },
+    "subtitle": "Ogni sessione costruisce il prossimo passo."
   },
   "program": {
     "empty": "Non hai ancora un programma.",
@@ -55,5 +56,6 @@
     "ai": "Un punto di partenza guidato, costruito intorno a te.",
     "import": "Porta con te la tua scheda di allenamento.",
     "manual": "Costruisci la routine a modo tuo."
-  }
+  },
+  "settings": "Impostazioni"
 }

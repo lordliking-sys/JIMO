@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Screen, Text, Button, Card } from '@jimo/ui';
+import { Text, Button, Card } from '@jimo/ui';
 import { useExercises } from '../../../src/api/queries';
-import { Back, Field, ErrorNotice } from '../../../src/programs/components';
+import {
+  Back,
+  Field,
+  ErrorNotice,
+  FormScreen,
+} from '../../../src/programs/components';
 export default function ChooseExercise() {
   const { id, dayId } = useLocalSearchParams<{ id: string; dayId: string }>(),
     router = useRouter(),
@@ -17,7 +22,7 @@ export default function ChooseExercise() {
   const query = useExercises(debounced);
   const entries = query.data?.pages.flatMap((page) => page.exercises) ?? [];
   return (
-    <Screen>
+    <FormScreen>
       <Back />
       <Text variant="h1">{t('chooseExercise')}</Text>
       <Field label={t('search')} value={search} onChangeText={setSearch} />
@@ -70,6 +75,6 @@ export default function ChooseExercise() {
           ) : null}
         </>
       )}
-    </Screen>
+    </FormScreen>
   );
 }

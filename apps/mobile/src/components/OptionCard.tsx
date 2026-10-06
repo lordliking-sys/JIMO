@@ -37,6 +37,7 @@ export function OptionCard({
         compact && {
           paddingVertical: spacing.sm,
           paddingHorizontal: spacing.md,
+          borderRadius: radius.medium,
         },
         {
           borderColor: selected ? colors.activeBorder : colors.border,

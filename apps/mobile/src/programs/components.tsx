@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { TextInput, StyleSheet, View, Modal } from 'react-native';
 import type { TextInputProps } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -12,22 +13,83 @@ import {
   spacing,
   radius,
   sizes,
+  useFormFocus,
 } from '@jimo/ui';
 import { ApiClientError } from '../api/client';
+export function FormScreen({
+  children,
+  footer,
+  invalid = false,
+}: {
+  children: ReactNode;
+  footer?: ReactNode;
+  invalid?: boolean;
+}) {
+  const { t } = useTranslation('programs');
+  return (
+    <Screen
+      keyboardAware
+      dismissKeyboardLabel={t('keyboardDone')}
+      {...(footer
+        ? {
+            footer: (
+              <View style={{ gap: spacing.sm }}>
+                {invalid ? (
+                  <Text
+                    variant="caption"
+                    color={colors.danger}
+                    accessibilityRole="alert"
+                  >
+                    {t('invalidForm')}
+                  </Text>
+                ) : null}
+                {footer}
+              </View>
+            ),
+          }
+        : {})}
+    >
+      {children}
+    </Screen>
+  );
+}
+export function FocusInput(props: TextInputProps) {
+  const input = useRef<TextInput>(null);
+  const focus = useFormFocus();
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      {...props}
+      ref={input}
+      placeholderTextColor={colors.secondary}
+      selectionColor={colors.primary}
+      returnKeyType={
+        props.returnKeyType ?? (props.multiline ? 'default' : 'done')
+      }
+      onFocus={(event) => {
+        setFocused(true);
+        focus(input.current);
+        props.onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setFocused(false);
+        focus(null);
+        props.onBlur?.(event);
+      }}
+      style={[
+        styles.input,
+        props.multiline && { minHeight: 96, textAlignVertical: 'top' },
+        props.style,
+        focused && { borderColor: colors.primary },
+      ]}
+    />
+  );
+}
 export function Field({ label, ...props }: TextInputProps & { label: string }) {
   return (
     <View style={{ gap: spacing.sm }}>
       <Text variant="label">{label}</Text>
-      <TextInput
-        {...props}
-        accessibilityLabel={label}
-        placeholderTextColor={colors.secondary}
-        style={[
-          styles.input,
-          props.multiline && { minHeight: 96 },
-          props.style,
-        ]}
-      />
+      <FocusInput {...props} accessibilityLabel={label} />
     </View>
   );
 }

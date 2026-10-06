@@ -26,7 +26,8 @@
       "morning": "Good morning",
       "afternoon": "Good afternoon",
       "evening": "Good evening"
-    }
+    },
+    "subtitle": "Every session builds your next step."
   },
   "program": {
     "empty": "You don't have a program yet.",
@@ -55,5 +56,6 @@
     "ai": "A guided starting point, built around you.",
     "import": "Bring your existing training plan.",
     "manual": "Shape your routine, your way."
-  }
+  },
+  "settings": "Settings"
 }

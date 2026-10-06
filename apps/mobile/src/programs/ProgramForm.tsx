@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Screen, Text, Button } from '@jimo/ui';
+import { Text, Button, Card, colors } from '@jimo/ui';
 import {
   programInputSchema,
   type ProgramInput,
   type ProgramSummary,
 } from '@jimo/schemas';
-import { Field, Back, ErrorNotice } from './components';
-import { integerInput } from './helpers';
+import { Field, Back, ErrorNotice, FormScreen } from './components';
+import { integerInput, stepInteger } from './helpers';
+import { NumberControl } from './NumberControl';
+import { DateField } from './DateField';
+import { ScreenHeader } from '../components/ScreenHeader';
 export function ProgramForm({
   initial,
   save,
@@ -40,43 +43,73 @@ export function ProgramForm({
     }
   };
   return (
-    <Screen>
+    <FormScreen
+      invalid={invalid}
+      footer={
+        <Button
+          label={t(initial ? 'save' : 'continue')}
+          busy={pending}
+          onPress={submit}
+        />
+      }
+    >
       <Back />
-      <Text variant="h1">{t(initial ? 'editProgram' : 'manualTitle')}</Text>
-      <Field
-        label={t('name')}
-        value={name}
-        onChangeText={setName}
-        maxLength={160}
+      <ScreenHeader
+        title={t(initial ? 'editProgram' : 'manualTitle')}
+        subtitle={t('manualSubtitle')}
       />
-      <Field
-        label={t('description')}
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        maxLength={2000}
-      />
-      <Field
-        label={t('weeks')}
-        value={weeks}
-        onChangeText={setWeeks}
-        keyboardType="number-pad"
-      />
-      <Field
-        label={t('startsOn')}
-        value={starts}
-        onChangeText={setStarts}
-        placeholder={t('dateFormat')}
-      />
-      {invalid ? (
-        <Text accessibilityRole="alert">{t('invalidForm')}</Text>
-      ) : null}
+      <Card>
+        <Text variant="label" color={colors.secondary}>
+          {t('programDetails')}
+        </Text>
+        <Field
+          label={t('name')}
+          value={name}
+          onChangeText={setName}
+          maxLength={160}
+          placeholder={t('namePlaceholder')}
+          autoCapitalize="sentences"
+        />
+        <Field
+          label={t('description')}
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          maxLength={2000}
+          placeholder={t('descriptionPlaceholder')}
+        />
+      </Card>
+      <Card>
+        <Text variant="label" color={colors.secondary}>
+          {t('schedule')}
+        </Text>
+        <NumberControl
+          label={t('weeks')}
+          value={weeks}
+          onChange={setWeeks}
+          min={1}
+          max={520}
+          hint={t('weeksHint')}
+          onStep={(direction) => {
+            try {
+              setWeeks(
+                stepInteger(weeks, direction, { min: 1, max: 520, initial: 4 }),
+              );
+            } catch {
+              setInvalid(true);
+            }
+          }}
+          presets={[
+            { value: '', label: t('unspecified') },
+            ...[4, 8, 12].map((n) => ({
+              value: String(n),
+              label: t('weekCount', { count: n }),
+            })),
+          ]}
+        />
+        <DateField value={starts} onChange={setStarts} />
+      </Card>
       {error ? <ErrorNotice error={error} /> : null}
-      <Button
-        label={t(initial ? 'save' : 'continue')}
-        busy={pending}
-        onPress={submit}
-      />
-    </Screen>
+    </FormScreen>
   );
 }

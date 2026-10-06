@@ -7,10 +7,18 @@ import {
   loadModes,
   trackingModes,
 } from '@jimo/schemas';
-import { Screen, Text, Button } from '@jimo/ui';
+import { Text, Button, Card } from '@jimo/ui';
 import { exercisesApi } from '../../../src/api/exercises';
 import { useApiLocale } from '../../../src/api/queries';
-import { Back, Field, ErrorNotice } from '../../../src/programs/components';
+import {
+  Back,
+  Field,
+  ErrorNotice,
+  FormScreen,
+} from '../../../src/programs/components';
+import { Choice, choiceStyles } from '../../../src/programs/NumberControl';
+import { View } from 'react-native';
+import { ScreenHeader } from '../../../src/components/ScreenHeader';
 export default function CustomExercise() {
   const { id, dayId } = useLocalSearchParams<{ id: string; dayId: string }>(),
     router = useRouter(),
@@ -44,59 +52,66 @@ export default function CustomExercise() {
     },
   });
   return (
-    <Screen>
+    <FormScreen
+      invalid={invalid}
+      footer={
+        <Button
+          label={t('saveCustom')}
+          busy={mutation.isPending}
+          onPress={() => {
+            if (submitting.current) return;
+            const valid = customExerciseInputSchema.safeParse({
+              name,
+              trackingMode: tracking,
+              defaultLoadMode: mode,
+            });
+            setInvalid(!valid.success);
+            if (valid.success) {
+              submitting.current = true;
+              mutation.mutate();
+            }
+          }}
+        />
+      }
+    >
       <Back />
-      <Text variant="h1">{t('createCustom')}</Text>
-      <Field
-        label={t('exerciseName')}
-        value={name}
-        onChangeText={setName}
-        maxLength={160}
-      />
-      <Text variant="label">{t('tracking')}</Text>
-      {trackingModes.map((v) => (
-        <Button
-          key={v}
-          variant={tracking === v ? 'primary' : 'secondary'}
-          label={t(`trackingModes.${v}`)}
-          onPress={() => setTracking(v)}
+      <ScreenHeader title={t('createCustom')} light />
+      <Card>
+        <Field
+          label={t('exerciseName')}
+          value={name}
+          onChangeText={setName}
+          maxLength={160}
         />
-      ))}
-      <Text variant="label">{t('defaultLoad')}</Text>
-      <Button
-        label={t('none')}
-        variant={mode === null ? 'primary' : 'secondary'}
-        onPress={() => setMode(null)}
-      />
-      {loadModes.map((v) => (
-        <Button
-          key={v}
-          label={t(`loadModes.${v}`)}
-          variant={mode === v ? 'primary' : 'secondary'}
-          onPress={() => setMode(v)}
-        />
-      ))}
-      {invalid ? (
-        <Text accessibilityRole="alert">{t('invalidForm')}</Text>
-      ) : null}
+        <Text variant="label">{t('tracking')}</Text>
+        <View style={choiceStyles.row}>
+          {trackingModes.map((v) => (
+            <Choice
+              key={v}
+              label={t(`trackingModes.${v}`)}
+              selected={tracking === v}
+              onPress={() => setTracking(v)}
+            />
+          ))}
+        </View>
+        <Text variant="label">{t('defaultLoad')}</Text>
+        <View style={choiceStyles.row}>
+          <Choice
+            label={t('none')}
+            selected={mode === null}
+            onPress={() => setMode(null)}
+          />
+          {loadModes.map((v) => (
+            <Choice
+              key={v}
+              label={t(`loadModes.${v}`)}
+              selected={mode === v}
+              onPress={() => setMode(v)}
+            />
+          ))}
+        </View>
+      </Card>
       {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
-      <Button
-        label={t('saveCustom')}
-        busy={mutation.isPending}
-        onPress={() => {
-          if (submitting.current) return;
-          const valid = customExerciseInputSchema.safeParse({
-            name,
-            trackingMode: tracking,
-            defaultLoadMode: mode,
-          });
-          setInvalid(!valid.success);
-          if (valid.success) {
-            submitting.current = true;
-            mutation.mutate();
-          }
-        }}
-      />
-    </Screen>
+    </FormScreen>
   );
 }

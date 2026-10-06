@@ -46,6 +46,21 @@ export function integerInput(value: string): number {
   if (!Number.isSafeInteger(n)) throw new Error('Invalid integer');
   return n;
 }
+export function stepInteger(
+  value: string,
+  direction: 1 | -1,
+  {
+    min,
+    max,
+    step = 1,
+    initial = min,
+  }: { min: number; max: number; step?: number; initial?: number },
+): string {
+  if (!value.trim()) return String(initial);
+  return String(
+    Math.min(max, Math.max(min, integerInput(value) + direction * step)),
+  );
+}
 export function restDisplay(seconds: number | null | undefined): string {
   if (seconds == null) return '';
   return seconds < 60

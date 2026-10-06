@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import Plus from 'lucide-react-native/icons/plus';
-import Minus from 'lucide-react-native/icons/minus';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +9,7 @@ import {
   type ExerciseDto,
   type ProgramExerciseDto,
 } from '@jimo/schemas';
-import { Screen, Text, Button, IconButton, colors } from '@jimo/ui';
+import { Text, Button, Card, colors } from '@jimo/ui';
 import {
   useProgram,
   useExercise,
@@ -25,16 +23,23 @@ import {
   Field,
   ErrorNotice,
   QueryState,
-  styles,
+  FormScreen,
 } from '../../../src/programs/components';
 import {
   integerInput,
   decimalInput,
   decimalDisplay,
   stepDecimal,
+  stepInteger,
   restDisplay,
   loadFields,
 } from '../../../src/programs/helpers';
+import {
+  NumberControl,
+  Choice,
+  choiceStyles,
+} from '../../../src/programs/NumberControl';
+import { ScreenHeader } from '../../../src/components/ScreenHeader';
 function Editor({
   id,
   dayId,
@@ -78,93 +83,69 @@ function Editor({
   const integerControl = (
     label: string,
     value: string,
-    update: (v: string) => void,
+    update: (value: string) => void,
+    bounds = { min: 0, max: 1_000_000, step: 1, initial: 8 },
   ) => (
-    <View style={{ gap: 8 }}>
-      <Field
-        label={label}
-        value={value}
-        onChangeText={update}
-        keyboardType="number-pad"
-      />
-      <View style={styles.row}>
-        <IconButton
-          icon={<Minus color={colors.text} />}
-          label={`${t('decrease')} ${label}`}
-          onPress={() => {
-            try {
-              update(String(Math.max(0, integerInput(value) - 1)));
-            } catch {
-              setInvalid(true);
-            }
-          }}
-        />
-        <IconButton
-          icon={<Plus color={colors.text} />}
-          label={`${t('increase')} ${label}`}
-          onPress={() => {
-            try {
-              update(String(integerInput(value) + 1));
-            } catch {
-              setInvalid(true);
-            }
-          }}
-        />
-      </View>
-    </View>
+    <NumberControl
+      label={label}
+      value={value}
+      onChange={update}
+      min={bounds.min}
+      max={bounds.max}
+      onStep={(direction) => {
+        try {
+          update(stepInteger(value, direction, bounds));
+          setInvalid(false);
+        } catch {
+          setInvalid(true);
+        }
+      }}
+    />
   );
   const decimalControl = (
     label: string,
     value: string,
-    update: (v: string) => void,
+    update: (value: string) => void,
     scale: 1 | 2,
   ) => (
-    <View style={{ gap: 8 }}>
-      <Field
-        label={label}
-        value={value}
-        onChangeText={update}
-        keyboardType="decimal-pad"
-      />
-      <View style={styles.row}>
-        {([-1, 1] as const).map((direction) => (
-          <IconButton
-            key={direction}
-            icon={
-              direction === 1 ? (
-                <Plus color={colors.text} />
-              ) : (
-                <Minus color={colors.text} />
-              )
-            }
-            label={`${t(direction === 1 ? 'increase' : 'decrease')} ${label}`}
-            onPress={() => {
-              try {
-                const base = value.trim()
-                  ? decimalInput(value, scale)
-                  : scale === 1
-                    ? '8.0'
-                    : '0.00';
-                update(
-                  decimalDisplay(
-                    stepDecimal(
-                      base,
-                      scale === 1 ? '0.5' : '2.50',
-                      direction,
-                      scale,
-                    ),
-                    locale,
-                  ),
-                );
-                setInvalid(false);
-              } catch {
-                setInvalid(true);
-              }
-            }}
-          />
-        ))}
-      </View>
-    </View>
+    <NumberControl
+      label={label}
+      value={value}
+      onChange={update}
+      keyboardType="decimal-pad"
+      min={scale === 1 ? 1 : 0}
+      max={scale === 1 ? 10 : 9999999.99}
+      hint={t(scale === 1 ? 'rpeHint' : 'weightHint')}
+      presets={
+        scale === 1
+          ? [
+              { value: '', label: t('noRpe') },
+              ...[7, 8, 9].map((n) => ({
+                value: String(n),
+                label: `RPE ${n}`,
+              })),
+            ]
+          : []
+      }
+      onStep={(direction) => {
+        try {
+          const base = value.trim()
+            ? decimalInput(value, scale)
+            : scale === 1
+              ? '7.5'
+              : '0.00';
+          update(
+            decimalDisplay(
+              stepDecimal(base, scale === 1 ? '0.5' : '2.50', direction, scale),
+              locale,
+            ),
+          );
+          setInvalid(false);
+        } catch {
+          setInvalid(true);
+        }
+      }}
+    />
   );
   const submit = () => {
     if (mutation.isPending) return;
@@ -209,101 +190,151 @@ function Editor({
     }
   };
   return (
-    <Screen>
-      <Back />
-      <Text variant="h1">{exercise.displayName}</Text>
-      <Text variant="label">{t('mode')}</Text>
-      {loadModes.map((value) => (
+    <FormScreen
+      invalid={invalid}
+      footer={
         <Button
-          key={value}
-          label={t(`loadModes.${value}`)}
-          variant={mode === value ? 'primary' : 'secondary'}
-          onPress={() => {
-            setMode(value);
-            setWeight('');
-          }}
+          label={t('saveExercise')}
+          busy={mutation.isPending}
+          onPress={submit}
         />
-      ))}
-      {mode === 'weighted' ? <Text>{t('weightedHint')}</Text> : null}
-      {integerControl(t('sets'), sets, setSets)}
-      {exercise.trackingMode === 'duration' ? (
-        integerControl(t('duration'), duration, setDuration)
-      ) : (
-        <>
-          <Text variant="label">{t('repsType')}</Text>
-          <Button
-            label={t('fixed')}
-            variant={kind === 'fixed' ? 'primary' : 'secondary'}
-            onPress={() => setKind('fixed')}
-          />
-          <Button
-            label={t('range')}
-            variant={kind === 'range' ? 'primary' : 'secondary'}
-            onPress={() => setKind('range')}
-          />
-          {kind === 'fixed' ? (
-            integerControl(t('reps'), reps, setReps)
-          ) : (
-            <>
-              {integerControl(t('repMin'), min, setMin)}
-              {integerControl(t('repMax'), max, setMax)}
-            </>
-          )}
-        </>
-      )}
-      {mode !== 'bodyweight'
-        ? decimalControl(
-            t(
-              mode === 'weighted'
-                ? 'addedLoad'
-                : mode === 'assisted'
-                  ? 'assistance'
-                  : 'load',
-            ),
-            weight,
-            setWeight,
-            2,
-          )
-        : null}
-      {decimalControl(t('rpe'), rpeValue, setRpe, 1)}
-      <Button
-        variant="secondary"
-        label={t('noRpe')}
-        onPress={() => setRpe('')}
+      }
+    >
+      <Back />
+      <ScreenHeader
+        title={exercise.displayName}
+        subtitle={t('exerciseSubtitle')}
+        light
       />
-      <Field
-        label={t('rest')}
-        value={rest}
-        onChangeText={setRest}
-        keyboardType="number-pad"
-      />
-      <View style={styles.row}>
-        {[30, 60, 90, 120, 180].map((seconds) => (
-          <Button
-            key={seconds}
-            label={`${restDisplay(seconds)}${seconds < 60 ? t('secondsSuffix') : ''}`}
-            variant="secondary"
-            onPress={() => setRest(String(seconds))}
-          />
-        ))}
-      </View>
-      <Field
-        label={t('notes')}
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        maxLength={2000}
-      />
-      {invalid ? (
-        <Text accessibilityRole="alert">{t('invalidForm')}</Text>
-      ) : null}
+      <Card>
+        <Text variant="label">{t('mode')}</Text>
+        <View style={choiceStyles.row}>
+          {loadModes.map((value) => (
+            <Choice
+              key={value}
+              label={t(`loadModes.${value}`)}
+              selected={mode === value}
+              onPress={() => {
+                setMode(value);
+                setWeight('');
+              }}
+            />
+          ))}
+        </View>
+        {mode === 'weighted' ? (
+          <Text variant="caption" color={colors.secondary}>
+            {t('weightedHint')}
+          </Text>
+        ) : null}
+      </Card>
+      <Card>
+        <Text variant="label" color={colors.secondary}>
+          {t('volume')}
+        </Text>
+        {integerControl(t('sets'), sets, setSets, {
+          min: 1,
+          max: 100,
+          step: 1,
+          initial: 3,
+        })}
+        {exercise.trackingMode === 'duration' ? (
+          integerControl(t('duration'), duration, setDuration, {
+            min: 1,
+            max: 86400,
+            step: 15,
+            initial: 60,
+          })
+        ) : (
+          <>
+            <Text variant="label">{t('repsType')}</Text>
+            <View style={choiceStyles.row}>
+              <Choice
+                label={t('fixed')}
+                selected={kind === 'fixed'}
+                onPress={() => setKind('fixed')}
+              />
+              <Choice
+                label={t('range')}
+                selected={kind === 'range'}
+                onPress={() => setKind('range')}
+              />
+            </View>
+            {kind === 'fixed' ? (
+              integerControl(t('reps'), reps, setReps)
+            ) : (
+              <>
+                {integerControl(t('repMin'), min, setMin)}
+                {integerControl(t('repMax'), max, setMax)}
+              </>
+            )}
+          </>
+        )}
+      </Card>
+      <Card>
+        <Text variant="label" color={colors.secondary}>
+          {t('intensity')}
+        </Text>
+        {mode !== 'bodyweight'
+          ? decimalControl(
+              t(
+                mode === 'weighted'
+                  ? 'addedLoad'
+                  : mode === 'assisted'
+                    ? 'assistance'
+                    : 'load',
+              ),
+              weight,
+              setWeight,
+              2,
+            )
+          : null}
+        {decimalControl(t('rpe'), rpeValue, setRpe, 1)}
+      </Card>
+      <Card>
+        <Text variant="label" color={colors.secondary}>
+          {t('recovery')}
+        </Text>
+        <NumberControl
+          label={t('rest')}
+          value={rest}
+          onChange={setRest}
+          min={0}
+          max={86400}
+          hint={t('restHint')}
+          onStep={(direction) => {
+            try {
+              setRest(
+                stepInteger(rest, direction, {
+                  min: 0,
+                  max: 86400,
+                  step: 30,
+                  initial: 60,
+                }),
+              );
+              setInvalid(false);
+            } catch {
+              setInvalid(true);
+            }
+          }}
+          presets={[
+            { value: '', label: t('unspecified') },
+            ...[30, 60, 90, 120, 180].map((seconds) => ({
+              value: String(seconds),
+              label: `${restDisplay(seconds)}${seconds < 60 ? t('secondsSuffix') : ''}`,
+            })),
+          ]}
+        />
+        <Field
+          label={t('notes')}
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          maxLength={2000}
+          placeholder={t('notesPlaceholder')}
+        />
+      </Card>
       {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
-      <Button
-        label={t('saveExercise')}
-        busy={mutation.isPending}
-        onPress={submit}
-      />
-    </Screen>
+    </FormScreen>
   );
 }
 export default function ExerciseEditor() {
