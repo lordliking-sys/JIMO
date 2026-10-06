@@ -17,6 +17,11 @@ test('complete onboarding, reload, change language and open program placeholders
   test.setTimeout(60_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  await page.route('**/programs', async (route) => {
+    if (route.request().method() === 'GET')
+      await route.fulfill({ json: { programs: [] } });
+    else await route.continue();
+  });
   await page.goto('/');
   await expect(
     page.getByRole('button', { name: 'Inizia', exact: true }),
@@ -92,9 +97,9 @@ test('complete onboarding, reload, change language and open program placeholders
   ).toBeVisible();
   await checkWidths(page);
   await page
-    .getByRole('button', { name: 'Create with AI', exact: true })
+    .getByRole('button', { name: 'Create program', exact: true })
     .click();
-  await expect(page.getByText('Coming soon', { exact: true })).toHaveCount(3);
+  await expect(page.getByText('Coming soon', { exact: true })).toHaveCount(2);
   await page.getByRole('button', { name: 'Back', exact: true }).click();
   await page.getByText('Workout', { exact: true }).last().click();
   await expect(
@@ -128,7 +133,7 @@ test('complete onboarding, reload, change language and open program placeholders
   await page
     .getByRole('button', { name: 'Crea il tuo primo programma', exact: true })
     .click();
-  await expect(page.getByText('In arrivo', { exact: true })).toHaveCount(3);
+  await expect(page.getByText('In arrivo', { exact: true })).toHaveCount(2);
   await checkWidths(page);
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   await expect(page.getByText('Buonasera', { exact: true })).toBeVisible();

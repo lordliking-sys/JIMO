@@ -1,6 +1,6 @@
 # JIMO
 
-JIMO è una futura app fitness per Android e iOS. L'attuale application shell include design system dark, splash e transizione brand, onboarding di sette passaggi, preferenze locali, traduzioni IT/EN e cinque tab con stati vuoti professionali. Il Task 3 aggiunge il database Neon/Drizzle, le migration versionate e la readiness API. Non include autenticazione, AI o servizi di allenamento.
+JIMO è una futura app fitness per Android e iOS. L'attuale application shell include design system dark, splash e transizione brand, onboarding di sette passaggi, preferenze locali, traduzioni IT/EN e cinque tab con stati vuoti professionali. Il Task 3 aggiunge il database Neon/Drizzle; il Task 4 aggiunge Program Management manuale end-to-end, traduzioni esercizi e persistenza reale tramite API. Non include autenticazione, AI o servizi di allenamento.
 
 ## Stack e prerequisiti
 
@@ -9,6 +9,7 @@ JIMO è una futura app fitness per Android e iOS. L'attuale application shell in
 - Expo SDK 57, React Native 0.86, React 19, Expo Router.
 - Fastify 5, Zod 4, TypeScript 5.9 strict e Turborepo 2.
 - ESLint 9 con configurazione Expo condivisa e Prettier 3.
+- TanStack Query 5 per server state mobile.
 - Inter, i18next/react-i18next, expo-localization, AsyncStorage, Reanimated e icone Lucide.
 
 Per provare il mobile su un dispositivo serve Expo Go compatibile con SDK 57, oppure un development build. Emulatori Android e simulatori iOS richiedono i rispettivi SDK; il simulatore iOS richiede macOS.
@@ -32,6 +33,8 @@ pnpm dev:api
 # oppure entrambi e i watcher dei package condivisi:
 pnpm dev
 ```
+
+Prima dello sviluppo API impostare `NEON_DEVELOPMENT_BRANCH_ID=br-purple-math-b1fsq2wb` e, per il mobile, `EXPO_PUBLIC_API_URL` sull’origin raggiungibile dell’API. Con secret già iniettato eseguire `pnpm db:migrate` e `NODE_ENV=development ALLOW_DEV_SEED=1 pnpm db:seed`. La soluzione CurrentUser temporanea è descritta in [docs/programs.md](docs/programs.md).
 
 Turbo compila le dipendenze workspace prima di avviare le app. Con `pnpm dev` avvia anche i watcher dei package condivisi; dopo modifiche ai package durante l'avvio di una sola app, eseguire `pnpm build` o usare `pnpm dev`.
 
@@ -71,7 +74,7 @@ pnpm format:check
 pnpm --filter @jimo/mobile check
 ```
 
-`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano health/readiness e configurazione; i test database verificano snapshot e validation, con integrazione Neon tramite `pnpm test:db`; i test mobile coprono onboarding, lingua e preferenze. Per formattare: `pnpm format`.
+`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano health/readiness, configurazione e identità development; `pnpm test:api:db` verifica Program Management e ownership A/B su Neon development. I test database verificano snapshot e validation, con integrazione Neon tramite `pnpm test:db`; i test mobile coprono onboarding, lingua, preferenze, form, decimali e client API. Il percorso browser reale è verificato con Playwright (vedi `docs/programs.md`). Per formattare: `pnpm format`.
 
 ## Struttura
 
@@ -106,7 +109,7 @@ docs/                  Note tecniche e verifica
 
 ## Ambito
 
-Autenticazione, OpenAI, AI Coach, importazione foto/PDF, workout engine, statistiche, pagamenti, notifiche e sincronizzazione offline saranno trattati in task successivi. La base dati Neon/Drizzle è documentata in [docs/database.md](docs/database.md), con comandi, snapshot, policy di cancellazione e test controllati.
+Autenticazione, OpenAI, AI Coach, importazione foto/PDF, workout engine, statistiche, pagamenti, notifiche e sincronizzazione offline saranno trattati in task successivi. La base dati è documentata in [docs/database.md](docs/database.md); API, ownership, flussi manuali, configurazione e test in [docs/programs.md](docs/programs.md).
 
 ## Note per questo ambiente cloud
 

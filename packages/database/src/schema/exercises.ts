@@ -27,6 +27,9 @@ export const exercises = pgTable(
   },
   (table) => [
     index('exercises_owner_idx').on(table.createdByUserId),
+    uniqueIndex('exercises_custom_name_unique')
+      .on(table.createdByUserId, sql`lower(trim(${table.canonicalName}))`)
+      .where(sql`${table.isCustom} = true`),
     uniqueIndex('exercises_system_slug_unique')
       .on(table.slug)
       .where(sql`${table.isCustom} = false`),

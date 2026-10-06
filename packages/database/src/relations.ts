@@ -8,6 +8,7 @@ import {
   workoutSessions,
   workoutExercises,
   workoutSets,
+  exerciseTranslations,
 } from './schema';
 export const usersRelations = relations(users, ({ many }) => ({
   programs: many(programs),
@@ -15,6 +16,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   customExercises: many(exercises),
 }));
 export const exercisesRelations = relations(exercises, ({ one, many }) => ({
+  translations: many(exerciseTranslations),
   owner: one(users, {
     fields: [exercises.createdByUserId],
     references: [users.id],
@@ -91,3 +93,13 @@ export const workoutSetsRelations = relations(workoutSets, ({ one }) => ({
     references: [workoutExercises.id],
   }),
 }));
+
+export const exerciseTranslationsRelations = relations(
+  exerciseTranslations,
+  ({ one }) => ({
+    exercise: one(exercises, {
+      fields: [exerciseTranslations.exerciseId],
+      references: [exercises.id],
+    }),
+  }),
+);

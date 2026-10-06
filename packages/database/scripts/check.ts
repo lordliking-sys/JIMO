@@ -11,6 +11,7 @@ import {
   workoutSessions,
   workoutExercises,
   workoutSets,
+  exerciseTranslations,
   unitSystemEnum,
   trackingModeEnum,
   loadModeEnum,
@@ -28,6 +29,7 @@ const expectedTables = [
   workoutSessions,
   workoutExercises,
   workoutSets,
+  exerciseTranslations,
 ].map(getTableConfig);
 const expectedEnums = [
   unitSystemEnum,
@@ -59,6 +61,7 @@ if (!process.env.DATABASE_URL) {
                 'workout_sessions',
                 'workout_exercises',
                 'workout_sets',
+                'exercise_translations',
               ],
             ],
           ),
@@ -87,7 +90,7 @@ if (!process.env.DATABASE_URL) {
       migrationsFolder: resolve(__dirname, '../drizzle'),
     });
     if (
-      tables?.length !== 8 ||
+      tables?.length !== expectedTables.length ||
       ledger?.length !== migrations.length ||
       ledger.some(
         (row, i) =>

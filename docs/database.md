@@ -31,7 +31,7 @@ erDiagram
 | `workout_exercises` | Identità, nome, modalità e riposo copiati al momento della sessione.                              |
 | `workout_sets`      | Target snapshot e risultati actual distinti per ciascun set.                                      |
 
-Tutte le otto tabelle hanno UUID generati da PostgreSQL con `gen_random_uuid()`, `created_at` e `updated_at` di tipo `timestamptz`. Un trigger versionato aggiorna `updated_at` anche per SQL diretto; Drizzle mantiene inoltre il proprio callback di update. Le date TypeScript sono `Date`; una futura API dovrà serializzarle come ISO 8601. `starts_on` è una data calendario ISO `YYYY-MM-DD`, senza conversione di fuso orario.
+Le otto tabelle principali hanno UUID generati da PostgreSQL con `gen_random_uuid()`, `created_at` e `updated_at` di tipo `timestamptz`. Un trigger versionato aggiorna `updated_at` anche per SQL diretto; Drizzle mantiene inoltre il proprio callback di update. Le date TypeScript sono `Date`; l’API le serializza come ISO 8601. `starts_on` è una data calendario ISO `YYYY-MM-DD`, senza conversione di fuso orario.
 
 Gli enum stabili sono `unit_system` (`metric/imperial`), `tracking_mode` (`reps/duration`), `load_mode` (`bodyweight/weighted/external/assisted`), `program_status` (`draft/active/archived`), `workout_status` (`in_progress/completed/cancelled`) e `set_status` (`pending/completed/skipped`).
 
@@ -105,7 +105,7 @@ Lo slug system è unico quando `is_custom=false`; per un custom è unico per pro
 | Identità esercizio  | RESTRICT se ancora usata da prescrizioni o storico. Per dismetterla servirà una futura politica di archiviazione.                                    |
 | Utente              | RESTRICT in presenza di programmi, sessioni o esercizi custom. La futura eliminazione account richiederà un flusso esplicito.                        |
 
-Le FK garantiscono l'esistenza dei riferimenti. L'autorizzazione e la coerenza fra proprietario, programma, giorno e custom exercise dovranno essere verificate dal futuro servizio autenticato; questo task non aggiunge CRUD o RLS e non espone il database direttamente al mobile.
+Le FK garantiscono l'esistenza dei riferimenti. Il servizio Program Management verifica lato API la coerenza fra proprietario, programma, giorno e custom exercise tramite CurrentUser. L'autenticazione production rimane futura. Non sono presenti policy RLS; il mobile accede esclusivamente all'API, senza connessione diretta al database.
 
 ## Secret e connessione
 
@@ -173,8 +173,12 @@ Gli schemi DB Zod derivano da Drizzle tramite `drizzle-zod`; vivono nel subpath 
 
 ## Auth futura e limiti del task
 
-`users.id` è l'ID applicativo stabile. Un futuro identity provider potrà essere collegato tramite una nuova tabella di identità esterne con provider/subject univoci, mantenendo tutte le FK attuali. Non sono presenti password, OAuth, endpoint CRUD, client API mobile, servizi workout, AI, UI fitness, statistiche, abbonamenti o offline sync. Task 4 non è iniziato.
+`users.id` è l'ID applicativo stabile. Un futuro identity provider potrà essere collegato tramite una nuova tabella di identità esterne con provider/subject univoci, mantenendo tutte le FK attuali. Il Task 4 aggiunge endpoint CRUD dei programmi, client API mobile e builder manuale. Non sono presenti password, OAuth, workout execution, AI, statistiche, abbonamenti o offline sync. Task 5 non è iniziato.
 
 Verifica eseguita nel cloud il 6 ottobre 2026: Neon HTTP e SELECT 1 riusciti su PostgreSQL 18.6; migration applicate e rerun senza modifiche; seed 12 righe e rerun 0; test di integrazione completati con cleanup.
 
 Correzione locale: migration `0002` applicata esclusivamente a development dopo conferma del nome e verifica SQL dell’ID del branch. Non erano presenti utenti preesistenti; tre fixture `system/it/en` create prima della conversione sono state preservate e poi eliminate. Verificati anche default `system`, memorizzazione di `es/fr/de/pt`, enum stabili invariati e rerun con zero migration da applicare. Nessuna connessione al branch production.
+
+## Program Management (Task 4)
+
+Il Task 4 aggiunge `exercise_translations` (PK exercise/locale, FK cascade, audit), indice unico per un active per utente e indice custom name per proprietario tramite `0003_program_management.sql`, applicata solo a development. Ora ci sono nove tabelle e sei enum stabili; `users.locale` resta text invariato. Il seed contiene 12 identità system e 24 traduzioni. Runner e seed verificano `NEON_DEVELOPMENT_BRANCH_ID` prima delle scritture. API, transazioni HTTP, ownership, ordine e UI sono descritti in [programs.md](programs.md). I CRUD del programma sono ora presenti; workout execution e auth production restano successivi.

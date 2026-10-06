@@ -30,6 +30,9 @@ export const programs = pgTable(
   },
   (t) => [
     index('programs_user_idx').on(t.userId),
+    uniqueIndex('programs_single_active_unique')
+      .on(t.userId)
+      .where(sql`${t.status} = 'active'`),
     check(
       'programs_name_valid',
       sql`length(trim(${t.name})) BETWEEN 1 AND 160`,

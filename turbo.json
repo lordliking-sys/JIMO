@@ -3,13 +3,21 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "env": ["EXPO_PUBLIC_API_URL"]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
-      "env": ["PORT", "NODE_ENV"]
+      "env": [
+        "PORT",
+        "NODE_ENV",
+        "EXPO_PUBLIC_API_URL",
+        "DEV_USER_ID",
+        "NEON_DEVELOPMENT_BRANCH_ID",
+        "API_ALLOWED_ORIGINS"
+      ]
     },
     "lint": {
       "dependsOn": ["^build"]
@@ -41,7 +49,8 @@
     "http_proxy",
     "https_proxy",
     "no_proxy",
-    "NODE_EXTRA_CA_CERTS"
+    "NODE_EXTRA_CA_CERTS",
+    "NEON_DEVELOPMENT_BRANCH_ID"
   ],
   "globalDependencies": [
     "tsconfig.base.json",

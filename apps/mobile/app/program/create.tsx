@@ -5,7 +5,7 @@ import PenLine from 'lucide-react-native/icons/pen-line';
 import Sparkles from 'lucide-react-native/icons/sparkles';
 import { useTranslation } from 'react-i18next';
 import { startMethods } from '@jimo/schemas';
-import { Card, colors, IconButton, Screen, Text } from '@jimo/ui';
+import { Button, Card, colors, IconButton, Screen, Text } from '@jimo/ui';
 export default function CreateProgramScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -32,9 +32,16 @@ export default function CreateProgramScreen() {
             <Text color={colors.secondary}>
               {t(`methodDescriptions.${method}`)}
             </Text>
-            <Text variant="label" color={colors.primarySoft}>
-              {t('comingSoon')}
-            </Text>
+            {method === 'manual' ? (
+              <Button
+                label={t('methods.manual')}
+                onPress={() => router.push('/program/manual')}
+              />
+            ) : (
+              <Text variant="label" color={colors.primarySoft}>
+                {t('comingSoon')}
+              </Text>
+            )}
           </Card>
         );
       })}

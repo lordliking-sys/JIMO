@@ -7,6 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { I18nextProvider } from 'react-i18next';
 import { colors } from '@jimo/ui';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../src/api/queries';
 import { i18n } from '../src/i18n';
 import {
   PreferencesProvider,
@@ -54,6 +56,13 @@ function AppNavigator() {
           <Stack.Protected guard={preferences.onboardingCompleted}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="program/create" />
+            <Stack.Screen name="program/manual" />
+            <Stack.Screen name="program/[id]/index" />
+            <Stack.Screen name="program/[id]/settings" />
+            <Stack.Screen name="program/[id]/day" />
+            <Stack.Screen name="program/[id]/choose-exercise" />
+            <Stack.Screen name="program/[id]/custom-exercise" />
+            <Stack.Screen name="program/[id]/exercise" />
           </Stack.Protected>
         </Stack>
       </View>
@@ -70,12 +79,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <I18nextProvider i18n={i18n}>
-        <PreferencesProvider>
-          <ThemeProvider value={theme}>
-            <StatusBar style="light" />
-            <AppNavigator />
-          </ThemeProvider>
-        </PreferencesProvider>
+        <QueryClientProvider client={queryClient}>
+          <PreferencesProvider>
+            <ThemeProvider value={theme}>
+              <StatusBar style="light" />
+              <AppNavigator />
+            </ThemeProvider>
+          </PreferencesProvider>
+        </QueryClientProvider>
       </I18nextProvider>
     </SafeAreaProvider>
   );

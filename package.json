@@ -21,7 +21,8 @@
     "db:check": "pnpm --filter @jimo/database db:check",
     "db:seed": "pnpm --filter @jimo/database db:seed",
     "db:studio": "pnpm --filter @jimo/database db:studio",
-    "test:db": "turbo run test:integration --filter=@jimo/database"
+    "test:db": "turbo run test:integration --filter=@jimo/database",
+    "test:api:db": "turbo run test:integration --filter=@jimo/api"
   },
   "devDependencies": {
     "turbo": "2.11.7",

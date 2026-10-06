@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
 import { eq, sql } from 'drizzle-orm';
 import { createDatabase, safeDatabaseError } from '../src/client';
+import { assertDevelopment } from '../src/development';
 import {
   users,
   exercises,
@@ -24,6 +25,7 @@ test(
     const userId = randomUUID(),
       rollbackUserId = randomUUID();
     const label = `JIMO_TEST_${userId}`;
+    let verified = false;
     const stage = async (name: string, action: () => Promise<void>) => {
       await t.test(name, async () => {
         try {
@@ -50,6 +52,8 @@ test(
       assert.fail(`Expected PostgreSQL constraint ${code}`);
     };
     try {
+      await assertDevelopment(client);
+      verified = true;
       await db.insert(users).values({ id: userId, displayName: label });
       await stage(
         'locale defaults to system and accepts future languages as text',
@@ -489,17 +493,21 @@ test(
       );
     } finally {
       try {
-        await db
-          .delete(workoutSessions)
-          .where(eq(workoutSessions.userId, userId));
-        await db.delete(programs).where(eq(programs.userId, userId));
-        await db.delete(exercises).where(eq(exercises.createdByUserId, userId));
-        await db.delete(users).where(eq(users.id, userId));
-        await db.delete(users).where(eq(users.id, rollbackUserId));
-        assert.equal(
-          (await db.select().from(users).where(eq(users.id, userId))).length,
-          0,
-        );
+        if (verified) {
+          await db
+            .delete(workoutSessions)
+            .where(eq(workoutSessions.userId, userId));
+          await db.delete(programs).where(eq(programs.userId, userId));
+          await db
+            .delete(exercises)
+            .where(eq(exercises.createdByUserId, userId));
+          await db.delete(users).where(eq(users.id, userId));
+          await db.delete(users).where(eq(users.id, rollbackUserId));
+          assert.equal(
+            (await db.select().from(users).where(eq(users.id, userId))).length,
+            0,
+          );
+        }
       } catch (error) {
         throw new Error(
           `Isolated test cleanup failed: ${JSON.stringify(safeDatabaseError(error))}`,

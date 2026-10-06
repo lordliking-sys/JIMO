@@ -6,3 +6,6 @@ export const healthStatusSchema: z.ZodType<HealthStatus> = z.object({
 });
 
 export * from './onboarding';
+
+export * from './fitness';
+export * from './programs';
