@@ -3,5 +3,9 @@
   "program": "Program",
   "workout": "Workout",
   "progress": "Progress",
-  "profile": "Profile"
+  "profile": "Profile",
+  "compact": {
+    "program": "Program",
+    "workout": "Workout"
+  }
 }

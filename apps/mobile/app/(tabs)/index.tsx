@@ -4,18 +4,21 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, colors, Screen, Text } from '@jimo/ui';
 import { usePrograms } from '../../src/api/queries';
 import { ErrorNotice } from '../../src/programs/components';
-import { Wordmark } from '../../src/components/Wordmark';
 import { EmptyState } from '../../src/components/EmptyState';
+import { useGreeting } from '../../src/home/useGreeting';
 export default function HomeScreen() {
   const { t } = useTranslation(['common', 'programs']);
   const query = usePrograms();
   const active = query.data?.programs.find((p) => p.status === 'active');
   const router = useRouter();
+  const greeting = useGreeting();
   return (
     <Screen bottomInset={false}>
-      <Wordmark compact />
+      <Text variant="label" color={colors.secondary}>
+        {t('brand.name')}
+      </Text>
       <Text variant="h1" accessibilityRole="header">
-        {t('home.greeting')}
+        {t(`home.greetings.${greeting}`)}
       </Text>
       <Text variant="label" color={colors.secondary}>
         {t('home.today')}

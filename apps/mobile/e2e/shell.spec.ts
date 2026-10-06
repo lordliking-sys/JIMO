@@ -16,6 +16,7 @@ test('complete onboarding, reload, change language and open program placeholders
 }, testInfo) => {
   test.setTimeout(60_000);
   const errors: string[] = [];
+  await page.clock.install({ time: new Date('2026-10-06T19:00:00Z') });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.route('**/programs', async (route) => {
     if (route.request().method() === 'GET')
@@ -99,7 +100,9 @@ test('complete onboarding, reload, change language and open program placeholders
   await page
     .getByRole('button', { name: 'Create program', exact: true })
     .click();
-  await expect(page.getByText('Coming soon', { exact: true })).toHaveCount(2);
+  await expect(
+    page.getByRole('textbox', { name: 'Program name', exact: true }),
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Back', exact: true }).click();
   await page.getByText('Workout', { exact: true }).last().click();
   await expect(

@@ -18,11 +18,15 @@
     "en": "English"
   },
   "home": {
-    "greeting": "Buonasera",
     "today": "Allenamento di oggi",
     "empty": "Nessun programma ancora",
     "create": "Crea il tuo primo programma",
-    "description": "La tua prossima sessione parte da qui."
+    "description": "La tua prossima sessione parte da qui.",
+    "greetings": {
+      "morning": "Buongiorno",
+      "afternoon": "Buon pomeriggio",
+      "evening": "Buonasera"
+    }
   },
   "program": {
     "empty": "Non hai ancora un programma.",

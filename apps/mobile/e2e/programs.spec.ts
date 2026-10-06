@@ -31,10 +31,6 @@ test('manual program persists on Neon: builder, edit, activation, archive and cu
   await page
     .getByRole('button', { name: 'Crea programma', exact: true })
     .click();
-  await expect(visibleText('In arrivo')).toHaveCount(2);
-  await page
-    .getByRole('button', { name: 'Crea manualmente', exact: true })
-    .click();
   await page
     .getByRole('textbox', { name: 'Nome programma', exact: true })
     .fill('Upper');

@@ -20,15 +20,14 @@ export default function ProgramScreen() {
           <Text variant="h2">{t('empty')}</Text>
           <Button
             label={t('create')}
-            onPress={() => router.push('/program/create')}
-          />
-          <Button
-            label={t('manual')}
-            variant="secondary"
             onPress={() => router.push('/program/manual')}
           />
-          <Text>{t('aiSoon')}</Text>
-          <Text>{t('importSoon')}</Text>
+          <Text variant="caption" color={colors.secondary}>
+            {t('aiSoon')}
+          </Text>
+          <Text variant="caption" color={colors.secondary}>
+            {t('importSoon')}
+          </Text>
         </Card>
       ) : (
         <>

@@ -18,11 +18,15 @@
     "en": "English"
   },
   "home": {
-    "greeting": "Good evening",
     "today": "Today's workout",
     "empty": "No program yet",
     "create": "Create your first program",
-    "description": "Your next session starts here."
+    "description": "Your next session starts here.",
+    "greetings": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    }
   },
   "program": {
     "empty": "You don't have a program yet.",

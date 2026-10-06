@@ -11,6 +11,7 @@ export function OptionCard({
   disabled = false,
   onPress,
   icon,
+  compact = false,
 }: {
   label: string;
   description?: string;
@@ -19,6 +20,7 @@ export function OptionCard({
   disabled?: boolean;
   onPress: () => void;
   icon?: ReactNode;
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
   return (
@@ -32,6 +34,10 @@ export function OptionCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.option,
+        compact && {
+          paddingVertical: spacing.sm,
+          paddingHorizontal: spacing.md,
+        },
         {
           borderColor: selected ? colors.activeBorder : colors.border,
           backgroundColor: selected ? colors.elevated : colors.surface,
@@ -47,7 +53,7 @@ export function OptionCard({
             {description}
           </Text>
         ) : null}
-        {selected ? (
+        {selected && !compact ? (
           <Text variant="caption" color={colors.primarySoft}>
             {t('selected')}
           </Text>
