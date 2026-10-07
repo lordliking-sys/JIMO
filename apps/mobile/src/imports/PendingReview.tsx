@@ -5,7 +5,12 @@ import { View } from 'react-native';
 import { Button, Text, spacing, colors } from '@jimo/ui';
 import { useOffline } from '../db/Provider';
 import { ImportDraftRepository } from './draft';
+import { useImportFeature } from '../features/useImportFeature';
 export function PendingReview() {
+  const enabled = useImportFeature();
+  return enabled ? <AvailablePendingReview /> : null;
+}
+function AvailablePendingReview() {
   const { runtime } = useOffline(),
     owner = runtime.owner,
     router = useRouter(),

@@ -29,6 +29,7 @@ async function run() {
     await client.db.delete(users).where(eq(users.id, userId));
   };
   const app = buildApp({
+    aiImportEnabled: process.env.EXPO_PUBLIC_AI_IMPORT_ENABLED === 'true',
     database: client,
     importExtractor: new FakeWorkoutPlanExtractor(undefined, 500),
     importModel: 'fake-e2e-model',

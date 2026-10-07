@@ -33,6 +33,7 @@ const theme = {
   },
 };
 function AppNavigator() {
+  const importOptIn = process.env.EXPO_PUBLIC_AI_IMPORT_ENABLED === 'true';
   const { preferences, startupError, retry } = usePreferences();
   const session = useAuthSession(),
     account = useAccount();
@@ -77,7 +78,9 @@ function AppNavigator() {
           </Stack.Protected>
           <Stack.Protected guard={app}>
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="import" />
+            <Stack.Protected guard={importOptIn}>
+              <Stack.Screen name="import" />
+            </Stack.Protected>
             <Stack.Screen name="workout/[id]" />
             <Stack.Screen name="progress/[id]" />
             <Stack.Screen name="program/create" />

@@ -1,5 +1,7 @@
 # JIMO
 
+L’AI è disabilitata per default: JIMO si avvia e le funzioni core operano senza `OPENAI_API_KEY`. `AI_IMPORT_ENABLED=false` sul server e `EXPO_PUBLIC_AI_IMPORT_ENABLED=false` sul mobile mantengono Import e Crea con AI come **In arrivo**. Il codice Task 9 resta disponibile per una futura riattivazione esplicita; dettagli in [workout-plan-import.md](docs/workout-plan-import.md).
+
 JIMO è un’app fitness Expo per Android/iOS/web. I Task 1–8 includono shell dark IT/EN, onboarding, Program Management, Workout Engine con target/actual e snapshot, SQLite offline-first/outbox/sync Neon, calendario Home e Progressi con statistiche e record deterministici. Task 8 aggiunge autenticazione Clerk, profilo account e isolamento offline; configurazione Clerk reale e verifica su telefono richiedono le chiavi development. Task 9 aggiunge importazione foto/PDF con revisione obbligatoria e conferma atomica; la generazione con AI del Task 10 resta futura. Vedi [Import Foto/PDF](docs/workout-plan-import.md). Vedi [Progress Analytics](docs/progress-analytics.md) e [offline workout](docs/offline-sync.md).
 
 ## Stack e prerequisiti

@@ -51,15 +51,17 @@ async function main() {
     (env.NODE_ENV === 'production'
       ? []
       : ['http://localhost:8081', 'http://localhost:4173']);
-  const importExtractor = env.OPENAI_API_KEY
-    ? new OpenAIWorkoutPlanExtractor(
-        env.OPENAI_IMPORT_MODEL,
-        env.OPENAI_API_KEY,
-      )
-    : undefined;
+  const importExtractor =
+    env.AI_IMPORT_ENABLED === 'true' && env.OPENAI_API_KEY
+      ? new OpenAIWorkoutPlanExtractor(
+          env.OPENAI_IMPORT_MODEL,
+          env.OPENAI_API_KEY,
+        )
+      : undefined;
   const app = buildApp({
     database,
     currentUser,
+    aiImportEnabled: env.AI_IMPORT_ENABLED === 'true',
     importModel: env.OPENAI_IMPORT_MODEL,
     importLimits: {
       daily: env.AI_IMPORT_DAILY_LIMIT,

@@ -55,6 +55,7 @@ test(
       fake = new FakeWorkoutPlanExtractor(),
       app = buildApp({
         database: c,
+        aiImportEnabled: true,
         currentUser: async () => ({ id: a }),
         importExtractor: fake,
         importModel: 'fake-test-model',
@@ -64,6 +65,8 @@ test(
       }),
       other = buildApp({
         database: c,
+        aiImportEnabled: true,
+        importExtractor: fake,
         currentUser: async () => ({ id: b }),
         logger: false,
       });

@@ -1,4 +1,5 @@
 import { PendingReview } from '../../src/imports/PendingReview';
+import { useImportFeature } from '../../src/features/useImportFeature';
 import { useRouter } from 'expo-router';
 import ArrowLeft from 'lucide-react-native/icons/arrow-left';
 import FileInput from 'lucide-react-native/icons/file-input';
@@ -8,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { startMethods } from '@jimo/schemas';
 import { Button, Card, colors, IconButton, Screen, Text } from '@jimo/ui';
 export default function CreateProgramScreen() {
+  const importEnabled = useImportFeature();
   const { t } = useTranslation();
   const router = useRouter();
   const icons = { ai: Sparkles, import: FileInput, manual: PenLine };
@@ -29,12 +31,19 @@ export default function CreateProgramScreen() {
         const Icon = icons[method];
         return (
           <Card key={method}>
-            <Icon color={colors.primary} size={28} />
+            <Icon
+              color={
+                method === 'manual' || (method === 'import' && importEnabled)
+                  ? colors.primary
+                  : colors.secondary
+              }
+              size={28}
+            />
             <Text variant="h3">{t(`methods.${method}`)}</Text>
             <Text color={colors.secondary}>
               {t(`methodDescriptions.${method}`)}
             </Text>
-            {method !== 'ai' ? (
+            {method === 'manual' || (method === 'import' && importEnabled) ? (
               <Button
                 label={t(`methods.${method}`)}
                 onPress={() =>

@@ -5,6 +5,12 @@ const fixture = resolve(
   __dirname,
   '../../api/test/fixtures/imports/multi-day.pdf',
 );
+test.beforeEach(() => {
+  test.skip(
+    process.env.EXPO_PUBLIC_AI_IMPORT_ENABLED !== 'true',
+    'Import intentionally disabled; opt in only with the fake E2E extractor',
+  );
+});
 const visible = (page: import('@playwright/test').Page, text: string) =>
   page.getByText(text, { exact: true }).filter({ visible: true });
 async function preferences(page: import('@playwright/test').Page) {

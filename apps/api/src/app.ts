@@ -28,6 +28,7 @@ export function buildApp(
     currentUser?: CurrentUserProvider;
     corsOrigins?: string[];
     importExtractor?: WorkoutPlanExtractor;
+    aiImportEnabled?: boolean;
     importModel?: string;
     importLimits?: { daily: number; hourly: number };
     logger?: boolean;
@@ -79,8 +80,17 @@ export function buildApp(
       'x-jimo-owner',
     ],
   });
+  const importEnabled =
+    options.aiImportEnabled === true &&
+    !!options.importExtractor &&
+    !!options.database;
+  app.get('/features', async () => ({
+    workoutPlanImport: importEnabled,
+    aiProgramCreation: false as const,
+  }));
   if (options.database) {
     app.register(importRoutes, {
+      enabled: importEnabled,
       service: new WorkoutPlanImportService(
         options.database,
         options.importExtractor,

@@ -14,6 +14,7 @@ import { ApiError } from '../errors';
 export async function importRoutes(
   app: FastifyInstance,
   options: {
+    enabled: boolean;
     service: WorkoutPlanImportService;
     confirmation: ImportConfirmationService;
     currentUser: CurrentUserProvider;
@@ -35,6 +36,8 @@ export async function importRoutes(
     async (r, reply) => {
       z.object({}).strict().parse(r.query);
       const user = await options.currentUser(r);
+      if (!options.enabled)
+        throw new ApiError(404, 'FEATURE_DISABLED', 'Feature unavailable');
       if (active >= 2)
         throw new ApiError(429, 'AI_RATE_LIMITED', 'Import service busy');
       active++;
@@ -145,11 +148,13 @@ export async function importRoutes(
     { bodyLimit: 1024 * 1024 },
     async (r, reply) => {
       z.object({}).strict().parse(r.query);
-      const user = await options.currentUser(r),
-        locale = z
-          .enum(['it', 'en'])
-          .default('en')
-          .parse(r.headers['x-jimo-locale']);
+      const user = await options.currentUser(r);
+      if (!options.enabled)
+        throw new ApiError(404, 'FEATURE_DISABLED', 'Feature unavailable');
+      const locale = z
+        .enum(['it', 'en'])
+        .default('en')
+        .parse(r.headers['x-jimo-locale']);
       return reply
         .code(201)
         .send(

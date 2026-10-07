@@ -7,6 +7,7 @@ const optionalConfig = (schema: z.ZodType<string>) =>
   );
 export const envSchema = z
   .object({
+    AI_IMPORT_ENABLED: z.enum(['true', 'false']).default('false'),
     OPENAI_API_KEY: optionalConfig(z.string().min(1)),
     OPENAI_IMPORT_MODEL: z.preprocess(
       (v) => (v === '' ? undefined : v),

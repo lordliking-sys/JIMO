@@ -236,6 +236,12 @@ test('upload/confirmation require authentication; malformed uploads reject witho
   const unauth = buildApp({ database, logger: false }),
     app = buildApp({
       database,
+      aiImportEnabled: true,
+      importExtractor: {
+        extract: async () => {
+          throw new Error('Unexpected extraction during invalid upload');
+        },
+      },
       currentUser: async () => ({ id: randomUUID() }),
       loggerStream: stream,
     });

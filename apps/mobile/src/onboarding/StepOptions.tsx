@@ -12,6 +12,7 @@ import { LanguagePicker } from '../components/LanguagePicker';
 import { OptionCard } from '../components/OptionCard';
 import { Wordmark } from '../components/Wordmark';
 import type { OnboardingDraft } from './state';
+import { useImportFeature } from '../features/useImportFeature';
 export function StepOptions({
   step,
   draft,
@@ -25,6 +26,7 @@ export function StepOptions({
   finish: (method: OnboardingData['startMethod']) => void;
   saving: boolean;
 }) {
+  const importEnabled = useImportFeature();
   const { t } = useTranslation(['common', 'onboarding']);
   switch (step) {
     case 0:
@@ -103,9 +105,16 @@ export function StepOptions({
             <OptionCard
               key={method}
               label={t(`methods.${method}`)}
-              description={t(`methodDescriptions.${method}`)}
-              selected={draft.startMethod === method}
-              disabled={saving}
+              description={`${t(`methodDescriptions.${method}`)}${method === 'ai' || (method === 'import' && !importEnabled) ? ` · ${t('comingSoon')}` : ''}`}
+              selected={
+                draft.startMethod === method &&
+                (method === 'manual' || (method === 'import' && importEnabled))
+              }
+              disabled={
+                saving ||
+                method === 'ai' ||
+                (method === 'import' && !importEnabled)
+              }
               onPress={() => finish(method)}
             />
           ))}

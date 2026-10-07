@@ -24,6 +24,7 @@ export function importErrorKey(error: unknown): ImportErrorKey {
     TIMEOUT: 'timeout',
     AI_RATE_LIMITED: 'rate',
     AI_NOT_CONFIGURED: 'unavailable',
+    FEATURE_DISABLED: 'unavailable',
     AI_TEMPORARILY_UNAVAILABLE: 'unavailable',
     NETWORK_ERROR: 'network',
     TOKEN_UNAVAILABLE: 'network',

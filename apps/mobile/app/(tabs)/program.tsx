@@ -1,4 +1,5 @@
 import { PendingReview } from '../../src/imports/PendingReview';
+import { useImportFeature } from '../../src/features/useImportFeature';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Screen, Text, Button, Card, colors, Divider } from '@jimo/ui';
@@ -9,6 +10,7 @@ import ListChecks from 'lucide-react-native/icons/list-checks';
 import { ScreenHeader } from '../../src/components/ScreenHeader';
 import { EmptyState } from '../../src/components/EmptyState';
 export default function ProgramScreen() {
+  const importEnabled = useImportFeature();
   const router = useRouter(),
     { t } = useTranslation('programs'),
     query = usePrograms();
@@ -34,11 +36,17 @@ export default function ProgramScreen() {
           <Text variant="caption" color={colors.secondary}>
             {t('aiSoon')}
           </Text>
-          <Button
-            variant="text"
-            label={t('import')}
-            onPress={() => router.push('/import')}
-          />
+          {importEnabled ? (
+            <Button
+              variant="text"
+              label={t('import')}
+              onPress={() => router.push('/import')}
+            />
+          ) : (
+            <Text variant="caption" color={colors.secondary}>
+              {t('importSoon')}
+            </Text>
+          )}
         </EmptyState>
       ) : (
         <>

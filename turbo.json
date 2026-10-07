@@ -7,14 +7,19 @@
       "env": [
         "EXPO_PUBLIC_API_URL",
         "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY",
-        "EXPO_PUBLIC_AUTH_TEST"
+        "EXPO_PUBLIC_AUTH_TEST",
+        "EXPO_PUBLIC_AI_IMPORT_ENABLED"
       ]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
-      "env": ["EXPO_PUBLIC_API_URL", "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY"]
+      "env": [
+        "EXPO_PUBLIC_API_URL",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_AI_IMPORT_ENABLED"
+      ]
     },
     "lint": {
       "dependsOn": ["^build"]
@@ -46,6 +51,7 @@
         "CLERK_ISSUER_URL",
         "CLERK_AUTHORIZED_PARTIES",
         "OPENAI_IMPORT_MODEL",
+        "AI_IMPORT_ENABLED",
         "AI_IMPORT_DAILY_LIMIT",
         "AI_IMPORT_HOURLY_LIMIT"
       ],

@@ -103,9 +103,18 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
   await expect(
     page.getByText('Crea con AI · In arrivo', { exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Importa scheda', exact: true }),
-  ).toBeVisible();
+  if (process.env.EXPO_PUBLIC_AI_IMPORT_ENABLED === 'true')
+    await expect(
+      page.getByRole('button', { name: 'Importa scheda', exact: true }),
+    ).toBeVisible();
+  else {
+    await expect(
+      page.getByRole('button', { name: 'Importa scheda', exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByText('Importa scheda · In arrivo', { exact: true }),
+    ).toBeVisible();
+  }
   await page.screenshot({
     path: testInfo.outputPath('program.png'),
     fullPage: true,

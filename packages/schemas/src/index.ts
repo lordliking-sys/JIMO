@@ -18,3 +18,4 @@ export * from './calendar';
 export * from './profile';
 
 export * from './imports';
+export * from './features';

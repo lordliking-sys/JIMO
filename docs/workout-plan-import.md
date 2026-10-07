@@ -2,6 +2,25 @@
 
 Task 9 aggiunge l’importazione di una scheda esistente. La generazione di un nuovo programma con AI resta **In arrivo**: Task 10 non è implementato.
 
+## Stato attuale: AI disabilitata per default
+
+JIMO funziona senza OPENAI_API_KEY: avvio API, login, Home, Programma manuale, Workout, Progressi, health e ready non dipendono dall’AI. La presenza di una chiave non abilita automaticamente alcuna funzione.
+
+```dotenv
+# API, disabilitato anche quando una chiave esiste
+AI_IMPORT_ENABLED=false
+# Mobile, booleano pubblico senza credenziali
+EXPO_PUBLIC_AI_IMPORT_ENABLED=false
+```
+
+L’import richiede contemporaneamente AI_IMPORT_ENABLED=true, una chiave OpenAI backend e EXPO_PUBLIC_AI_IMPORT_ENABLED=true. GET /features restituisce esclusivamente due booleani di disponibilità: workoutPlanImport e aiProgramCreation (quest’ultimo sempre false). Non interroga OpenAI e non restituisce chiavi, modello o configurazione provider. Senza flag mobile non viene nemmeno richiesta questa configurazione; con opt-in mobile ma server senza chiave/flag, errore di rete o risposta non valida, l’import resta disabilitato.
+
+Nell’empty state Programma e in Crea programma, Import e Crea con AI sono secondari e non cliccabili, con In arrivo / Coming soon. Anche l’onboarding non consente di scegliere i metodi disabilitati. Creazione manuale, allenamenti e progressi restano disponibili. Deep link import/review protetti: nessun picker, analisi o conferma può essere aperto finché l’import è spento. Le review già salvate restano nel database locale, nascoste e non cancellate.
+
+Sul server upload e conferma autenticati restituiscono FEATURE_DISABLED quando l’import non è disponibile, prima di usare extractor, usage o servizi di conferma. Il mobile usa messaggi generici localizzati, senza errori tecnici OpenAI. ai_usage, extractor, schema, matching, review e migration Task 9 sono mantenuti intatti: nessuna migration è necessaria per accendere/spegnere i flag.
+
+Per riattivare in futuro solo l’import: configurare chiave e flag true nel backend, riavviare l’API e controllare /features; impostare il solo booleano pubblico true sul mobile e riavviare Expo con --clear (o ricostruire la build). Crea con AI resta In arrivo: il flag import non abilita Task 10. Anche lo smoke reale richiede il flag server true; non viene eseguito automaticamente da startup, login, schermate core o pnpm test.
+
 ## Flusso e confine di salvataggio
 
 `Foto / immagini / PDF → POST autenticato multipart → estrazione OpenAI → Zod → matching deterministico → revisione SQLite → conferma esplicita → transazione Neon → Program Builder`.
@@ -20,6 +39,7 @@ Configurazione **solo API**:
 
 ```dotenv
 OPENAI_API_KEY=
+AI_IMPORT_ENABLED=false
 OPENAI_IMPORT_MODEL=gpt-5-mini
 AI_IMPORT_DAILY_LIMIT=10
 AI_IMPORT_HOURLY_LIMIT=3
@@ -116,21 +136,23 @@ pnpm db:check
 E2E browser con upload multipart reale, provider fake e database development:
 
 ```bash
-EXPO_PUBLIC_AUTH_TEST=true EXPO_PUBLIC_API_URL=http://localhost:4301 pnpm --filter @jimo/mobile exec expo export --platform web --clear
-pnpm --filter @jimo/mobile exec playwright test imports.spec.ts
+EXPO_PUBLIC_AI_IMPORT_ENABLED=true EXPO_PUBLIC_AUTH_TEST=true EXPO_PUBLIC_API_URL=http://localhost:4301 pnpm --filter @jimo/mobile exec expo export --platform web --clear
+EXPO_PUBLIC_AI_IMPORT_ENABLED=true pnpm --filter @jimo/mobile exec playwright test imports.spec.ts
 ```
 
 L’harness E2E richiede NODE_ENV=test, guard development e bind loopback; non abilita bypass nel server runtime. Crea un utente sintetico isolato e lo rimuove a fine prova. Il flag E2E è solo per export di test: **rimuoverlo prima di avviare o costruire l’app da usare con Clerk**.
 
-Un piccolo smoke reale, esplicito e separato dalla suite:
+Uno smoke reale, esplicito e separato dalla suite (due chiamate di estrazione, una per fixture, senza retry automatici):
 
 ```bash
 pnpm --filter @jimo/api test:import:real
 ```
 
-Con chiave presente invia una sola fixture JPEG, valida output strutturato e rimuove l’utente sintetico development; non crea programmi. Senza chiave indica test pendente e non chiama OpenAI. Non logga documenti/prompt/secret.
+Con chiave presente controlla prima la disponibilità del modello con una richiesta metadata, poi genera in memoria due piccoli PDF sintetici: una scheda PUSH/PULL con tre esercizi e una scheda con kg/RPE volutamente mancanti. Confronta output e prescrizioni attese, valida con Zod anche l’output provider prima delle normalizzazioni del gateway e verifica ai_usage, assenza di programmi/custom/conferme e assenza di colonne documento/prompt. Non chiama la conferma e non scrive fixture su disco. Rimuove infine l’utente sintetico development con i suoi record usage. Senza chiave indica test pendente e non chiama OpenAI. Non logga documenti/prompt/secret, neppure negli errori. `--missing-only` esegue soltanto la seconda fixture, senza ripetere la prima.
 
 ## Test su telefono reale con Expo Go
+
+Questa checklist import vale soltanto dopo riattivazione esplicita dei flag server/mobile. Per l’uso core attuale lasciarli false: OPENAI_API_KEY non serve.
 
 Configurare sulla macchina che esegue API: DATABASE_URL del solo development, NEON_DEVELOPMENT_BRANCH_ID confermato, Clerk development completo e OPENAI_API_KEY. CLERK_ISSUER_URL deve essere l’origine HTTPS della propria istanza Clerk, **senza** `/.well-known/jwks.json`; CLERK_AUTHORIZED_PARTIES contiene origini esplicite consentite. ALLOW_DEV_AUTH=false e nessun DEV_USER_ID nel percorso reale. Sul mobile bastano la publishable key Clerk e l’URL API pubblico/LAN.
 
@@ -163,7 +185,34 @@ Il mobile resta su Expo SDK 57: i pacchetti esistenti sono allineati alle patch 
 - Runtime con configurazione Clerk reale, senza DEV_USER_ID: health/ready 200; upload/confirm non autenticati 401.
 - `expo install --check`: passato dopo allineamento delle patch compatibili SDK 57.
 - Configurazione nativa dei permessi verificata: camera Android dichiarata dal picker e non bloccata, microfono esplicitamente escluso, descrizioni camera/galleria iOS e risorse IT/EN presenti. Questa verifica della configurazione non sostituisce la prova dei permessi su dispositivo fisico.
-- Smoke OpenAI reale: **pendente**, OPENAI_API_KEY assente; nessuna chiamata provider reale eseguita. Script pronto per un unico test sintetico quando la chiave sarà configurata.
+- Smoke OpenAI alla verifica iniziale: **pendente**, OPENAI_API_KEY allora assente. Il tentativo successivo alla configurazione è riportato sotto.
 - Il telefono fisico, i suoi permessi/camera e la qualità dell’estrazione reale richiedono la checklist manuale sopra. I test fake non misurano OCR/accuratezza del modello.
 
 Production non è stata contattata. Task 10 non è iniziato. Le modifiche del visual cleanup già presenti sono state conservate.
+
+## Verifica reale dopo configurazione della chiave — 7 ottobre 2026
+
+- OPENAI_API_KEY presente nel backend, OPENAI_IMPORT_MODEL non impostato: default effettivo `gpt-5-mini`. SDK Responses inizializzabile e lookup del modello riuscito. Nessun cambio modello o architettura.
+- Effettuate esattamente **due richieste Responses**, una per la fixture completa e una per la fixture con kg/RPE mancanti. Entrambe rifiutate con **HTTP 429**, senza retry. Il codice SDK della seconda risposta non corrispondeva ai codici specifici riconosciuti dalla diagnostica; non è possibile attribuire con certezza il rifiuto a credito/quota esauriti oppure a un rate limit temporaneo. Il messaggio raw non viene mostrato.
+- Output strutturato, validazione Zod dell’output reale, accuratezza della scheda e comportamento no-invention: **non verificabili**, perché non è stato restituito output. Questo esito non equivale a un PASS di estrazione.
+- Sul secondo tentativo ai_usage verificato: utente sintetico corretto, feature workout_plan_import, modello gpt-5-mini, stato failed; input_tokens, output_tokens ed estimated_cost null perché il provider non li ha restituiti. Nessun costo monetario è attestabile dalla risposta. Verificate anche le sole colonne metadata, senza documento/prompt. I dati sintetici sono stati rimossi al termine.
+- Programmi, esercizi custom e ledger di conferma per l’utente smoke: sempre zero. Fixture solo in memoria, buffer azzerati dopo utilizzo, nessun file persistente o programma creato durante le chiamate reali.
+- Ripetuti i nove test di integrazione import su Neon development: tutti passati. Conferma atomica, doppio tap concorrente, idempotenza, rollback e stato draft verificati con extractor fake e database reale. Review, camera/galleria e rimozione delle copie temporanee sul telefono restano controlli manuali.
+- Controlli finali dopo l’aggiornamento dello smoke: pnpm lint, pnpm typecheck e pnpm test passati (102 unit test). Scansione credenziali ripetuta su 460 file, inclusi output API/mobile: nessuna credenziale trovata. Nessuna variabile pubblica OpenAI configurata.
+- Nessuna nuova migration eseguita; production non contattata; Task 10 non iniziato. Nessun bug funzionale dimostrato dalle risposte 429. Modificati soltanto lo smoke riproducibile e questa documentazione.
+
+Prima di ripetere lo smoke o il test import su telefono, controllare nel progetto OpenAI associato alla chiave billing/crediti, limiti del progetto e rate limit del modello. Non sostituire il modello per tentare di aggirare un problema di quota. Lo script ora classifica i messaggi SDK in categorie sicure per distinguere, quando il provider lo consente, quota account e limite temporaneo, senza stampare il messaggio originale.
+
+Finché il provider risponde 429, il percorso reale non può arrivare alla review: la checklist camera/galleria/PDF → conferma va completata dopo aver risolto il limite. Se l’API viene avviata sul PC Windows anziché nel cloud, configurare anche lì la chiave OpenAI nel solo terminale backend; le variabili cloud non vengono copiate nello ZIP né propagate al mobile. Non aggiungerla a variabili EXPO_PUBLIC.
+
+## Verifica della modalità AI spenta — 7 ottobre 2026
+
+- Runtime reale con Clerk development e Neon development, OPENAI_API_KEY rimossa dal processo: avvio riuscito sia con AI_IMPORT_ENABLED=false sia con true. Health e ready 200, /features 200 con entrambi i booleani false, upload/conferma senza autenticazione 401.
+- Test API: flag assente/false anche con chiave presente; flag true senza extractor; upload e conferma autenticati disabilitati prima di usare database/extractor; configurazione pubblica composta soltanto da booleani, senza analisi. Test mobile: nessuna richiesta con flag assente/false, disponibilità server necessaria anche con flag true, metadata senza token, rete/schema errati trattati come funzione spenta.
+- pnpm lint, pnpm typecheck e pnpm test passati: 108 test unitari (68 mobile, 21 API, 14 schemas, 5 database).
+- Suite API integration development: 56 test passati in esecuzione sequenziale. La prima esecuzione concorrente aveva restituito 500 in una creazione giorno; il problema non si è riprodotto né nel test isolato né nell’intera suite sequenziale. Nessuna modifica ai servizi core o al database.
+- Suite browser in modalità AI spenta: 20 passati e 2 import intenzionalmente saltati. Verificati login, Home, onboarding manuale, builder, workout/offline, progressi, IT/EN e blocco dei deep link import/review. Il test della modalità spenta verifica anche assenza di richieste import/provider/configurazione AI dal mobile.
+- Corretto un problema emerso nella prova di riattivazione: al reload della review il guard non deve espellere l’utente mentre arriva la disponibilità del server. Solo il layout import attende la configurazione; le schermate core non attendono questa richiesta. Il fetch pubblico non dipende dai token o dalla generazione dell’account, verificato anche con un cambio sessione durante la richiesta.
+- Dopo la correzione, due E2E del flow riattivato passati con extractor simulato e chiave OpenAI rimossa dal processo: upload, review persistente/reload, modifica, custom esplicito, conferma draft ed errore sicuro/retry. Nessuna chiamata OpenAI.
+- pnpm build passato con chiave OpenAI rimossa, entrambi i flag AI false e auth di test false: API e export Android/iOS/web completati. pnpm format:check passato. Credential scan degli artefatti finali e sorgenti: 466 file, nessuna credenziale trovata; nessuna chiave OpenAI nei file ambiente mobile.
+- Nessuna chiamata OpenAI eseguita in questo intervento. Nessuna migration o operazione su production.
