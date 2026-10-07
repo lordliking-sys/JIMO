@@ -93,5 +93,22 @@
     "saveFailed": "Unable to save the set on this device.",
     "storageUnavailable": "Unable to open device data. No data has been deleted."
   },
-  "repsShort": "reps"
+  "repsShort": "reps",
+  "visual": {
+    "exercisePlaceholder": "Temporary exercise image",
+    "previewOnly": "Visual preview · no workout is recorded",
+    "emomPreview": "EMOM preview",
+    "pyramidPreview": "Pyramid preview",
+    "emomTitle": "Pull-ups · EMOM",
+    "strength": "Strength",
+    "benchPress": "Bench press",
+    "soundPreview": "sound alert at -5s · preview",
+    "previewInfo": "Preview information",
+    "previewInfoText": "Timer and sound alert are visual examples. This preview does not modify your workout.",
+    "pyramidProgression": "Pyramid progression",
+    "lastCompleted": "Last completed set",
+    "nextSeries": "Next · Set {{current}}/{{total}}",
+    "skip": "Skip",
+    "previews": "Workout previews"
+  }
 }

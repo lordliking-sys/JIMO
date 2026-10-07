@@ -1,8 +1,9 @@
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { WorkoutExercise } from '@jimo/schemas';
-import { colors, spacing, Text } from '@jimo/ui';
-import { NumberControl } from '../programs/NumberControl';
+import { NumberControl } from './visual/NumberControl';
+import { InkText } from './visual/Surface';
+import { ink } from './visual/theme';
 import { decimalDisplay, stepDecimal, stepInteger } from '../programs/helpers';
 import type { ActualDraft } from './helpers';
 export function ActualEditor({
@@ -59,7 +60,7 @@ export function ActualEditor({
     },
   });
   return (
-    <View style={{ gap: spacing.lg }}>
+    <View style={{ gap: 6 }}>
       {exercise.trackingModeSnapshot === 'reps' ? (
         <NumberControl
           label={t('reps')}
@@ -94,9 +95,9 @@ export function ActualEditor({
           keyboardType="decimal-pad"
         />
       ) : (
-        <Text variant="caption" color={colors.secondary}>
+        <InkText style={{ color: ink.secondary, fontSize: 18 }}>
           {t('bodyweight')}
-        </Text>
+        </InkText>
       )}
       <NumberControl
         label={t('rpe')}
@@ -123,7 +124,6 @@ export function ActualEditor({
         min={1}
         max={10}
         keyboardType="decimal-pad"
-        presetsFirst
         presets={[
           { value: '', label: t('noneRpe') },
           ...['7', '7.5', '8', '8.5', '9', '9.5', '10'].map((value) => ({

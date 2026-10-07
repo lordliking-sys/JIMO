@@ -27,6 +27,7 @@ test('workout actual draft, retry, rest resume, correction, all modes and histor
   await page
     .getByRole('button', { name: 'Aumenta Carico', exact: true })
     .click();
+  await manualField(page, 'RPE');
   await page.getByRole('button', { name: 'RPE 9', exact: true }).click();
   fixture.fail();
   await page
@@ -78,17 +79,19 @@ test('workout actual draft, retry, rest resume, correction, all modes and histor
   await page
     .getByRole('button', { name: 'Salta recupero', exact: true })
     .click();
-  await expect(page.getByText('Serie 2 di 2', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Serie 2 di 2', { exact: true })).toBeVisible();
   await expect(valueButton(page, 'Carico')).toHaveText('80 kg');
   await page.reload();
-  await expect(page.getByText('Serie 2 di 2', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Serie 2 di 2', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Salta serie', exact: true }).click();
   await expect(
     page.getByText('Esercizio completato', { exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Continua', exact: true }).click();
   await expect(valueButton(page, 'Zavorra')).toHaveText('+20 kg');
-  await expect(page.getByText('+20 kg', { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel('8 reps · +20 kg · RPE 8', { exact: true }),
+  ).toBeVisible();
   for (const width of [320, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     expect(
@@ -111,6 +114,7 @@ test('workout actual draft, retry, rest resume, correction, all modes and histor
   await expect(valueButton(page, 'Carico')).toHaveCount(0);
   await expect(valueButton(page, 'Zavorra')).toHaveCount(0);
   await expect(valueButton(page, 'Assistenza')).toHaveCount(0);
+  await manualField(page, 'RPE');
   await page.getByRole('button', { name: 'Nessun RPE', exact: true }).click();
   await page
     .getByRole('button', { name: '✓ Completa serie', exact: true })
@@ -239,7 +243,7 @@ test('English weighted range target, explicit manual decimal and visible keyboar
     ),
   ).toHaveCount(0);
   await expect(
-    page.getByText('6–10 reps · +20 kg · RPE 8', { exact: true }).first(),
+    page.getByLabel('6–10 reps · +20 kg · RPE 8', { exact: true }).first(),
   ).toBeVisible();
   await expect(page.getByRole('textbox')).toHaveCount(0);
   await page.setViewportSize({ width: 320, height: 430 });
@@ -266,6 +270,7 @@ test('English weighted range target, explicit manual decimal and visible keyboar
     .getByRole('button', { name: 'Confirm Added weight', exact: true })
     .click();
   await page.setViewportSize({ width: 390, height: 844 });
+  await manualField(page, 'RPE', 'en');
   await page.getByRole('button', { name: 'No RPE', exact: true }).click();
   await footer.click();
   await expect(

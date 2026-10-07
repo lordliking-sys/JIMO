@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { workoutFixture } from './workout-fixture';
-import { valueButton } from './helpers';
+import { manualField, valueButton } from './helpers';
 /** Real Expo SQLite web/OPFS; only the API transport is intercepted. We leave
  * bundled assets reachable during reload, unlike a native app's bundled JS. */
 test('SQLite web: cached offline start, CHECK, restart, correction, completion and reconnect sync', async ({
@@ -25,7 +25,7 @@ test('SQLite web: cached offline start, CHECK, restart, correction, completion a
     .getByRole('button', { name: 'Inizia allenamento', exact: true })
     .first()
     .click();
-  await expect(page.getByText('Serie 1 di 2', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Serie 1 di 2', { exact: true })).toBeVisible();
   const url = page.url();
   await page
     .getByRole('button', { name: 'Diminuisci Ripetizioni', exact: true })
@@ -33,6 +33,7 @@ test('SQLite web: cached offline start, CHECK, restart, correction, completion a
   await page
     .getByRole('button', { name: 'Aumenta Carico', exact: true })
     .click();
+  await manualField(page, 'RPE');
   await page.getByRole('button', { name: 'RPE 9', exact: true }).click();
   await page
     .getByRole('button', { name: '✓ Completa serie', exact: true })
@@ -55,7 +56,7 @@ test('SQLite web: cached offline start, CHECK, restart, correction, completion a
   await page
     .getByRole('button', { name: 'Salta recupero', exact: true })
     .click();
-  await expect(page.getByText('Serie 2 di 2', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Serie 2 di 2', { exact: true })).toBeVisible();
   await page
     .getByRole('button', { name: '✓ Completa serie', exact: true })
     .click();

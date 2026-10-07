@@ -93,5 +93,22 @@
     "saveFailed": "Impossibile salvare la serie sul dispositivo.",
     "storageUnavailable": "Impossibile aprire i dati sul dispositivo. Nessun dato è stato cancellato."
   },
-  "repsShort": "reps"
+  "repsShort": "reps",
+  "visual": {
+    "exercisePlaceholder": "Immagine esercizio provvisoria",
+    "previewOnly": "Anteprima visiva · nessun allenamento viene registrato",
+    "emomPreview": "Anteprima EMOM",
+    "pyramidPreview": "Anteprima piramidale",
+    "emomTitle": "Trazioni · EMOM",
+    "strength": "Forza",
+    "benchPress": "Panca piana",
+    "soundPreview": "avviso sonoro a -5s · anteprima",
+    "previewInfo": "Informazioni anteprima",
+    "previewInfoText": "Timer e avviso sonoro sono dimostrativi. Questa anteprima non modifica l’allenamento.",
+    "pyramidProgression": "Progressione piramide",
+    "lastCompleted": "Ultima serie completata",
+    "nextSeries": "Prossima · Serie {{current}}/{{total}}",
+    "skip": "Salta",
+    "previews": "Anteprime Workout"
+  }
 }
