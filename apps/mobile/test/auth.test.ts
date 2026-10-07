@@ -6,6 +6,7 @@ import { createApiClient, ApiClientError } from '../src/api/client';
 import {
   authDestination,
   authErrorKey,
+  authErrorParams,
   initialProfilePatch,
   logoutWarning,
   isTestAuth,
@@ -356,4 +357,54 @@ test('account change during sync releases A pending work without failing it or p
     engine.stop();
     c.sqlite.close();
   }
+});
+
+test('Clerk password errors expose structured requirements without raw messages', () => {
+  const error = (code: string, meta = {}) => ({
+    errors: [{ code, meta, longMessage: 'never expose provider contents' }],
+  });
+  assert.equal(
+    authErrorKey(error('form_password_length_too_short', { min_length: 12 })),
+    'errors.passwordMin',
+  );
+  assert.deepEqual(
+    authErrorParams(
+      error('form_password_length_too_short', { min_length: 12 }),
+    ),
+    { min: 12 },
+  );
+  assert.equal(
+    authErrorKey(error('form_password_length_too_short')),
+    'errors.passwordLength',
+  );
+  assert.equal(
+    authErrorKey(error('form_password_not_strong_enough')),
+    'errors.passwordCommon',
+  );
+  assert.equal(
+    authErrorKey(error('form_password_pwned')),
+    'errors.passwordCompromised',
+  );
+  assert.equal(
+    authErrorKey(
+      error('form_password_validation_failed', {
+        requirements: { require_numbers: true },
+      }),
+    ),
+    'errors.passwordNumber',
+  );
+  assert.equal(
+    authErrorKey(
+      error('form_password_validation_failed', {
+        requirements: { require_special_char: true },
+      }),
+    ),
+    'errors.passwordSpecial',
+  );
+  assert.deepEqual(
+    authErrorParams(
+      error('form_password_length_too_short', { min_length: 'raw-secret' }),
+    ),
+    {},
+  );
 });

@@ -67,7 +67,7 @@ export default function ExerciseProgressScreen() {
     <Screen contentStyle={{ padding: spacing.lg, gap: spacing.xl }}>
       <Button
         label={t('back')}
-        variant="secondary"
+        variant="text"
         onPress={() =>
           router.canGoBack() ? router.back() : router.replace('/progress')
         }
@@ -148,7 +148,11 @@ export default function ExerciseProgressScreen() {
               </View>
             </View>
           ) : null}
-          <SectionTitle>{t(`modes.${mode.loadMode}`)}</SectionTitle>
+          {detail.modes.length === 1 ? (
+            <Text variant="caption" color={colors.secondary}>
+              {t(`modes.${mode.loadMode}`)}
+            </Text>
+          ) : null}
           <View style={{ gap: spacing.md }}>
             <Text variant="caption" color={colors.secondary}>
               {t('pr')}

@@ -1,6 +1,7 @@
+import { View } from 'react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, Button, Card, colors } from '@jimo/ui';
+import { Text, Button, colors, spacing } from '@jimo/ui';
 import {
   programInputSchema,
   type ProgramInput,
@@ -58,7 +59,14 @@ export function ProgramForm({
         title={t(initial ? 'editProgram' : 'manualTitle')}
         subtitle={t('manualSubtitle')}
       />
-      <Card>
+      <View
+        style={{
+          gap: spacing.lg,
+          borderTopWidth: 1,
+          borderColor: colors.border,
+          paddingTop: spacing.lg,
+        }}
+      >
         <Text variant="label" color={colors.secondary}>
           {t('programDetails')}
         </Text>
@@ -78,8 +86,15 @@ export function ProgramForm({
           maxLength={2000}
           placeholder={t('descriptionPlaceholder')}
         />
-      </Card>
-      <Card>
+      </View>
+      <View
+        style={{
+          gap: spacing.lg,
+          borderTopWidth: 1,
+          borderColor: colors.border,
+          paddingTop: spacing.lg,
+        }}
+      >
         <Text variant="label" color={colors.secondary}>
           {t('schedule')}
         </Text>
@@ -108,7 +123,7 @@ export function ProgramForm({
           ]}
         />
         <DateField value={starts} onChange={setStarts} />
-      </Card>
+      </View>
       {error ? <ErrorNotice error={error} /> : null}
     </FormScreen>
   );

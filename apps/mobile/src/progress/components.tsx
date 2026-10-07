@@ -9,6 +9,7 @@ import {
   type ProgressRecord,
 } from '@jimo/schemas';
 import { formatNumber, recordText } from './helpers';
+import { SegmentedControl } from '../components/SegmentedControl';
 export function RangeSelector({
   value,
   onChange,
@@ -18,41 +19,16 @@ export function RangeSelector({
 }) {
   const { t } = useTranslation('progress');
   return (
-    <ScrollView
-      horizontal
-      accessibilityRole="radiogroup"
-      accessibilityLabel={t('period')}
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: spacing.sm }}
-    >
-      {progressRanges.map((range) => (
-        <Pressable
-          key={range}
-          accessibilityRole="radio"
-          accessibilityLabel={t(`ranges.${range}`)}
-          accessibilityState={{ checked: value === range }}
-          aria-checked={value === range}
-          onPress={() => onChange(range)}
-          style={{
-            minHeight: sizes.touch,
-            paddingHorizontal: spacing.md,
-            justifyContent: 'center',
-            borderRadius: radius.full,
-            borderWidth: 1,
-            borderColor: value === range ? colors.activeBorder : colors.border,
-            backgroundColor:
-              value === range ? colors.surface : colors.background,
-          }}
-        >
-          <Text
-            variant="label"
-            color={value === range ? colors.primarySoft : colors.secondary}
-          >
-            {t(`ranges.${range}`)}
-          </Text>
-        </Pressable>
-      ))}
-    </ScrollView>
+    <SegmentedControl
+      label={t('period')}
+      value={value}
+      onChange={onChange}
+      options={progressRanges.map((range) => ({
+        value: range,
+        label: t(`rangesCompact.${range}`),
+        accessibilityLabel: t(`ranges.${range}`),
+      }))}
+    />
   );
 }
 export function SectionTitle({ children }: { children: string }) {

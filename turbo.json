@@ -44,9 +44,17 @@
         "API_ALLOWED_ORIGINS",
         "ALLOW_DEV_AUTH",
         "CLERK_ISSUER_URL",
-        "CLERK_AUTHORIZED_PARTIES"
+        "CLERK_AUTHORIZED_PARTIES",
+        "OPENAI_IMPORT_MODEL",
+        "AI_IMPORT_DAILY_LIMIT",
+        "AI_IMPORT_HOURLY_LIMIT"
       ],
-      "passThroughEnv": ["DATABASE_URL", "CLERK_SECRET_KEY", "CLERK_JWT_KEY"]
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "CLERK_SECRET_KEY",
+        "CLERK_JWT_KEY",
+        "OPENAI_API_KEY"
+      ]
     }
   },
   "globalPassThroughEnv": [

@@ -19,6 +19,21 @@ import {
 import { ApiClientError } from '../api/client';
 import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import EllipsisVertical from 'lucide-react-native/icons/ellipsis-vertical';
+/** Form sections use hierarchy and dividers instead of nested surfaces. */
+export function FormSection({ children }: { children: ReactNode }) {
+  return (
+    <View
+      style={{
+        gap: spacing.lg,
+        paddingTop: spacing.lg,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: colors.border,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
 export function FormScreen({
   children,
   footer,
@@ -84,16 +99,48 @@ export function FocusInput(props: TextInputProps) {
         styles.input,
         props.multiline && { minHeight: 96, textAlignVertical: 'top' },
         props.style,
-        focused && { borderColor: colors.primary },
+        focused && { borderColor: colors.primary, borderWidth: 1 },
       ]}
     />
   );
 }
-export function Field({ label, ...props }: TextInputProps & { label: string }) {
+export function Field({
+  label,
+  accessory,
+  ...props
+}: TextInputProps & { label: string; accessory?: ReactNode }) {
   return (
     <View style={{ gap: spacing.sm }}>
       <Text variant="label">{label}</Text>
-      <FocusInput {...props} accessibilityLabel={label} />
+      {accessory ? (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: colors.elevated,
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: radius.medium,
+          }}
+        >
+          <FocusInput
+            {...props}
+            accessibilityLabel={label}
+            style={[
+              {
+                flex: 1,
+                minWidth: 0,
+                borderWidth: 0,
+                backgroundColor: 'transparent',
+              },
+              props.style,
+            ]}
+          />
+          {accessory}
+        </View>
+      ) : (
+        <FocusInput {...props} accessibilityLabel={label} />
+      )}
     </View>
   );
 }
@@ -110,7 +157,7 @@ export function Back({ compact = false }: { compact?: boolean }) {
         onPress={goBack}
       />
     );
-  return <Button variant="secondary" label={t('back')} onPress={goBack} />;
+  return <Button variant="text" label={t('back')} onPress={goBack} />;
 }
 export function FormHeader({
   title,
@@ -294,7 +341,8 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.medium,
     minHeight: sizes.touch,
-    padding: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
     fontFamily: 'Inter_400Regular',
     fontSize: 16,
   },

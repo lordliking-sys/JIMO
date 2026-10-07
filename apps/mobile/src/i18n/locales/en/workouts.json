@@ -92,5 +92,6 @@
     "connect": "Connect at least once to synchronize your program.",
     "saveFailed": "Unable to save the set on this device.",
     "storageUnavailable": "Unable to open device data. No data has been deleted."
-  }
+  },
+  "repsShort": "reps"
 }

@@ -2,7 +2,7 @@ import { StartWorkout } from '../../../src/workouts/components';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Screen, Text, Button, Card, colors, spacing, radius } from '@jimo/ui';
+import { Screen, Text, Button, colors, spacing, radius } from '@jimo/ui';
 import {
   useProgram,
   useProgramMutation,
@@ -79,8 +79,14 @@ export default function Builder() {
             ]}
           />
         </View>
-        <View style={{ gap: spacing.sm }}>
-          <Text variant="h1" accessibilityRole="header">
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.sm,
+          }}
+        >
+          <Text style={{ flex: 1 }} variant="h1" accessibilityRole="header">
             {program.name}
           </Text>
           <View style={styles.badge}>
@@ -101,40 +107,27 @@ export default function Builder() {
             {program.description}
           </Text>
         ) : null}
-        <View style={styles.metadata}>
-          <View style={styles.meta}>
-            <Text variant="caption" color={colors.secondary}>
-              {t('durationLabel')}
-            </Text>
-            <Text variant="bodyMedium">
-              {program.durationWeeks
-                ? t('weekCount', { count: program.durationWeeks })
-                : t('unspecified')}
-            </Text>
-          </View>
-          <View style={styles.meta}>
-            <Text variant="caption" color={colors.secondary}>
-              {t('startLabel')}
-            </Text>
-            <Text variant="bodyMedium">
-              {program.startsOn
-                ? calendarDateLabel(program.startsOn, locale)
-                : t('unspecified')}
-            </Text>
-          </View>
-        </View>
+        <Text variant="caption" color={colors.secondary}>
+          {program.durationWeeks
+            ? t('weekCount', { count: program.durationWeeks })
+            : t('unspecified')}
+          {' · '}
+          {program.startsOn
+            ? calendarDateLabel(program.startsOn, locale)
+            : t('unspecified')}
+        </Text>
       </View>
       {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
       {!program.days.length ? (
-        <Card style={styles.day}>
+        <View style={styles.day}>
           <Text variant="h3">{t('noDays')}</Text>
           <Text variant="caption" color={colors.secondary}>
             {t('noDaysHint')}
           </Text>
-        </Card>
+        </View>
       ) : null}
       {program.days.map((day, dayIndex) => (
-        <Card key={day.id} style={styles.day}>
+        <View key={day.id} style={styles.day}>
           <View style={styles.row}>
             <View style={{ flex: 1, gap: spacing.xs }}>
               <Text
@@ -302,11 +295,15 @@ export default function Builder() {
             </Text>
           ) : null}
           {program.status === 'active' ? (
-            <StartWorkout dayId={day.id} disabled={!day.exercises.length} />
+            <StartWorkout
+              dayId={day.id}
+              secondary={dayIndex > 0}
+              disabled={!day.exercises.length}
+            />
           ) : null}
           <Button
             label={t('addExercise')}
-            variant="secondary"
+            variant="text"
             disabled={mutation.isPending}
             onPress={() =>
               router.push({
@@ -315,11 +312,11 @@ export default function Builder() {
               })
             }
           />
-        </Card>
+        </View>
       ))}
       <Button
         label={t('addDay')}
-        variant="secondary"
+        variant="text"
         disabled={mutation.isPending}
         onPress={() =>
           router.push({ pathname: '/program/[id]/day', params: { id } })
@@ -354,7 +351,12 @@ const styles = StyleSheet.create({
   },
   metadata: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg },
   meta: { flex: 1, minWidth: 100, gap: spacing.xs },
-  day: { padding: spacing.lg, gap: spacing.md },
+  day: {
+    paddingVertical: spacing.lg,
+    gap: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
   exercise: {
     flexDirection: 'row',
     alignItems: 'flex-start',

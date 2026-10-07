@@ -237,6 +237,9 @@ test('English weighted range target, explicit manual decimal and visible keyboar
       'Range target: the initial value is the prescribed minimum.',
       { exact: true },
     ),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText('6–10 reps · +20 kg · RPE 8', { exact: true }).first(),
   ).toBeVisible();
   await expect(page.getByRole('textbox')).toHaveCount(0);
   await page.setViewportSize({ width: 320, height: 430 });

@@ -43,6 +43,8 @@ export function createApiClient(
     options.signal?.addEventListener('abort', cancel, { once: true });
     if (options.signal?.aborted) cancel();
     try {
+      const multipart =
+        typeof FormData !== 'undefined' && options.body instanceof FormData;
       const provider = auth(),
         generation = authGeneration();
       const send = async (refresh = false) => {
@@ -59,13 +61,17 @@ export function createApiClient(
             ...(options.expectedUserId
               ? { 'x-jimo-owner': options.expectedUserId }
               : {}),
-            ...(options.body === undefined
+            ...(options.body === undefined || multipart
               ? {}
               : { 'Content-Type': 'application/json' }),
           },
           ...(options.body === undefined
             ? {}
-            : { body: JSON.stringify(options.body) }),
+            : {
+                body: multipart
+                  ? (options.body as FormData)
+                  : JSON.stringify(options.body),
+              }),
           signal: controller.signal,
         });
       };

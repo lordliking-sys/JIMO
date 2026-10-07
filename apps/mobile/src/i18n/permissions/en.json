@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "JIMO uses the camera only to photograph your workout plan.",
+    "NSPhotoLibraryUsageDescription": "JIMO accesses the images you choose to import your workout plan."
+  }
+}

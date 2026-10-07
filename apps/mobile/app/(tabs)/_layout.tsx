@@ -25,9 +25,13 @@ export default function TabsLayout() {
             variant="caption"
             numberOfLines={1}
             ellipsizeMode="clip"
-            maxFontSizeMultiplier={1.5}
+            maxFontSizeMultiplier={Math.min(
+              1.5,
+              Math.max(1, (availableWidth / 5 - 4) / 58),
+            )}
             style={{
               color,
+              fontSize: availableWidth < 360 ? 12 : 13,
               textAlign: 'center',
               paddingHorizontal: spacing.xs / 2,
             }}

@@ -29,7 +29,7 @@
   },
   "exercises": "PROGRESSI PER ESERCIZIO",
   "search": "Cerca esercizi allenati",
-  "last": "ULTIMA PRESTAZIONE",
+  "last": "ULTIMA",
   "noRecords": "Nessun record valido nel periodo.",
   "noExercises": "Nessun esercizio allenato corrisponde alla ricerca.",
   "moreRecords": "Altri record",
@@ -64,7 +64,7 @@
     "bodyweight": "Corpo libero",
     "assisted": "Assistito"
   },
-  "pr": "RECORD PERSONALE",
+  "pr": "PR",
   "sessions": "Sessioni",
   "reps": "Ripetizioni",
   "duration": "Durata",
@@ -111,5 +111,13 @@
       "up": "Meno assistenza",
       "down": "Più assistenza"
     }
-  }
+  },
+  "rangesCompact": {
+    "4w": "4 sett",
+    "8w": "8 sett",
+    "12w": "12 sett",
+    "6m": "6 mesi",
+    "all": "Tutto"
+  },
+  "trendHeading": "ANDAMENTO"
 }

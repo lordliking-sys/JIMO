@@ -1,3 +1,4 @@
+import { PendingReview } from '../../src/imports/PendingReview';
 import { useRouter } from 'expo-router';
 import ArrowLeft from 'lucide-react-native/icons/arrow-left';
 import FileInput from 'lucide-react-native/icons/file-input';
@@ -23,7 +24,8 @@ export default function CreateProgramScreen() {
         {t('program.createTitle')}
       </Text>
       <Text color={colors.secondary}>{t('program.createDescription')}</Text>
-      {startMethods.map((method) => {
+      <PendingReview />
+      {[...startMethods].reverse().map((method) => {
         const Icon = icons[method];
         return (
           <Card key={method}>
@@ -32,10 +34,14 @@ export default function CreateProgramScreen() {
             <Text color={colors.secondary}>
               {t(`methodDescriptions.${method}`)}
             </Text>
-            {method === 'manual' ? (
+            {method !== 'ai' ? (
               <Button
-                label={t('methods.manual')}
-                onPress={() => router.push('/program/manual')}
+                label={t(`methods.${method}`)}
+                onPress={() =>
+                  router.push(
+                    method === 'manual' ? '/program/manual' : '/import',
+                  )
+                }
               />
             ) : (
               <Text variant="label" color={colors.primarySoft}>

@@ -50,6 +50,13 @@
       "when": 1791360395789,
       "tag": "0006_auth_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791379788470,
+      "tag": "0007_workout_plan_import",
+      "breakpoints": true
     }
   ]
 }

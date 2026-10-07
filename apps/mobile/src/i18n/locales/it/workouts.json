@@ -92,5 +92,6 @@
     "connect": "Connettiti almeno una volta per sincronizzare il programma.",
     "saveFailed": "Impossibile salvare la serie sul dispositivo.",
     "storageUnavailable": "Impossibile aprire i dati sul dispositivo. Nessun dato è stato cancellato."
-  }
+  },
+  "repsShort": "reps"
 }

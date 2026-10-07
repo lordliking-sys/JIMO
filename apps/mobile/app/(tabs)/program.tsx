@@ -1,3 +1,4 @@
+import { PendingReview } from '../../src/imports/PendingReview';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Screen, Text, Button, Card, colors, Divider } from '@jimo/ui';
@@ -13,7 +14,8 @@ export default function ProgramScreen() {
     query = usePrograms();
   return (
     <Screen bottomInset={false}>
-      <ScreenHeader title={t('title')} subtitle={t('subtitle')} settings />
+      <ScreenHeader title={t('title')} subtitle={t('subtitle')} />
+      <PendingReview />
       {query.isPending ? (
         <Text>{t('loading')}</Text>
       ) : query.error ? (
@@ -32,9 +34,11 @@ export default function ProgramScreen() {
           <Text variant="caption" color={colors.secondary}>
             {t('aiSoon')}
           </Text>
-          <Text variant="caption" color={colors.secondary}>
-            {t('importSoon')}
-          </Text>
+          <Button
+            variant="text"
+            label={t('import')}
+            onPress={() => router.push('/import')}
+          />
         </EmptyState>
       ) : (
         <>

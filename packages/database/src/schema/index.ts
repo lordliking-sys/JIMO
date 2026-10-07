@@ -5,3 +5,5 @@ export * from './programs';
 export * from './workouts';
 export * from './translations';
 export * from './sync';
+
+export * from './ai';

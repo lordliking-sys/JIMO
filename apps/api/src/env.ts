@@ -7,6 +7,16 @@ const optionalConfig = (schema: z.ZodType<string>) =>
   );
 export const envSchema = z
   .object({
+    OPENAI_API_KEY: optionalConfig(z.string().min(1)),
+    OPENAI_IMPORT_MODEL: z.preprocess(
+      (v) => (v === '' ? undefined : v),
+      z
+        .string()
+        .regex(/^[a-zA-Z0-9._:/-]{1,128}$/)
+        .default('gpt-5-mini'),
+    ),
+    AI_IMPORT_DAILY_LIMIT: z.coerce.number().int().min(1).max(100).default(10),
+    AI_IMPORT_HOURLY_LIMIT: z.coerce.number().int().min(1).max(20).default(3),
     PORT: z.coerce.number().int().min(1).max(65535).default(3001),
     NODE_ENV: z
       .enum(['development', 'test', 'production'])

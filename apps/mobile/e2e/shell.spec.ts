@@ -186,7 +186,7 @@ test('complete onboarding, reload, change language and open program placeholders
   ).toBeVisible();
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   await page.goto('/program/create');
-  await expect(page.getByText('In arrivo', { exact: true })).toHaveCount(2);
+  await expect(page.getByText('In arrivo', { exact: true })).toHaveCount(1);
   await checkWidths(page);
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   await expect(page.getByText('Buonasera', { exact: true })).toBeVisible();

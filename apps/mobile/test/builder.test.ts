@@ -139,13 +139,13 @@ test('weekday chips map Monday through Sunday to the existing database values, w
   for (const invalid of ['0', '8', '-1', 'Monday', '1.5', '01'])
     assert.throws(() => weekdayValue(invalid));
 });
-test('tab captions shorten before wrapping on narrow screens or with larger text', () => {
+test('tab captions retain the requested names on narrow screens and with larger text', () => {
   assert.equal(tabLabelKey('program', 320, 1), 'compact.program');
   assert.equal(tabLabelKey('workout', 320, 1), 'compact.workout');
   assert.equal(tabLabelKey('progress', 320, 1), 'progress');
-  assert.equal(tabLabelKey('progress', 320, 1.1), 'compact.progress');
-  assert.equal(tabLabelKey('workout', 320, 1.3), 'short.workout');
-  assert.equal(tabLabelKey('program', 320, 1.5), 'short.program');
-  assert.equal(tabLabelKey('profile', 320, 1.5), 'short.profile');
-  assert.equal(tabLabelKey('progress', 280, 1), 'compact.progress');
+  assert.equal(tabLabelKey('progress', 320, 1.1), 'progress');
+  assert.equal(tabLabelKey('workout', 320, 1.3), 'compact.workout');
+  assert.equal(tabLabelKey('program', 320, 1.5), 'compact.program');
+  assert.equal(tabLabelKey('profile', 320, 1.5), 'profile');
+  assert.equal(tabLabelKey('progress', 280, 1), 'progress');
 });

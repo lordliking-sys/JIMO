@@ -1,0 +1,83 @@
+{
+  "programName": "Upper",
+  "description": null,
+  "durationWeeks": null,
+  "days": [
+    {
+      "name": "Push",
+      "dayOfWeek": 1,
+      "notes": null,
+      "exercises": [
+        {
+          "rawName": "Panca piana",
+          "rawPrescription": "4 x 8 @ 80kg, RPE 8, rest 3 min",
+          "sets": 4,
+          "reps": 8,
+          "repMin": null,
+          "repMax": null,
+          "durationSeconds": null,
+          "loadMode": "external",
+          "loadKg": "80",
+          "assistanceKg": null,
+          "sourceLoadUnit": "kg",
+          "rpe": "8",
+          "restSeconds": 180,
+          "notes": null,
+          "confidence": 0.95
+        },
+        {
+          "rawName": "dips",
+          "rawPrescription": "3x8-12 +10kg",
+          "sets": 3,
+          "reps": null,
+          "repMin": 8,
+          "repMax": 12,
+          "durationSeconds": null,
+          "loadMode": "weighted",
+          "loadKg": "10",
+          "assistanceKg": null,
+          "sourceLoadUnit": "kg",
+          "rpe": null,
+          "restSeconds": 120,
+          "notes": null,
+          "confidence": 0.95
+        },
+        {
+          "rawName": "Plank",
+          "rawPrescription": "3x60 seconds BW",
+          "sets": 3,
+          "reps": null,
+          "repMin": null,
+          "repMax": null,
+          "durationSeconds": 60,
+          "loadMode": "bodyweight",
+          "loadKg": null,
+          "assistanceKg": null,
+          "sourceLoadUnit": null,
+          "rpe": null,
+          "restSeconds": null,
+          "notes": null,
+          "confidence": 0.95
+        },
+        {
+          "rawName": "Pushdown corda",
+          "rawPrescription": "3x10 RIR 2 tempo 3-1-1 superset A",
+          "sets": 3,
+          "reps": 10,
+          "repMin": null,
+          "repMax": null,
+          "durationSeconds": null,
+          "loadMode": null,
+          "loadKg": null,
+          "assistanceKg": null,
+          "sourceLoadUnit": null,
+          "rpe": null,
+          "restSeconds": null,
+          "notes": "RIR 2; tempo 3-1-1; superset A",
+          "confidence": 0.6
+        }
+      ]
+    }
+  ],
+  "warnings": ["Verifica il carico e il mapping di Pushdown corda."]
+}

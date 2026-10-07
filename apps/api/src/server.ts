@@ -1,3 +1,4 @@
+import { OpenAIWorkoutPlanExtractor } from './ai/client';
 import { ClerkAuthProvider } from './auth/provider';
 import { authenticatedCurrentUser, CurrentUserResolver } from './auth/resolver';
 import { buildApp } from './app';
@@ -50,13 +51,26 @@ async function main() {
     (env.NODE_ENV === 'production'
       ? []
       : ['http://localhost:8081', 'http://localhost:4173']);
+  const importExtractor = env.OPENAI_API_KEY
+    ? new OpenAIWorkoutPlanExtractor(
+        env.OPENAI_IMPORT_MODEL,
+        env.OPENAI_API_KEY,
+      )
+    : undefined;
   const app = buildApp({
     database,
     currentUser,
+    importModel: env.OPENAI_IMPORT_MODEL,
+    importLimits: {
+      daily: env.AI_IMPORT_DAILY_LIMIT,
+      hourly: env.AI_IMPORT_HOURLY_LIMIT,
+    },
+    ...(importExtractor ? { importExtractor } : {}),
     corsOrigins,
     checkDatabase: () => database.ping(),
   });
   app.addHook('onClose', async () => {
+    await importExtractor?.close();
     await database.close();
   });
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {

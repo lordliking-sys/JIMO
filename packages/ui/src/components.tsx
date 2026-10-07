@@ -17,6 +17,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import type {
   StyleProp,
@@ -60,6 +61,7 @@ export function Screen({
   dismissKeyboardLabel?: string;
   contentStyle?: StyleProp<ViewStyle>;
 }) {
+  const { width, height } = useWindowDimensions();
   const scroll = useRef<ScrollView>(null);
   const viewport = useRef<View>(null);
   const focused = useRef<TextInput | null>(null);
@@ -84,6 +86,15 @@ export function Screen({
       );
     });
   }, [keyboardAware]);
+  // Width changes can wrap headings after the first layout measurement.
+  // Reveal again once the resized form has finished laying out.
+  useEffect(() => {
+    if (!keyboardAware) return;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(reveal);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [width, height, keyboardAware, reveal]);
   const focus = useCallback(
     (input: TextInput | null) => {
       focused.current = input;
@@ -137,7 +148,11 @@ export function Screen({
               contentContainerStyle={[styles.content, contentStyle]}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={
-                Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+                Platform.OS === 'web'
+                  ? 'none'
+                  : Platform.OS === 'ios'
+                    ? 'interactive'
+                    : 'on-drag'
               }
               onLayout={() => requestAnimationFrame(reveal)}
               onContentSizeChange={() => requestAnimationFrame(reveal)}
@@ -169,7 +184,7 @@ export function Screen({
 type ButtonProps = {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'text';
   disabled?: boolean;
   busy?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -195,8 +210,17 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: primary ? colors.primary : colors.elevated,
+          backgroundColor: primary
+            ? colors.primary
+            : variant === 'text'
+              ? 'transparent'
+              : colors.elevated,
           opacity: disabled ? 0.55 : pressed ? 0.8 : 1,
+        },
+        variant === 'text' && {
+          paddingVertical: spacing.sm,
+          paddingHorizontal: spacing.sm,
+          alignSelf: 'flex-start',
         },
         style,
       ]}
@@ -277,6 +301,7 @@ const styles = StyleSheet.create({
     gap: spacing.xxl,
   },
   button: {
+    minWidth: sizes.touch,
     minHeight: sizes.touch,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,

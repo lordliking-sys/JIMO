@@ -1,4 +1,4 @@
-> Current Task 8 schema has 10 tables, 6 stable enums, 7 versioned migrations and provider/subject identity fields on users. Older Task sections below record historical milestones. See [authentication.md](authentication.md) for current auth/setup.
+> Current Task 9 schema has 12 tables, 6 stable enums and 8 versioned migrations. Import adds ai_usage and a minimal confirmation ledger; existing domain schema is unchanged. See [workout-plan-import.md](workout-plan-import.md) and [authentication.md](authentication.md). Older Task sections below record historical milestones.
 
 # Database JIMO — Task 3
 

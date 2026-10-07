@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Text, Button, Card } from '@jimo/ui';
+import { Text, Button, colors, spacing } from '@jimo/ui';
 import { useExercises } from '../../../src/api/queries';
 import {
   Back,
   Field,
   ErrorNotice,
   FormScreen,
+  FormSection,
 } from '../../../src/programs/components';
 export default function ChooseExercise() {
   const { id, dayId } = useLocalSearchParams<{ id: string; dayId: string }>(),
@@ -27,7 +28,7 @@ export default function ChooseExercise() {
       <Text variant="h1">{t('chooseExercise')}</Text>
       <Field label={t('search')} value={search} onChangeText={setSearch} />
       <Button
-        variant="secondary"
+        variant="text"
         label={t('createCustom')}
         onPress={() =>
           router.push({
@@ -44,7 +45,7 @@ export default function ChooseExercise() {
         <>
           {!entries.length ? <Text>{t('noExercises')}</Text> : null}
           {([false, true] as const).map((custom) => (
-            <Card key={String(custom)}>
+            <FormSection key={String(custom)}>
               <Text variant="label">
                 {t(custom ? 'customExercises' : 'systemExercises')}
               </Text>
@@ -52,7 +53,14 @@ export default function ChooseExercise() {
                 .filter((e) => e.isCustom === custom)
                 .map((e) => (
                   <Button
-                    variant="secondary"
+                    variant="text"
+                    style={{
+                      alignSelf: 'stretch',
+                      alignItems: 'flex-start',
+                      paddingVertical: spacing.md,
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.border,
+                    }}
                     key={e.id}
                     label={e.displayName}
                     onPress={() =>
@@ -63,11 +71,11 @@ export default function ChooseExercise() {
                     }
                   />
                 ))}
-            </Card>
+            </FormSection>
           ))}
           {query.hasNextPage ? (
             <Button
-              variant="secondary"
+              variant="text"
               label={t('loadMore')}
               busy={query.isFetchingNextPage}
               onPress={() => void query.fetchNextPage()}

@@ -29,7 +29,7 @@
   },
   "exercises": "EXERCISE PROGRESS",
   "search": "Search trained exercises",
-  "last": "LAST PERFORMANCE",
+  "last": "LATEST",
   "noRecords": "No valid records in this period.",
   "noExercises": "No matching exercise history.",
   "moreRecords": "More records",
@@ -64,7 +64,7 @@
     "bodyweight": "Bodyweight",
     "assisted": "Assisted"
   },
-  "pr": "PERSONAL RECORD",
+  "pr": "PR",
   "sessions": "Sessions",
   "reps": "Reps",
   "duration": "Duration",
@@ -111,5 +111,13 @@
       "up": "Less assistance",
       "down": "More assistance"
     }
-  }
+  },
+  "rangesCompact": {
+    "4w": "4 wk",
+    "8w": "8 wk",
+    "12w": "12 wk",
+    "6m": "6 mo",
+    "all": "All"
+  },
+  "trendHeading": "TRENDS"
 }

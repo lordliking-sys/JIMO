@@ -58,3 +58,74 @@ I test UI del form intercettano l'intero origin API e verificano i payload senza
 Restano da verificare fisicamente su Android/iPhone: dialog/calendario nativo, tastiere OEM, rotazione e riapertura tastiera, safe area, scaling del testo molto alto, VoiceOver/TalkBack. Il viewport ridotto nel browser non sostituisce una prova della tastiera nativa. Gli export Android/iOS sono bundle JavaScript/Hermes, non build native firmate.
 
 Verifica del primo polish, 2026-10-06: lint, typecheck, 36 test unitari, export Android/iOS/web e format check passati; 7 test UI Chromium passati e 1 test Neon intenzionalmente saltato. Nessuna migration o connessione Neon eseguita per quel polish. I risultati successivi del completamento Program Builder sono in [program-builder-ux.md](program-builder-ux.md).
+
+## Visual / UX cleanup dopo Task 8
+
+Questo pass modifica solo presentazione mobile e componenti UI. API, database,
+Neon, workout engine, sync, analytics e architettura account restano invariati.
+Settings è nel Profilo: gli header non espongono più alcun ingranaggio e non
+esistono controlli settings sovrapposti alle schermate o ai form.
+
+`BrandMark` è un componente autonomo con placeholder tipografico neutro e prop
+`asset` per il futuro SVG/PNG originale JIMO; `Wordmark` mantiene il punto di
+integrazione delle schermate esistenti. Nessuna falsa J brush o font decorativo.
+Gli header usano il brand discreto, titolo e spazio, senza il grande pannello.
+
+Auth mantiene un'unica CTA primaria nel footer visibile con la tastiera. Crea
+account, recupero password, reinvio e ritorno sono text buttons. Le eye icon
+sono dentro i campi password, con label localizzata e target di 48 px. L'avviso
+password consiglia una password lunga e unica senza inventare la policy Clerk.
+Gli errori Clerk distinguono password corta (almeno X se `meta.min_length` è
+fornito), comune/debole, compromessa, coincidente con identificatore/password
+precedente, troppo lunga e requisiti strutturati su maiuscole/minuscole/numeri/
+simboli. Nessun messaggio raw del provider o contenuto inserito viene mostrato.
+Le regole definitive e la validazione restano in Clerk, senza nuove chiamate o
+cambi al flusso di autenticazione.
+
+Home conserva la settimana compatta e gli stati separati: oggi sottolineato,
+programmato con punto, completato con check, e selezione discreta. Le label
+visive italiane sono LUN MAR MER GIO VEN SAB DOM; la traduzione di domenica era
+già Dom ed è coperta da un'asserzione. La struttura del programma attivo usa
+nomi, conteggi e divider. Quando più giorni sono disponibili, solo il primo
+start è primario, gli altri restano disponibili come azioni testuali.
+
+Program detail presenta nome/stato, durata e data su una riga, descrizione,
+giorni ed esercizi separati da divider. I giorni non sono più card annidate.
+Aggiungi giorno/esercizio sono azioni testuali; attivazione rimane primaria.
+I form programma/giorno/prescrizione/esercizio personalizzato usano sezioni
+senza superfici chiuse. I cataloghi usano righe leggibili con target completo.
+Input e chip hanno padding compatto, target minimo 48 px, focus visibile e
+scaling del testo. DateField e gestione nativa della tastiera non cambiano.
+
+Workout conserva la struttura e tutti i callback: target su una riga con RPE,
+nessuna spiegazione del prefill del range o duplicazione RPE target. Salta
+serie/annulla correzione sono testuali. Rest conserva il timer grande, nome e
+numero della prossima serie, target e righe completate compatte/tappabili per
+correzione; non mostra una seconda spiegazione né le righe ancora da eseguire.
+
+`SegmentedControl` imposta `flexGrow: 0` e `flexShrink: 0` sullo ScrollView:
+periodi e filtri storico non assorbono più l'altezza libera dello screen.
+I segmenti scorrono orizzontalmente se necessario, conservando label complete
+per screen reader, stato radio e target minimo 48 px. I periodi visivi sono
+4 sett / 8 sett / 12 sett / 6 mesi / Tutto (equivalenti EN); non si impone
+un'altezza fissa che tagli il testo ingrandito. Progressi usa metriche, sezioni,
+ANDAMENTO, record, ricerca e storico senza aggiungere card. Exercise detail
+riduce le label a PR / ULTIMA, preservando modalità, dati e grafici.
+
+Le cinque tab mantengono Home / Scheda / Workout / Progressi / Profilo in IT
+(equivalenti EN), senza sostituzioni con Gym/Dati/Io. Il font resta 12–13 px;
+il massimo scaling della sola caption dipende dallo spazio disponibile per
+mantenere una riga leggibile. I nomi screen-reader restano completi e i target
+non sono ridotti. Palette dark e accent originali, safe area e reduced motion
+sono preservati; nessun workaround per i warning Expo Go.
+
+Verifica di questo pass: lint, typecheck, 92 test unitari, build Android/iOS/web
+più API/packages e format check. Gli 11 test browser selezionati passano e usano esclusivamente
+fixture e SQLite locale, con DATABASE_URL rimosso e senza server Neon. Coprono
+auth, builder, offline, Home/tab/lingue, periodi, storico e workout/rest. Il
+selector è controllato a 320/390/430 px: una sola riga, altezza 48–64 px e cinque
+segmenti; le tab sono controllate per ellissi, righe, leggibilità e touch target.
+Il test export con EXPO_PUBLIC_AUTH_TEST=true è solo locale/loopback e viene
+sostituito dall'export ordinario alla fine. Nessuna migration o seed.
+La verifica browser non sostituisce una nuova prova su telefono per tastiera,
+scaling nativo, TalkBack/VoiceOver e safe area. Task 9 non iniziato.

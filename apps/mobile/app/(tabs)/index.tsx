@@ -11,7 +11,6 @@ export default function HomeScreen() {
       <ScreenHeader
         title={t(`home.greetings.${greeting}`)}
         subtitle={t('home.subtitle')}
-        settings
       />
       <WorkoutSchedule home />
     </Screen>

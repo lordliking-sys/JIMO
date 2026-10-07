@@ -104,7 +104,7 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
     page.getByText('Crea con AI · In arrivo', { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText('Importa scheda · In arrivo', { exact: true }),
+    page.getByRole('button', { name: 'Importa scheda', exact: true }),
   ).toBeVisible();
   await page.screenshot({
     path: testInfo.outputPath('program.png'),

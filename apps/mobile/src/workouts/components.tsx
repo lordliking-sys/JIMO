@@ -14,8 +14,10 @@ import { actualDiffers, sessionSeconds, setSummary } from './helpers';
 export function StartWorkout({
   dayId,
   disabled = false,
+  secondary = false,
 }: {
   dayId: string;
+  secondary?: boolean;
   disabled?: boolean;
 }) {
   const { t } = useTranslation('workouts'),
@@ -33,6 +35,7 @@ export function StartWorkout({
     <View style={{ gap: spacing.sm }}>
       <Button
         label={conflict ? t('resume') : t('start')}
+        variant={secondary ? 'text' : 'primary'}
         disabled={disabled || mutation.isPending}
         onPress={() => {
           if (
@@ -78,7 +81,7 @@ export function Values({
       variant="bodyMedium"
       color={actual ? colors.text : colors.primarySoft}
     >
-      {`${s.target}${exercise.trackingModeSnapshot === 'reps' ? ` ${t('reps').toLowerCase()}` : ''} · ${mode === 'bodyweight' ? t('bodyweight') : mode === 'assisted' ? `${t('assisted')} ${s.load || '—'} kg` : `${mode === 'weighted' ? '+' : ''}${s.load || '—'} kg`}${s.rpe ? ` · RPE ${s.rpe}` : ''}`}
+      {`${s.target}${exercise.trackingModeSnapshot === 'reps' ? ` ${t('repsShort')}` : ''} · ${mode === 'bodyweight' ? t('bodyweight') : mode === 'assisted' ? `${t('assisted')} ${s.load || '—'} kg` : `${mode === 'weighted' ? '+' : ''}${s.load || '—'} kg`}${s.rpe ? ` · RPE ${s.rpe}` : ''}`}
     </Text>
   );
 }
@@ -86,9 +89,11 @@ export function SetRows({
   exercise,
   currentId,
   onEdit,
+  compact = false,
 }: {
   exercise: WorkoutExercise;
   currentId?: string;
+  compact?: boolean;
   onEdit?: (set: WorkoutSet) => void;
 }) {
   const { t } = useTranslation('workouts');
@@ -97,71 +102,77 @@ export function SetRows({
       <Text variant="caption" color={colors.secondary}>
         {t('setTable')}
       </Text>
-      {exercise.sets.map((set) => {
-        const row = (
-          <View
-            style={{
-              minHeight: 48,
-              paddingVertical: spacing.sm,
-              borderTopWidth: 1,
-              borderColor: colors.border,
-              flexDirection: 'row',
-              gap: spacing.md,
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              variant="bodyMedium"
-              color={set.id === currentId ? colors.primarySoft : colors.text}
+      {exercise.sets
+        .filter((set) => !compact || set.status === 'completed')
+        .map((set) => {
+          const row = (
+            <View
+              style={{
+                minHeight: 48,
+                paddingVertical: spacing.sm,
+                borderTopWidth: 1,
+                borderColor: colors.border,
+                flexDirection: 'row',
+                gap: spacing.md,
+                alignItems: 'center',
+              }}
             >
-              {set.setNumber}
-            </Text>
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <Values
-                exercise={exercise}
-                set={set}
-                actual={set.status === 'completed'}
-              />
-              <Text variant="caption" color={colors.secondary}>
-                {set.id === currentId ? t('current') : t(set.status)}
+              <Text
+                variant="bodyMedium"
+                color={set.id === currentId ? colors.primarySoft : colors.text}
+              >
+                {set.setNumber}
               </Text>
-              {set.status === 'completed' && actualDiffers(set) ? (
-                <>
+              <View style={{ flex: 1, gap: spacing.xs }}>
+                <Values
+                  exercise={exercise}
+                  set={set}
+                  actual={set.status === 'completed'}
+                />
+                {!compact ? (
                   <Text variant="caption" color={colors.secondary}>
-                    {t('target')}
+                    {set.id === currentId ? t('current') : t(set.status)}
                   </Text>
-                  <Values exercise={exercise} set={set} />
-                </>
-              ) : null}
+                ) : null}
+                {!compact &&
+                set.status === 'completed' &&
+                actualDiffers(set) ? (
+                  <>
+                    <Text variant="caption" color={colors.secondary}>
+                      {t('target')}
+                    </Text>
+                    <Values exercise={exercise} set={set} />
+                  </>
+                ) : null}
+              </View>
+              <Text
+                color={
+                  set.status === 'completed'
+                    ? colors.primarySoft
+                    : colors.secondary
+                }
+              >
+                {set.status === 'completed'
+                  ? '✓'
+                  : set.status === 'skipped'
+                    ? '—'
+                    : '○'}
+              </Text>
             </View>
-            <Text
-              color={
-                set.status === 'completed'
-                  ? colors.primarySoft
-                  : colors.secondary
-              }
+          );
+          return onEdit && set.status === 'completed' ? (
+            <Pressable
+              key={set.id}
+              accessibilityRole="button"
+              accessibilityLabel={t('editSet', { number: set.setNumber })}
+              onPress={() => onEdit(set)}
             >
-              {set.status === 'completed'
-                ? '✓'
-                : set.status === 'skipped'
-                  ? '—'
-                  : '○'}
-            </Text>
-          </View>
-        );
-        return onEdit && set.status === 'completed' ? (
-          <Pressable
-            key={set.id}
-            accessibilityRole="button"
-            accessibilityLabel={t('editSet', { number: set.setNumber })}
-            onPress={() => onEdit(set)}
-          >
-            {row}
-          </Pressable>
-        ) : (
-          <View key={set.id}>{row}</View>
-        );
-      })}
+              {row}
+            </Pressable>
+          ) : (
+            <View key={set.id}>{row}</View>
+          );
+        })}
     </View>
   );
 }

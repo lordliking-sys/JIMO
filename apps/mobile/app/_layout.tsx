@@ -77,6 +77,7 @@ function AppNavigator() {
           </Stack.Protected>
           <Stack.Protected guard={app}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="import" />
             <Stack.Screen name="workout/[id]" />
             <Stack.Screen name="progress/[id]" />
             <Stack.Screen name="program/create" />

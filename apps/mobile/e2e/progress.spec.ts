@@ -195,6 +195,36 @@ test('Progress ranges, actual/PR mode detail, accessible charts, SQLite cached r
   });
   await page.goto('/progress');
   await expect(page.getByText('PANORAMICA', { exact: true })).toBeVisible();
+  const periodControl = page.getByRole('radiogroup', {
+    name: 'Periodo',
+    exact: true,
+  });
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    const bounds = await periodControl.boundingBox();
+    expect(bounds?.height).toBeGreaterThanOrEqual(48);
+    expect(bounds?.height).toBeLessThanOrEqual(64);
+    const segments = await periodControl.getByRole('radio').all();
+    expect(segments).toHaveLength(5);
+    const boxes = await Promise.all(
+      segments.map((segment) => segment.boundingBox()),
+    );
+    expect(new Set(boxes.map((box) => Math.round(box!.y))).size).toBe(1);
+    expect(boxes.every((box) => box!.height >= 48 && box!.width >= 48)).toBe(
+      true,
+    );
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  const historyControl = page.getByRole('radiogroup', {
+    name: 'STORICO ALLENAMENTI',
+    exact: true,
+  });
+  expect((await historyControl.boundingBox())?.height).toBeLessThanOrEqual(64);
+  await expect(historyControl.getByRole('radio')).toHaveCount(3);
+  await expect(
+    page.getByRole('button', { name: 'Impostazioni', exact: true }),
+  ).toHaveCount(0);
+
   await expect(
     page.getByRole('radio', { name: '8 settimane', exact: true }),
   ).toHaveAttribute('aria-checked', 'true');

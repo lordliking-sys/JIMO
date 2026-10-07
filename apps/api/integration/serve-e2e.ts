@@ -1,3 +1,4 @@
+import { FakeWorkoutPlanExtractor } from '../test/fixtures/fake-extractor';
 import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import {
@@ -29,6 +30,9 @@ async function run() {
   };
   const app = buildApp({
     database: client,
+    importExtractor: new FakeWorkoutPlanExtractor(undefined, 500),
+    importModel: 'fake-e2e-model',
+    importLimits: { daily: 100, hourly: 20 },
     currentUser: async () => ({ id: userId }),
     checkDatabase: () => client.ping(),
     corsOrigins: ['http://localhost:4173'],
@@ -52,6 +56,33 @@ async function run() {
       .values({ id: userId, displayName: `JIMO_E2E_TEST_${userId}` });
     // Only this loopback-only, development-guarded test harness exposes cleanup.
     // Await it before Playwright terminates the process tree.
+    app.post('/__e2e/reset-imports', async () => {
+      const rows = await client.sqlClient.query(
+        'SELECT program_id FROM import_confirmations WHERE user_id=$1::uuid AND program_id IS NOT NULL',
+        [userId],
+      );
+      const ids = rows.map((r) => String(r.program_id));
+      const custom = ids.length
+        ? await client.sqlClient.query(
+            'SELECT DISTINCT e.id FROM exercises e JOIN program_exercises pe ON pe.exercise_id=e.id JOIN program_days d ON d.id=pe.program_day_id WHERE d.program_id=ANY($1::uuid[]) AND e.is_custom AND e.created_by_user_id=$2::uuid',
+            [ids, userId],
+          )
+        : [];
+      await client.sqlClient.transaction([
+        client.sqlClient.query(
+          'DELETE FROM programs WHERE id=ANY($1::uuid[]) AND user_id=$2::uuid',
+          [ids, userId],
+        ),
+        client.sqlClient.query(
+          'DELETE FROM exercises WHERE id=ANY($1::uuid[]) AND created_by_user_id=$2::uuid AND NOT EXISTS(SELECT 1 FROM program_exercises pe WHERE pe.exercise_id=exercises.id)',
+          [custom.map((e) => String(e.id)), userId],
+        ),
+        client.sqlClient.query('DELETE FROM ai_usage WHERE user_id=$1::uuid', [
+          userId,
+        ]),
+      ]);
+      return { cleaned: true };
+    });
     app.post('/__e2e/cleanup', async () => {
       await cleanup();
       return { cleaned: true };

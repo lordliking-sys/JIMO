@@ -11,6 +11,7 @@ import {
   workoutHistorySchema,
   type ProgressRange,
 } from '@jimo/schemas';
+import { SegmentedControl } from '../../src/components/SegmentedControl';
 import { ScreenHeader } from '../../src/components/ScreenHeader';
 import { Field } from '../../src/programs/components';
 import { useOffline } from '../../src/db/Provider';
@@ -222,6 +223,7 @@ export default function ProgressScreen() {
             <>
               {weekly.data ? (
                 <>
+                  <SectionTitle>{t('trendHeading')}</SectionTitle>
                   <ProgressChart
                     title={t('frequency')}
                     bars
@@ -271,7 +273,7 @@ export default function ProgressScreen() {
               {records.hasNextPage ? (
                 <Button
                   label={t('moreRecords')}
-                  variant="secondary"
+                  variant="text"
                   disabled={records.isFetching}
                   onPress={() => void records.fetchNextPage()}
                 />
@@ -321,7 +323,7 @@ export default function ProgressScreen() {
               {exercises.hasNextPage ? (
                 <Button
                   label={t('moreExercises')}
-                  variant="secondary"
+                  variant="text"
                   disabled={exercises.isFetching}
                   onPress={() => void exercises.fetchNextPage()}
                 />
@@ -331,16 +333,15 @@ export default function ProgressScreen() {
         </>
       )}
       <SectionTitle>{t('history')}</SectionTitle>
-      <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
-        {(['completed', 'cancelled', 'all'] as const).map((status) => (
-          <Button
-            key={status}
-            label={t(`historyStatus.${status}`)}
-            variant={historyStatus === status ? 'primary' : 'secondary'}
-            onPress={() => setHistoryStatus(status)}
-          />
-        ))}
-      </View>
+      <SegmentedControl
+        label={t('history')}
+        value={historyStatus}
+        onChange={setHistoryStatus}
+        options={(['completed', 'cancelled', 'all'] as const).map((status) => ({
+          value: status,
+          label: t(`historyStatus.${status}`),
+        }))}
+      />
       {historyRows.map((w) => (
         <Pressable
           key={w.id}
@@ -397,7 +398,7 @@ export default function ProgressScreen() {
       {history.hasNextPage ? (
         <Button
           label={t('moreHistory')}
-          variant="secondary"
+          variant="text"
           disabled={history.isFetching}
           onPress={() => void history.fetchNextPage()}
         />

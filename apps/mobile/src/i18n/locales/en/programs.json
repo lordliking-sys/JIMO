@@ -161,5 +161,6 @@
     "6": "Sat",
     "7": "Sun"
   },
-  "noRpeShort": "None"
+  "noRpeShort": "None",
+  "import": "Import workout plan"
 }

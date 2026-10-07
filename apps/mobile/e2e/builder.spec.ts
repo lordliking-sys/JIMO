@@ -134,7 +134,9 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await expect(
     page.getByRole('button', { name: 'Impostazioni', exact: true }),
   ).toHaveCount(0);
-  await expect(page.getByText('6 ottobre 2026', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('8 settimane · 6 ottobre 2026', { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText('2026-10-06', { exact: true })).toHaveCount(0);
   const summaries = [
     '4 × 8 · 80 kg',
@@ -271,7 +273,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await page.getByRole('tab', { name: 'Program', exact: true }).click();
   await page.getByRole('button', { name: 'Open FORZA', exact: true }).click();
   await expect(
-    page.getByText('October 6, 2026', { exact: true }),
+    page.getByText('8 weeks · October 6, 2026', { exact: true }),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });

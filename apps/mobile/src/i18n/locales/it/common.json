@@ -33,7 +33,7 @@
     "empty": "Non hai ancora un programma.",
     "description": "Costruisci una routine adatta a te.",
     "createTitle": "Crea un programma",
-    "createDescription": "Scegli il tuo approccio. Questi strumenti saranno disponibili prossimamente."
+    "createDescription": "Crea la tua routine manualmente o importa una scheda esistente."
   },
   "workout": {
     "empty": "Nessun allenamento in corso.",
@@ -49,7 +49,7 @@
   },
   "methods": {
     "ai": "Crea con AI",
-    "import": "Importa una scheda",
+    "import": "Importa scheda",
     "manual": "Crea manualmente"
   },
   "methodDescriptions": {

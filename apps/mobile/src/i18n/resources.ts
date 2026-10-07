@@ -1,3 +1,5 @@
+import importsIt from './locales/it/imports.json';
+import importsEn from './locales/en/imports.json';
 import authIt from './locales/it/auth.json';
 import authEn from './locales/en/auth.json';
 import enProgress from './locales/en/progress.json';
@@ -14,6 +16,7 @@ import enPrograms from './locales/en/programs.json';
 import itPrograms from './locales/it/programs.json';
 export const resources = {
   en: {
+    imports: importsEn,
     auth: authEn,
     progress: enProgress,
     programs: enPrograms,
@@ -23,6 +26,7 @@ export const resources = {
     navigation: enNavigation,
   },
   it: {
+    imports: importsIt,
     auth: authIt,
     progress: itProgress,
     programs: itPrograms,

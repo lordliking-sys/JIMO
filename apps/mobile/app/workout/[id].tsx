@@ -103,7 +103,7 @@ function SetEditor({
             onPress={submit}
           />
           <Button
-            variant="secondary"
+            variant="text"
             label={editing ? t('cancelEdit') : t('skipSet')}
             disabled={busy}
             onPress={() => (editing ? onCancel() : skip.mutate(undefined))}
@@ -138,21 +138,6 @@ function SetEditor({
           {t('target')}
         </Text>
         <Values exercise={exercise} set={set} />
-        {set.targetRpe ? (
-          <Text variant="caption" color={colors.secondary}>
-            {t('targetRpe', {
-              value:
-                locale === 'it'
-                  ? set.targetRpe.replace('.', ',')
-                  : set.targetRpe,
-            })}
-          </Text>
-        ) : null}
-        {set.targetRepMin !== null ? (
-          <Text variant="caption" color={colors.secondary}>
-            {t('rangeHint')}
-          </Text>
-        ) : null}
       </View>
       <ActualEditor exercise={exercise} draft={draft} onChange={setDraft} />
       {save.error ? <ErrorNotice error={save.error} retry={submit} /> : null}
@@ -379,7 +364,6 @@ export default function WorkoutScreen() {
         >
           {countdown(rest.remaining)}
         </Text>
-        <Text variant="h3">{t('nextSet')}</Text>
         <Text>
           {next.exercise.exerciseNameSnapshot} ·{' '}
           {t('setProgress', {
@@ -390,6 +374,7 @@ export default function WorkoutScreen() {
         <Values exercise={next.exercise} set={next.set} />
         <SetRows
           exercise={rest.exercise}
+          compact
           onEdit={(s) =>
             setEditing({ exerciseId: rest.exercise.id, setId: s.id })
           }

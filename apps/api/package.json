@@ -9,16 +9,22 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.check.json",
     "test": "tsx --test test/*.test.ts",
-    "test:integration": "tsx --test integration/*.test.ts"
+    "test:integration": "tsx --test integration/*.test.ts",
+    "test:import:real": "tsx scripts/smoke-workout-import.ts"
   },
   "dependencies": {
     "@clerk/backend": "3.23.0",
     "@fastify/cors": "11.3.0",
+    "@fastify/multipart": "10.1.2",
     "@jimo/database": "workspace:*",
     "@jimo/schemas": "workspace:*",
     "@jimo/types": "workspace:*",
     "drizzle-orm": "0.45.3",
     "fastify": "5.12.5",
+    "image-size": "2.0.4",
+    "openai": "7.28.0",
+    "pdf-lib": "1.17.1",
+    "undici": "8.11.2",
     "zod": "4.6.5"
   },
   "devDependencies": {

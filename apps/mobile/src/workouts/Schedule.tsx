@@ -78,8 +78,8 @@ export function WorkoutSchedule({ home = false }: { home?: boolean }) {
               onPress={() => setSelected(day.weekday)}
               style={{
                 flexGrow: 1,
-                minWidth: 48,
-                minHeight: 72,
+                minWidth: 44,
+                minHeight: 64,
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: spacing.xs,
@@ -203,13 +203,13 @@ export function WorkoutSchedule({ home = false }: { home?: boolean }) {
             <>
               <Text color={colors.secondary}>{t('restDay')}</Text>
               <Button
-                variant="secondary"
+                variant="text"
                 label={t('choose')}
                 onPress={() => router.push('/workout')}
               />
             </>
           ) : (
-            days.map((day) => (
+            days.map((day, index) => (
               <View
                 key={day.id}
                 style={{
@@ -233,7 +233,11 @@ export function WorkoutSchedule({ home = false }: { home?: boolean }) {
                       </Text>
                     ))
                   : null}
-                <StartWorkout dayId={day.id} disabled={!day.exercises.length} />
+                <StartWorkout
+                  dayId={day.id}
+                  secondary={index > 0}
+                  disabled={!day.exercises.length}
+                />
               </View>
             ))
           )}

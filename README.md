@@ -1,6 +1,6 @@
 # JIMO
 
-JIMO è un’app fitness Expo per Android/iOS/web. I Task 1–8 includono shell dark IT/EN, onboarding, Program Management, Workout Engine con target/actual e snapshot, SQLite offline-first/outbox/sync Neon, calendario Home e Progressi con statistiche e record deterministici. Task 8 aggiunge autenticazione Clerk, profilo account e isolamento offline; configurazione Clerk reale e verifica su telefono richiedono le chiavi development. AI e Task 9 restano futuri. Vedi [Progress Analytics](docs/progress-analytics.md) e [offline workout](docs/offline-sync.md).
+JIMO è un’app fitness Expo per Android/iOS/web. I Task 1–8 includono shell dark IT/EN, onboarding, Program Management, Workout Engine con target/actual e snapshot, SQLite offline-first/outbox/sync Neon, calendario Home e Progressi con statistiche e record deterministici. Task 8 aggiunge autenticazione Clerk, profilo account e isolamento offline; configurazione Clerk reale e verifica su telefono richiedono le chiavi development. Task 9 aggiunge importazione foto/PDF con revisione obbligatoria e conferma atomica; la generazione con AI del Task 10 resta futura. Vedi [Import Foto/PDF](docs/workout-plan-import.md). Vedi [Progress Analytics](docs/progress-analytics.md) e [offline workout](docs/offline-sync.md).
 
 ## Stack e prerequisiti
 

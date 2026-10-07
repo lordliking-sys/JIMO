@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { dayInputSchema, type DayDto, type DayInput } from '@jimo/schemas';
-import { Button, Card, Text, colors } from '@jimo/ui';
+import { Button, Text, colors } from '@jimo/ui';
 import {
   useProgram,
   useProgramMutation,
@@ -15,6 +15,7 @@ import {
   ErrorNotice,
   QueryState,
   FormScreen,
+  FormSection,
 } from '../../../src/programs/components';
 import { weekdayNumbers, weekdayValue } from '../../../src/programs/weekdays';
 import { ApiClientError } from '../../../src/api/client';
@@ -56,7 +57,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
       }
     >
       <FormHeader title={t(day ? 'editDay' : 'addDay')} />
-      <Card>
+      <FormSection>
         <Field
           label={t('dayName')}
           value={name}
@@ -91,7 +92,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
           multiline
           maxLength={2000}
         />
-      </Card>
+      </FormSection>
       {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
     </FormScreen>
   );

@@ -33,7 +33,7 @@
     "empty": "You don't have a program yet.",
     "description": "Build a routine that works for you.",
     "createTitle": "Create a program",
-    "createDescription": "Choose your approach. These tools are coming soon."
+    "createDescription": "Build your routine manually or import an existing workout plan."
   },
   "workout": {
     "empty": "No workout in progress.",
@@ -49,7 +49,7 @@
   },
   "methods": {
     "ai": "Create with AI",
-    "import": "Import a program",
+    "import": "Import workout plan",
     "manual": "Create manually"
   },
   "methodDescriptions": {

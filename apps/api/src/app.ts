@@ -1,3 +1,7 @@
+import { importRoutes } from './routes/imports';
+import { WorkoutPlanImportService } from './ai/imports/workoutPlanImport';
+import { ImportConfirmationService } from './ai/imports/confirmation';
+import type { WorkoutPlanExtractor } from './ai/client';
 import { ProgressService } from './progress-service';
 import { progressRoutes } from './routes/progress';
 import { WorkoutSyncService } from './workout-sync';
@@ -23,6 +27,9 @@ export function buildApp(
     database?: DatabaseClient;
     currentUser?: CurrentUserProvider;
     corsOrigins?: string[];
+    importExtractor?: WorkoutPlanExtractor;
+    importModel?: string;
+    importLimits?: { daily: number; hourly: number };
     logger?: boolean;
     loggerStream?: Writable;
   } = {},
@@ -53,6 +60,7 @@ export function buildApp(
             },
           },
     bodyLimit: 64 * 1024,
+    requestTimeout: 180_000,
   });
   installErrorHandler(app);
   app.addHook('onSend', async (_request, reply, payload) => {
@@ -72,6 +80,16 @@ export function buildApp(
     ],
   });
   if (options.database) {
+    app.register(importRoutes, {
+      service: new WorkoutPlanImportService(
+        options.database,
+        options.importExtractor,
+        options.importModel ?? 'unconfigured',
+        options.importLimits,
+      ),
+      confirmation: new ImportConfirmationService(options.database),
+      currentUser: options.currentUser ?? noCurrentUser,
+    });
     app.register(meRoutes, {
       service: new ProfileService(options.database),
       currentUser: options.currentUser ?? noCurrentUser,

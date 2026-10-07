@@ -3,11 +3,21 @@ import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import { Button, Screen, Text, spacing, colors } from '@jimo/ui';
+import {
+  Button,
+  IconButton,
+  Screen,
+  Text,
+  spacing,
+  colors,
+  sizes,
+} from '@jimo/ui';
+import Eye from 'lucide-react-native/icons/eye';
+import EyeOff from 'lucide-react-native/icons/eye-off';
 import { Field } from '../programs/components';
 import { Wordmark } from '../components/Wordmark';
 import { useAuthSession } from './SessionProvider';
-import { authErrorKey } from './helpers';
+import { authErrorKey, authErrorParams } from './helpers';
 export function AuthForm({
   mode,
 }: {
@@ -29,6 +39,7 @@ export function AuthForm({
       ReturnType<typeof authErrorKey> | 'errors.confirm' | 'errors.wait' | null
     >(null),
     [sent, setSent] = useState(false);
+  const [errorParams, setErrorParams] = useState<{ min?: number }>({});
   const lock = useRef(false),
     resendAt = useRef(0);
   const run = async (action: () => Promise<void>) => {
@@ -41,6 +52,7 @@ export function AuthForm({
       await action();
     } catch (e) {
       setError(authErrorKey(e));
+      setErrorParams(authErrorParams(e));
     } finally {
       lock.current = false;
       setBusy(false);
@@ -122,20 +134,47 @@ export function AuthForm({
       keyboardAware
       dismissKeyboardLabel={t('keyboardDone')}
       footer={
-        <Button
-          label={
-            auth.needsAuth
-              ? t('signInAgain')
-              : stage === 'verify'
-                ? t('verify')
-                : stage === 'reset'
-                  ? t('savePassword')
-                  : title
-          }
-          busy={busy}
-          disabled={!auth.loaded}
-          onPress={submit}
-        />
+        <View style={{ gap: spacing.xs }}>
+          <Button
+            label={
+              auth.needsAuth
+                ? t('signInAgain')
+                : stage === 'verify'
+                  ? t('verify')
+                  : stage === 'reset'
+                    ? t('savePassword')
+                    : title
+            }
+            busy={busy}
+            disabled={!auth.loaded}
+            onPress={submit}
+          />
+          <View style={{ gap: spacing.sm }}>
+            {mode === 'sign-in' ? (
+              <>
+                <Button
+                  variant="text"
+                  label={t('signUp')}
+                  disabled={busy}
+                  onPress={() => router.push('/auth/sign-up')}
+                />
+                <Button
+                  variant="text"
+                  label={t('forgotPassword')}
+                  disabled={busy}
+                  onPress={() => router.push('/auth/forgot-password')}
+                />
+              </>
+            ) : (
+              <Button
+                variant="text"
+                label={t('backSignIn')}
+                disabled={busy}
+                onPress={() => router.replace('/auth/sign-in')}
+              />
+            )}
+          </View>
+        </View>
       }
       contentStyle={{ gap: spacing.xl }}
     >
@@ -179,7 +218,7 @@ export function AuthForm({
               <Button
                 label={t('resend')}
                 disabled={busy}
-                variant="secondary"
+                variant="text"
                 onPress={() =>
                   void run(async () => {
                     if (Date.now() - resendAt.current < 30000) {
@@ -205,6 +244,20 @@ export function AuthForm({
                 onChangeText={setPassword}
                 editable={!busy}
                 secureTextEntry={!visible}
+                accessory={
+                  <IconButton
+                    label={t(visible ? 'hidePassword' : 'showPassword')}
+                    disabled={busy}
+                    onPress={() => setVisible((v) => !v)}
+                    icon={
+                      visible ? (
+                        <EyeOff size={sizes.icon} color={colors.secondary} />
+                      ) : (
+                        <Eye size={sizes.icon} color={colors.secondary} />
+                      )
+                    }
+                  />
+                }
                 autoCapitalize="none"
                 autoCorrect={false}
                 autoComplete={
@@ -214,11 +267,12 @@ export function AuthForm({
                   mode === 'sign-in' ? 'password' : 'newPassword'
                 }
               />
-              <Button
-                variant="secondary"
-                label={t(visible ? 'hidePassword' : 'showPassword')}
-                onPress={() => setVisible((v) => !v)}
-              />
+
+              {mode === 'sign-up' || stage === 'reset' ? (
+                <Text variant="caption" color={colors.secondary}>
+                  {t('passwordHelp')}
+                </Text>
+              ) : null}
               {mode === 'sign-up' || stage === 'reset' ? (
                 <Field
                   label={t('confirmPassword')}
@@ -226,6 +280,20 @@ export function AuthForm({
                   onChangeText={setConfirm}
                   editable={!busy}
                   secureTextEntry={!visible}
+                  accessory={
+                    <IconButton
+                      label={t(visible ? 'hidePassword' : 'showPassword')}
+                      disabled={busy}
+                      onPress={() => setVisible((v) => !v)}
+                      icon={
+                        visible ? (
+                          <EyeOff size={sizes.icon} color={colors.secondary} />
+                        ) : (
+                          <Eye size={sizes.icon} color={colors.secondary} />
+                        )
+                      }
+                    />
+                  }
                   autoCapitalize="none"
                   autoCorrect={false}
                   autoComplete="new-password"
@@ -238,37 +306,12 @@ export function AuthForm({
       )}
       {error ? (
         <Text color={colors.danger} accessibilityRole="alert">
-          {t(error)}
+          {t(error, errorParams)}
         </Text>
       ) : null}
       {mode === 'sign-up' && stage === 'credentials' ? (
         <View nativeID="clerk-captcha" />
       ) : null}
-      <View style={{ gap: spacing.sm }}>
-        {mode === 'sign-in' ? (
-          <>
-            <Button
-              variant="secondary"
-              label={t('signUp')}
-              disabled={busy}
-              onPress={() => router.push('/auth/sign-up')}
-            />
-            <Button
-              variant="secondary"
-              label={t('forgotPassword')}
-              disabled={busy}
-              onPress={() => router.push('/auth/forgot-password')}
-            />
-          </>
-        ) : (
-          <Button
-            variant="secondary"
-            label={t('backSignIn')}
-            disabled={busy}
-            onPress={() => router.replace('/auth/sign-in')}
-          />
-        )}
-      </View>
     </Screen>
   );
 }

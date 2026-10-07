@@ -7,7 +7,7 @@ import {
   loadModes,
   trackingModes,
 } from '@jimo/schemas';
-import { Text, Button, Card } from '@jimo/ui';
+import { Text, Button } from '@jimo/ui';
 import { exercisesApi } from '../../../src/api/exercises';
 import { useApiLocale } from '../../../src/api/queries';
 import {
@@ -15,6 +15,7 @@ import {
   Field,
   ErrorNotice,
   FormScreen,
+  FormSection,
 } from '../../../src/programs/components';
 import { Choice, choiceStyles } from '../../../src/programs/NumberControl';
 import { View } from 'react-native';
@@ -76,7 +77,7 @@ export default function CustomExercise() {
     >
       <Back />
       <ScreenHeader title={t('createCustom')} light />
-      <Card>
+      <FormSection>
         <Field
           label={t('exerciseName')}
           value={name}
@@ -110,7 +111,7 @@ export default function CustomExercise() {
             />
           ))}
         </View>
-      </Card>
+      </FormSection>
       {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
     </FormScreen>
   );

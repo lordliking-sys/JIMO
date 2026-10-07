@@ -15,6 +15,17 @@ test('test auth: sign in, app guard, workout and progress; logout warning preser
   await expect(
     page.getByRole('button', { name: 'Accedi', exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Impostazioni', exact: true }),
+  ).toHaveCount(0);
+  expect(
+    (
+      await page
+        .getByRole('button', { name: 'Mostra password', exact: true })
+        .boundingBox()
+    )?.height,
+  ).toBeGreaterThanOrEqual(48);
+  await page.screenshot({ path: info.outputPath('auth-sign-in-cleanup.png') });
   await page
     .getByRole('textbox', { name: 'Email', exact: true })
     .fill('example@example.invalid');

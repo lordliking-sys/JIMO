@@ -230,5 +230,6 @@ test('local week maps Monday/Wednesday/Friday schedule, today separately and com
     [0, 0, 0, 0, 0, 0, 0],
   );
   assert.equal(resources.it.programs.weekdaysShort[1], 'Lun');
+  assert.equal(resources.it.programs.weekdaysShort[7].toUpperCase(), 'DOM');
   assert.equal(resources.en.programs.weekdaysShort[1], 'Mon');
 });
