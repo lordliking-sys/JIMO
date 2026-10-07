@@ -17,9 +17,11 @@ export async function developmentCurrentUser(
     mode: 'development' | 'test' | 'production';
     userId?: string;
     branchId?: string;
+    allowDevAuth?: boolean;
   },
 ): Promise<CurrentUserProvider> {
   if (config.mode === 'production') return noCurrentUser;
+  if (!config.allowDevAuth) return noCurrentUser;
   if (!config.branchId)
     throw new Error(
       'NEON_DEVELOPMENT_BRANCH_ID is required for development identity',

@@ -1,0 +1,14 @@
+/** Additive, versioned schema. JSON stores validated DTOs; indexed relationships
+ * and canonical decimal columns remain inspectable without interpreting JSON. */
+export const initialSchema = `
+CREATE TABLE cached_programs(owner_user_id TEXT NOT NULL,id TEXT NOT NULL,status TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(owner_user_id,id));
+CREATE TABLE cached_program_days(owner_user_id TEXT NOT NULL,id TEXT NOT NULL,program_id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(owner_user_id,id),FOREIGN KEY(owner_user_id,program_id) REFERENCES cached_programs(owner_user_id,id) ON DELETE CASCADE);
+CREATE TABLE cached_program_exercises(owner_user_id TEXT NOT NULL,id TEXT NOT NULL,day_id TEXT NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(owner_user_id,id),FOREIGN KEY(owner_user_id,day_id) REFERENCES cached_program_days(owner_user_id,id) ON DELETE CASCADE);
+CREATE TABLE local_workout_sessions(owner_user_id TEXT NOT NULL,id TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('in_progress','completed','cancelled')),started_at TEXT NOT NULL,completed_at TEXT,payload TEXT NOT NULL,PRIMARY KEY(owner_user_id,id));
+CREATE UNIQUE INDEX local_single_active ON local_workout_sessions(owner_user_id) WHERE status='in_progress';
+CREATE TABLE local_workout_exercises(owner_user_id TEXT NOT NULL,id TEXT NOT NULL,session_id TEXT NOT NULL,position INTEGER NOT NULL,payload TEXT NOT NULL,PRIMARY KEY(owner_user_id,id),UNIQUE(owner_user_id,session_id,position),FOREIGN KEY(owner_user_id,session_id) REFERENCES local_workout_sessions(owner_user_id,id) ON DELETE CASCADE);
+CREATE TABLE local_workout_sets(owner_user_id TEXT NOT NULL,id TEXT NOT NULL,exercise_id TEXT NOT NULL,set_number INTEGER NOT NULL,status TEXT NOT NULL,completed_at TEXT,target_load_kg TEXT,target_assistance_kg TEXT,target_rpe TEXT,actual_load_kg TEXT,actual_assistance_kg TEXT,actual_rpe TEXT,payload TEXT NOT NULL,PRIMARY KEY(owner_user_id,id),UNIQUE(owner_user_id,exercise_id,set_number),FOREIGN KEY(owner_user_id,exercise_id) REFERENCES local_workout_exercises(owner_user_id,id) ON DELETE CASCADE);
+CREATE TABLE sync_outbox(owner_user_id TEXT NOT NULL,operation_id TEXT NOT NULL,session_id TEXT NOT NULL,entity_id TEXT NOT NULL,operation_type TEXT NOT NULL,sequence INTEGER NOT NULL,created_at TEXT NOT NULL,payload TEXT NOT NULL,attempt_count INTEGER NOT NULL DEFAULT 0,last_attempt_at TEXT,last_error TEXT,status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','syncing','failed','conflict')),PRIMARY KEY(owner_user_id,operation_id),UNIQUE(owner_user_id,session_id,sequence),FOREIGN KEY(owner_user_id,session_id) REFERENCES local_workout_sessions(owner_user_id,id) ON DELETE RESTRICT);
+CREATE INDEX outbox_fifo ON sync_outbox(owner_user_id,status,session_id,sequence);
+CREATE TABLE sync_metadata(owner_user_id TEXT NOT NULL,key TEXT NOT NULL,value TEXT NOT NULL,PRIMARY KEY(owner_user_id,key));
+`;

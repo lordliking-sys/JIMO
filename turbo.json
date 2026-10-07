@@ -4,20 +4,17 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
-      "env": ["EXPO_PUBLIC_API_URL"]
+      "env": [
+        "EXPO_PUBLIC_API_URL",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_AUTH_TEST"
+      ]
     },
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
-      "env": [
-        "PORT",
-        "NODE_ENV",
-        "EXPO_PUBLIC_API_URL",
-        "DEV_USER_ID",
-        "NEON_DEVELOPMENT_BRANCH_ID",
-        "API_ALLOWED_ORIGINS"
-      ]
+      "env": ["EXPO_PUBLIC_API_URL", "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY"]
     },
     "lint": {
       "dependsOn": ["^build"]
@@ -32,7 +29,24 @@
     "test:integration": {
       "dependsOn": ["^build", "build"],
       "cache": false,
-      "outputs": []
+      "outputs": [],
+      "passThroughEnv": ["DATABASE_URL", "NEON_DEVELOPMENT_BRANCH_ID"]
+    },
+    "@jimo/api#dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "PORT",
+        "NODE_ENV",
+        "DEV_USER_ID",
+        "NEON_DEVELOPMENT_BRANCH_ID",
+        "API_ALLOWED_ORIGINS",
+        "ALLOW_DEV_AUTH",
+        "CLERK_ISSUER_URL",
+        "CLERK_AUTHORIZED_PARTIES"
+      ],
+      "passThroughEnv": ["DATABASE_URL", "CLERK_SECRET_KEY", "CLERK_JWT_KEY"]
     }
   },
   "globalPassThroughEnv": [
@@ -41,7 +55,6 @@
     "XDG_CACHE_HOME",
     "XDG_DATA_HOME",
     "EXPO_UNSTABLE_HEADLESS",
-    "DATABASE_URL",
     "HTTP_PROXY",
     "HTTPS_PROXY",
     "ALL_PROXY",
@@ -50,7 +63,7 @@
     "https_proxy",
     "no_proxy",
     "NODE_EXTRA_CA_CERTS",
-    "NEON_DEVELOPMENT_BRANCH_ID"
+    "__UNSAFE_EXPO_HOME_DIRECTORY"
   ],
   "globalDependencies": [
     "tsconfig.base.json",

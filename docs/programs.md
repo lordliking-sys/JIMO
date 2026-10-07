@@ -1,3 +1,5 @@
+> Task 8 replaces the temporary identity described historically below with Clerk → internal UUID. Development bootstrap now requires explicit `ALLOW_DEV_AUTH=true`; production requires verified Clerk and fails closed. See [Authentication](authentication.md). Browser tests require the dedicated `EXPO_PUBLIC_AUTH_TEST=true` test export, never a release artifact.
+
 # Program Management — Task 4
 
 Il flusso manuale è Mobile → Fastify → Drizzle → Neon HTTP. Il mobile non conosce `DATABASE_URL` e non importa il package database. I contratti JSON/Zod e gli helper numeric sono nel barrel mobile-safe di `@jimo/schemas`; le definizioni Drizzle restano server.
@@ -8,7 +10,7 @@ Le route personali ricevono un `CurrentUserProvider` centrale (`apps/api/src/cur
 
 In development/test il server verifica prima che `current_setting('neon.branch_id')` corrisponda a `NEON_DEVELOPMENT_BRANCH_ID`. Per questo progetto development è `br-purple-math-b1fsq2wb`, confermato dall'utente. Se il confronto fallisce non avviene il bootstrap. Con `DEV_USER_ID` impostato deve esistere già quell'utente; con valore assente/vuoto viene inserito idempotentemente l'utente development stabile `3c9e1b7d-7596-4f15-a11c-48b8ef237413`. L'identità è centralizzata esclusivamente nel server, non dispersa nel client. Riavviare il server conserva l'accesso ai programmi development dello stesso utente.
 
-Questo meccanismo è uno strumento per un ambiente development controllato, non autenticazione. In production il provider restituisce `AUTH_REQUIRED`; `DEV_USER_ID` non vuoto viene rifiutato dalla configurazione. Nessuna route personale dispone del fallback development in production. `/health` e `/ready` rimangono disponibili. In futuro il provider verrà sostituito da verifica delle credenziali dell'identity provider, mantenendo servizi e ownership invariati.
+Il bootstrap legacy è disponibile soltanto con `ALLOW_DEV_AUTH=true` in development/test e configurazione Clerk assente. In production la configurazione richiede Clerk e rifiuta DEV_USER_ID/bypass. CurrentUser deriva dal token verificato e risolve l’UUID interno; servizi e ownership sono invariati. `/health` e `/ready` sono pubblici; tutte le route personali richiedono autenticazione. Vedi [authentication.md](authentication.md).
 
 Tutte le migration, seed e suite Neon eseguite in questo task sono indirizzate esclusivamente a development. Il runner migration e il seed richiedono ora il controllo `NEON_DEVELOPMENT_BRANCH_ID` prima delle scritture. Nessuna connessione a production è stata effettuata. `users.locale` resta text e non viene nuovamente modificato.
 
@@ -124,7 +126,7 @@ pnpm db:generate
 pnpm db:check
 pnpm test:db
 pnpm test:api:db
-EXPO_PUBLIC_API_URL=http://localhost:4301 pnpm build
+EXPO_PUBLIC_AUTH_TEST=true EXPO_PUBLIC_API_URL=http://localhost:4301 pnpm build
 CHROMIUM_PATH=/usr/bin/chromium pnpm --filter @jimo/mobile test:ui
 pnpm format:check
 ```

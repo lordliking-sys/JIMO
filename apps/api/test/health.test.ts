@@ -14,9 +14,14 @@ test('GET /health returns the service contract', async () => {
 });
 test('PORT defaults and overrides are validated', () => {
   const DATABASE_URL = 'postgresql://test:test@example.invalid/test';
-  assert.equal(readEnv({ DATABASE_URL }).PORT, 3001);
-  assert.equal(readEnv({ PORT: '4321', DATABASE_URL }).PORT, 4321);
+  assert.equal(readEnv({ ALLOW_DEV_AUTH: 'true', DATABASE_URL }).PORT, 3001);
+  assert.equal(
+    readEnv({ ALLOW_DEV_AUTH: 'true', PORT: '4321', DATABASE_URL }).PORT,
+    4321,
+  );
   for (const PORT of ['', '0', '65536', '3.5', 'invalid']) {
-    assert.throws(() => readEnv({ PORT, DATABASE_URL }));
+    assert.throws(() =>
+      readEnv({ ALLOW_DEV_AUTH: 'true', PORT, DATABASE_URL }),
+    );
   }
 });

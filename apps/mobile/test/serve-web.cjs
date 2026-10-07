@@ -4,6 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../dist');
 const types = {
   '.html': 'text/html',
+  '.wasm': 'application/wasm',
   '.js': 'text/javascript',
   '.json': 'application/json',
   '.ttf': 'font/ttf',
@@ -37,6 +38,8 @@ http
     res.writeHead(200, {
       'Content-Type': types[path.extname(file)] ?? 'application/octet-stream',
       'Cache-Control': 'no-store',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'require-corp',
     });
     fs.createReadStream(file).pipe(res);
   })

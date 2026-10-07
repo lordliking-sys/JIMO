@@ -6,6 +6,7 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    public readonly details?: { sessionId: string },
   ) {
     super(message);
   }
@@ -13,9 +14,9 @@ export class ApiError extends Error {
 export function installErrorHandler(app: FastifyInstance) {
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ApiError)
-      return reply
-        .code(error.status)
-        .send({ error: { code: error.code, message: error.message } });
+      return reply.code(error.status).send({
+        error: { code: error.code, message: error.message, ...error.details },
+      });
     if (
       error instanceof z.ZodError ||
       (typeof error === 'object' &&
@@ -25,6 +26,18 @@ export function installErrorHandler(app: FastifyInstance) {
     )
       return reply.code(400).send({
         error: { code: 'VALIDATION_ERROR', message: 'Invalid request' },
+      });
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'statusCode' in error &&
+      error.statusCode === 413
+    )
+      return reply.code(413).send({
+        error: {
+          code: 'REQUEST_TOO_LARGE',
+          message: 'Request exceeds the supported size',
+        },
       });
     const safe = safeDatabaseError(error);
     app.log.error({ event: 'request_failed', ...safe }, 'Request failed');

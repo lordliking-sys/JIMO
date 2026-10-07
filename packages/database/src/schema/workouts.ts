@@ -45,6 +45,9 @@ export const workoutSessions = pgTable(
   },
   (t) => [
     index('workout_sessions_user_idx').on(t.userId),
+    uniqueIndex('workout_sessions_single_active_unique')
+      .on(t.userId)
+      .where(sql`${t.status} = 'in_progress'`),
     index('workout_sessions_started_idx').on(t.startedAt),
     index('workout_sessions_program_idx').on(t.programId),
     index('workout_sessions_day_idx').on(t.programDayId),

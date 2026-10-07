@@ -33,7 +33,9 @@ export function finishOnboarding(
 export function initialDestination(
   preferences: Preferences,
 ): '/onboarding' | '/' {
-  return preferences.onboardingCompleted ? '/' : '/onboarding';
+  return preferences.onboardingCompleted || preferences.accountOnboarded
+    ? '/'
+    : '/onboarding';
 }
 export type StorageDriver = {
   getItem: (key: string) => Promise<string | null>;

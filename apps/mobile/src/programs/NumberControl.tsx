@@ -1,7 +1,9 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
 import type { KeyboardTypeOptions } from 'react-native';
 import Minus from 'lucide-react-native/icons/minus';
 import Plus from 'lucide-react-native/icons/plus';
+import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { colors, IconButton, radius, sizes, spacing, Text } from '@jimo/ui';
 import { FocusInput } from './components';
@@ -10,15 +12,17 @@ export function Choice({
   label,
   selected,
   onPress,
+  accessibilityLabel,
 }: {
   label: string;
   selected: boolean;
   onPress: () => void;
+  accessibilityLabel?: string;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected }}
       aria-pressed={selected}
       onPress={onPress}
@@ -51,6 +55,10 @@ export function NumberControl({
   keyboardType = 'number-pad',
   hint,
   presets = [],
+  presetsFirst = false,
+  prefix = '',
+  unit = '',
+  manualLabel,
 }: {
   label: string;
   value: string;
@@ -60,14 +68,48 @@ export function NumberControl({
   max?: number;
   keyboardType?: KeyboardTypeOptions;
   hint?: string;
-  presets?: { value: string; label: string }[];
+  presets?: { value: string; label: string; accessibilityLabel?: string }[];
+  presetsFirst?: boolean;
+  prefix?: string;
+  unit?: string;
+  manualLabel?: string;
 }) {
   const { t } = useTranslation('programs');
+  const [editing, setEditing] = useState(false);
+  const finish = () => {
+    Keyboard.dismiss();
+    setEditing(false);
+  };
   const current = Number(value.replace(',', '.'));
   const valid = value.trim() !== '' && Number.isFinite(current);
+  const normalize = (text: string) =>
+    text
+      .trim()
+      .replace(',', '.')
+      .replace(/(\.\d*?)0+$/, '$1')
+      .replace(/\.$/, '');
+  const chips = presets.length ? (
+    <View style={styles.choices}>
+      {presets.map((preset) => (
+        <Choice
+          key={preset.value}
+          label={preset.label}
+          {...(preset.accessibilityLabel
+            ? { accessibilityLabel: preset.accessibilityLabel }
+            : {})}
+          selected={normalize(value) === normalize(preset.value)}
+          onPress={() => {
+            onChange(preset.value);
+            finish();
+          }}
+        />
+      ))}
+    </View>
+  ) : null;
   return (
     <View style={{ gap: spacing.sm }}>
       <Text variant="label">{label}</Text>
+      {presetsFirst ? chips : null}
       <View style={styles.control}>
         <IconButton
           icon={<Minus size={sizes.icon} color={colors.text} />}
@@ -75,39 +117,65 @@ export function NumberControl({
           disabled={!value.trim() || (valid && current <= min)}
           onPress={() => onStep(-1)}
         />
-        <FocusInput
-          accessibilityLabel={label}
-          accessibilityHint={t('numberHint')}
-          value={value}
-          onChangeText={onChange}
-          keyboardType={keyboardType}
-          placeholder="—"
-          style={styles.value}
-        />
+        {editing ? (
+          <FocusInput
+            accessibilityLabel={label}
+            accessibilityHint={t('numberHint')}
+            value={value}
+            onChangeText={onChange}
+            keyboardType={keyboardType}
+            placeholder="—"
+            style={styles.value}
+            autoFocus
+            onSubmitEditing={finish}
+          />
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={manualLabel ?? t('manualValue', { label })}
+            accessibilityHint={t('numberHint')}
+            accessibilityValue={{ text: value || t('unspecified') }}
+            onPress={() => setEditing(true)}
+            style={[styles.display, { flex: 1 }]}
+          >
+            <Text
+              variant="h3"
+              color={value ? colors.primarySoft : colors.secondary}
+              style={{ textAlign: 'center' }}
+            >
+              {value ? `${prefix}${value}${unit ? ` ${unit}` : ''}` : '—'}
+            </Text>
+            {manualLabel ? (
+              <Text
+                variant="caption"
+                color={colors.secondary}
+                style={{ textAlign: 'center' }}
+              >
+                {manualLabel}
+              </Text>
+            ) : null}
+          </Pressable>
+        )}
         <IconButton
           icon={<Plus size={sizes.icon} color={colors.text} />}
           label={`${t('increase')} ${label}`}
           disabled={valid && max !== undefined && current >= max}
           onPress={() => onStep(1)}
         />
+        {editing ? (
+          <IconButton
+            label={t('confirmValue', { label })}
+            icon={<Check color={colors.primary} size={sizes.icon} />}
+            onPress={finish}
+          />
+        ) : null}
       </View>
       {hint ? (
         <Text variant="caption" color={colors.secondary}>
           {hint}
         </Text>
       ) : null}
-      {presets.length ? (
-        <View style={styles.choices}>
-          {presets.map((preset) => (
-            <Choice
-              key={preset.value}
-              label={preset.label}
-              selected={value === preset.value}
-              onPress={() => onChange(preset.value)}
-            />
-          ))}
-        </View>
-      ) : null}
+      {!presetsFirst ? chips : null}
     </View>
   );
 }
@@ -122,6 +190,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Inter_600SemiBold',
     paddingHorizontal: spacing.sm,
+  },
+  display: {
+    minHeight: sizes.touch,
+    minWidth: sizes.touch,
+    padding: spacing.sm,
+    backgroundColor: colors.elevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.medium,
+    justifyContent: 'center',
   },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   choice: {

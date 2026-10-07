@@ -1,3 +1,7 @@
+import { authDestination } from '../src/auth/helpers';
+import { SessionProvider, useAuthSession } from '../src/auth/SessionProvider';
+import { AccountProvider, useAccount } from '../src/auth/AccountProvider';
+import { OfflineProvider } from '../src/db/Provider';
 import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
@@ -30,9 +34,24 @@ const theme = {
 };
 function AppNavigator() {
   const { preferences, startupError, retry } = usePreferences();
+  const session = useAuthSession(),
+    account = useAccount();
   const [brandComplete, setBrandComplete] = useState(false);
   const finishBrand = useCallback(() => setBrandComplete(true), []);
   if (!preferences) return <StartupScreen error={startupError} retry={retry} />;
+  const destination = authDestination({
+    loaded: session.loaded,
+    signedIn: session.signedIn && !session.needsAuth,
+    resolved: account.resolved,
+    onboarding:
+      preferences.onboardingCompleted || !!preferences.accountOnboarded,
+  });
+  if (destination === 'loading')
+    return <StartupScreen error={account.error} retry={account.retry} />;
+  const onboarding =
+    destination === 'onboarding' ||
+    (session.test && !preferences.onboardingCompleted);
+  const app = destination === 'app' && !onboarding;
   return (
     <>
       <View
@@ -50,11 +69,16 @@ function AppNavigator() {
             contentStyle: { backgroundColor: colors.background },
           }}
         >
-          <Stack.Protected guard={!preferences.onboardingCompleted}>
+          <Stack.Protected guard={onboarding}>
             <Stack.Screen name="onboarding" />
           </Stack.Protected>
-          <Stack.Protected guard={preferences.onboardingCompleted}>
+          <Stack.Protected guard={!onboarding && !app}>
+            <Stack.Screen name="auth" />
+          </Stack.Protected>
+          <Stack.Protected guard={app}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="workout/[id]" />
+            <Stack.Screen name="progress/[id]" />
             <Stack.Screen name="program/create" />
             <Stack.Screen name="program/manual" />
             <Stack.Screen name="program/[id]/index" />
@@ -69,7 +93,7 @@ function AppNavigator() {
       {!brandComplete ? (
         <BrandTransition
           onComplete={finishBrand}
-          returning={preferences.onboardingCompleted}
+          returning={preferences.onboardingCompleted || session.signedIn}
         />
       ) : null}
     </>
@@ -83,7 +107,13 @@ export default function RootLayout() {
           <PreferencesProvider>
             <ThemeProvider value={theme}>
               <StatusBar style="light" />
-              <AppNavigator />
+              <SessionProvider>
+                <OfflineProvider>
+                  <AccountProvider>
+                    <AppNavigator />
+                  </AccountProvider>
+                </OfflineProvider>
+              </SessionProvider>
             </ThemeProvider>
           </PreferencesProvider>
         </QueryClientProvider>

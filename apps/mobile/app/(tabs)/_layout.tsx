@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import type { ColorValue } from 'react-native';
 import ChartNoAxesCombined from 'lucide-react-native/icons/chart-no-axes-combined';
 import CircleUserRound from 'lucide-react-native/icons/circle-user-round';
@@ -9,25 +9,32 @@ import House from 'lucide-react-native/icons/house';
 import ListChecks from 'lucide-react-native/icons/list-checks';
 import { useTranslation } from 'react-i18next';
 import { colors, sizes, spacing, Text } from '@jimo/ui';
+import { tabLabelKey } from '../../src/components/tab-labels';
 export default function TabsLayout() {
   const { t } = useTranslation('navigation');
   const insets = useSafeAreaInsets();
   const { width, fontScale } = useWindowDimensions();
-  const compact = width < 400 || fontScale > 1;
+  const availableWidth = width - insets.left - insets.right;
   const label = (text: string) =>
     function TabLabel({ color }: { color: ColorValue }) {
       return (
-        <Text
-          variant="caption"
-          style={{
-            color,
-            textAlign: 'center',
-            width: '100%',
-            paddingHorizontal: spacing.xs,
-          }}
-        >
-          {text}
-        </Text>
+        // Match the navigator's 5 px button padding without a fixed pixel width,
+        // so captions resize with the tab immediately during rotation/layout.
+        <View style={{ alignSelf: 'stretch', marginHorizontal: -5 }}>
+          <Text
+            variant="caption"
+            numberOfLines={1}
+            ellipsizeMode="clip"
+            maxFontSizeMultiplier={1.5}
+            style={{
+              color,
+              textAlign: 'center',
+              paddingHorizontal: spacing.xs / 2,
+            }}
+          >
+            {text}
+          </Text>
+        </View>
       );
     };
   return (
@@ -42,7 +49,8 @@ export default function TabsLayout() {
         tabBarActiveBackgroundColor: colors.elevated,
         tabBarStyle: {
           backgroundColor: colors.surface,
-          height: 72 + Math.max(0, fontScale - 1) * 40 + insets.bottom,
+          height:
+            72 + Math.max(0, Math.min(fontScale, 1.5) - 1) * 36 + insets.bottom,
           paddingBottom: Math.max(insets.bottom, spacing.sm),
           borderTopColor: colors.border,
         },
@@ -69,7 +77,9 @@ export default function TabsLayout() {
         options={{
           title: t('program'),
           tabBarAccessibilityLabel: t('program'),
-          tabBarLabel: label(t(compact ? 'compact.program' : 'program')),
+          tabBarLabel: label(
+            t(tabLabelKey('program', availableWidth, fontScale)),
+          ),
           tabBarIcon: ({ color }) => (
             <ListChecks size={sizes.tabIcon} color={color} />
           ),
@@ -80,7 +90,9 @@ export default function TabsLayout() {
         options={{
           title: t('workout'),
           tabBarAccessibilityLabel: t('workout'),
-          tabBarLabel: label(t(compact ? 'compact.workout' : 'workout')),
+          tabBarLabel: label(
+            t(tabLabelKey('workout', availableWidth, fontScale)),
+          ),
           tabBarIcon: ({ color }) => (
             <Dumbbell size={sizes.tabIcon} color={color} />
           ),
@@ -91,7 +103,9 @@ export default function TabsLayout() {
         options={{
           title: t('progress'),
           tabBarAccessibilityLabel: t('progress'),
-          tabBarLabel: label(t('progress')),
+          tabBarLabel: label(
+            t(tabLabelKey('progress', availableWidth, fontScale)),
+          ),
           tabBarIcon: ({ color }) => (
             <ChartNoAxesCombined size={sizes.tabIcon} color={color} />
           ),
@@ -102,7 +116,9 @@ export default function TabsLayout() {
         options={{
           title: t('profile'),
           tabBarAccessibilityLabel: t('profile'),
-          tabBarLabel: label(t('profile')),
+          tabBarLabel: label(
+            t(tabLabelKey('profile', availableWidth, fontScale)),
+          ),
           tabBarIcon: ({ color }) => (
             <CircleUserRound size={sizes.tabIcon} color={color} />
           ),

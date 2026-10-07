@@ -1,6 +1,6 @@
 # JIMO
 
-JIMO è una futura app fitness per Android e iOS. L'attuale application shell include design system dark, splash e transizione brand, onboarding di sette passaggi, preferenze locali, traduzioni IT/EN e cinque tab con stati vuoti professionali. Il Task 3 aggiunge il database Neon/Drizzle; il Task 4 aggiunge Program Management manuale end-to-end, traduzioni esercizi e persistenza reale tramite API. Non include autenticazione, AI o servizi di allenamento.
+JIMO è un’app fitness Expo per Android/iOS/web. I Task 1–8 includono shell dark IT/EN, onboarding, Program Management, Workout Engine con target/actual e snapshot, SQLite offline-first/outbox/sync Neon, calendario Home e Progressi con statistiche e record deterministici. Task 8 aggiunge autenticazione Clerk, profilo account e isolamento offline; configurazione Clerk reale e verifica su telefono richiedono le chiavi development. AI e Task 9 restano futuri. Vedi [Progress Analytics](docs/progress-analytics.md) e [offline workout](docs/offline-sync.md).
 
 ## Stack e prerequisiti
 
@@ -34,7 +34,7 @@ pnpm dev:api
 pnpm dev
 ```
 
-Prima dello sviluppo API impostare `NEON_DEVELOPMENT_BRANCH_ID=br-purple-math-b1fsq2wb` e, per il mobile, `EXPO_PUBLIC_API_URL` sull’origin raggiungibile dell’API. Con secret già iniettato eseguire `pnpm db:migrate` e `NODE_ENV=development ALLOW_DEV_SEED=1 pnpm db:seed`. La soluzione CurrentUser temporanea è descritta in [docs/programs.md](docs/programs.md).
+Prima dello sviluppo API impostare `NEON_DEVELOPMENT_BRANCH_ID=br-purple-math-b1fsq2wb` e, per il mobile, `EXPO_PUBLIC_API_URL` sull’origin raggiungibile dell’API. Con secret già iniettato eseguire `pnpm db:migrate` e `NODE_ENV=development ALLOW_DEV_SEED=1 pnpm db:seed`. CurrentUser ora risolve il token Clerk nell’UUID interno JIMO; vedi [autenticazione](docs/authentication.md). Il bypass legacy richiede esplicitamente `ALLOW_DEV_AUTH=true` solo development.
 
 Turbo compila le dipendenze workspace prima di avviare le app. Con `pnpm dev` avvia anche i watcher dei package condivisi; dopo modifiche ai package durante l'avvio di una sola app, eseguire `pnpm build` o usare `pnpm dev`.
 
@@ -74,7 +74,7 @@ pnpm format:check
 pnpm --filter @jimo/mobile check
 ```
 
-`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano health/readiness, configurazione e identità development; `pnpm test:api:db` verifica Program Management e ownership A/B su Neon development. I test database verificano snapshot e validation, con integrazione Neon tramite `pnpm test:db`; i test mobile coprono onboarding, lingua, preferenze, form, decimali e client API. Il percorso browser reale è verificato con Playwright (vedi `docs/programs.md`). Per formattare: `pnpm format`.
+`pnpm build` compila i package condivisi e l'API e genera i bundle Expo Android/iOS e il sito statico web in `apps/mobile/dist`. Non genera APK, AAB o IPA: quelli richiedono una toolchain nativa o un servizio di build, fuori da questo task. I test API verificano health/readiness, configurazione e identità development; `pnpm test:api:db` verifica Program Management, Workout Engine, snapshot, actual, concorrenza e ownership A/B su Neon development. I test database verificano snapshot e validation, con integrazione Neon tramite `pnpm test:db`; i test mobile coprono onboarding, lingua, preferenze, form, decimali, client API, draft workout, recupero a timestamp e calendario settimanale. Il percorso browser reale è verificato con Playwright (vedi `docs/programs.md`). Per formattare: `pnpm format`.
 
 ## Struttura
 
@@ -109,7 +109,7 @@ docs/                  Note tecniche e verifica
 
 ## Ambito
 
-Autenticazione, OpenAI, AI Coach, importazione foto/PDF, workout engine, statistiche, pagamenti, notifiche e sincronizzazione offline saranno trattati in task successivi. La base dati è documentata in [docs/database.md](docs/database.md); API, ownership, flussi manuali, configurazione e test in [docs/programs.md](docs/programs.md).
+I Task 5–6 includono Workout Engine, recupero automatico, ripresa sessione, Home settimanale, storico basilare e workout offline-first con SQLite/outbox/sync. Autenticazione production, OpenAI, AI Coach, importazione foto/PDF, statistiche avanzate, pagamenti, notifiche push saranno trattati in task successivi. La base dati è documentata in [docs/database.md](docs/database.md); API, ownership, flussi manuali, configurazione e test in [docs/programs.md](docs/programs.md).
 
 ## Note per questo ambiente cloud
 
@@ -135,3 +135,9 @@ ESLint 9 è mantenuto qui per compatibilità con la configurazione e i plugin Ex
 `EXPO_UNSTABLE_HEADLESS=1` è l'opzione Expo per il runner senza interfaccia grafica: evita l'avvio dei DevTools desktop, che non funzionano nel sandbox. Metro e il bundling restano disponibili.
 
 La struttura della shell, i flussi, le decisioni tecniche e i test end-to-end sono documentati in [docs/application-shell.md](docs/application-shell.md). Il report Task 1 in `docs/verification.md` resta una verifica storica del bootstrap.
+
+Workout API, transazioni Neon HTTP, migration `0004`, target/actual, timer, test e verifiche telefono: [docs/workout-engine.md](docs/workout-engine.md).
+
+Task 6: workout offline-first con SQLite, outbox e sync idempotente. Vedi [Offline e sync](docs/offline-sync.md). Il Program Builder resta online; Progressi Task 7 e autenticazione Task 8 sono descritti nella documentazione dedicata.
+
+Authentication and account identity (Task 8): [setup, security, offline behavior and Clerk/device checklist](docs/authentication.md). Real auth requires a Clerk development instance; server-only development identity now needs explicit `ALLOW_DEV_AUTH=true`. Never place API secrets in mobile configuration.

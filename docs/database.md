@@ -1,3 +1,5 @@
+> Current Task 8 schema has 10 tables, 6 stable enums, 7 versioned migrations and provider/subject identity fields on users. Older Task sections below record historical milestones. See [authentication.md](authentication.md) for current auth/setup.
+
 # Database JIMO — Task 3
 
 JIMO usa il progetto Neon indicato dal secret `DATABASE_URL`. Il runtime Fastify e i comandi database usano `@neondatabase/serverless` e `drizzle-orm/neon-http`: HTTPS sulla porta 443, senza pool TCP. Nel cloud Codex la porta PostgreSQL 5432 non è disponibile; questo non blocca il runtime o le migration HTTP.
@@ -45,7 +47,7 @@ La conversione rimuove temporaneamente il default enum, esegue il cast testuale 
 
 ## Target, actual e snapshot
 
-Il programma contiene la prescrizione modificabile. Quando nascerà il servizio workout, dovrà leggere una versione coerente della prescrizione e inserire sessione, esercizi e set snapshot atomicamente. Questo task espone soltanto i mapper puri `snapshotExercise` e `snapshotSets`, senza implementare quel servizio.
+Il programma contiene la prescrizione modificabile. Il servizio Workout Engine del Task 5 legge una versione coerente della prescrizione e inserisce sessione, esercizi e set snapshot atomicamente con CTE e transazione Neon HTTP. I mapper puri `snapshotExercise` e `snapshotSets` restano disponibili; il percorso HTTP genera lo snapshot direttamente in SQL. Dopo Start non rilegge target o nome dalla sorgente.
 
 `snapshotExercise` copia nome, tracking mode, load mode, riposo e note; `snapshotSets` copia i target per ogni set, lasciando gli actual null. I mapper non trattengono riferimenti mutabili agli oggetti origine. Gli snapshot sono colonne autonome: nessun trigger o join li ricalcola dal programma.
 
@@ -66,7 +68,7 @@ Pull-Up resta una sola identità. La modalità appartiene alla prescrizione e al
 
 `reps` usa ripetizioni esatte o range; `duration` usa secondi interi. I CHECK proteggono positività dei set/durate, ripetizioni e kg non negativi, RPE 1–10, riposo non negativo, range completi e ordinati, esclusione tra durata e reps e tra load e assistance. Le prescrizioni verificano anche la coerenza dei kg con `load_mode`.
 
-Un CHECK di una tabella non può consultare automaticamente il tracking/load mode di un'altra. La coerenza con l'identità dell'esercizio è verificata dal mapper snapshot; la validazione actual usa `workoutSetActualFor` con il contesto letto dallo snapshot persistito. Prima di validare un aggiornamento parziale, il futuro servizio dovrà unirlo al risultato attuale e validare l'oggetto completo. I set completati devono avere tempo di completamento e misura actual; a livello SQL è obbligatorio il tempo di completamento. Una sessione completata richiede `completed_at >= started_at`.
+Un CHECK di una tabella non può consultare automaticamente il tracking/load mode di un'altra. La coerenza con l'identità dell'esercizio è verificata dal mapper snapshot; la validazione actual dell'API usa `actualFor` con il contesto letto dallo snapshot persistito. Check e correzione richiedono un oggetto actual completo; i target non sono accettati nell'input. `workoutSetActualFor` resta disponibile sul subpath database per validazione interna. I set completati devono avere tempo di completamento e misura actual; a livello SQL è obbligatorio il tempo di completamento. Una sessione completata richiede `completed_at >= started_at`.
 
 ## Decimali in PostgreSQL, TypeScript e JSON
 
@@ -93,7 +95,7 @@ La validazione rifiuta numeri JS, notazione scientifica e frazioni oltre la scal
 
 Le Drizzle relations permettono `user → programs → days → exercises`, `session → workoutExercises → sets` e la navigazione inversa dal catalogo alle prescrizioni e agli esercizi eseguiti.
 
-Gli indici coprono proprietari custom, utente del programma/sessione, inizio sessione, riferimenti opzionali al programma/giorno e riferimenti agli esercizi. Le coppie uniche `(program_id, position)`, `(program_day_id, position)`, `(workout_session_id, position)` e `(workout_exercise_id, set_number)` coprono anche le ricerche per FK grazie alla prima colonna dell'indice. Sono presenti 23 indici contando gli otto indici di primary key.
+Gli indici coprono proprietari custom, utente del programma/sessione, inizio sessione, riferimenti opzionali al programma/giorno e riferimenti agli esercizi. Le coppie uniche `(program_id, position)`, `(program_day_id, position)`, `(workout_session_id, position)` e `(workout_exercise_id, set_number)` coprono anche le ricerche per FK grazie alla prima colonna dell'indice. Il Task 5 aggiunge un indice unique parziale per una sola sessione in_progress per utente.
 
 Lo slug system è unico quando `is_custom=false`; per un custom è unico per proprietario. Lo slug può essere null. Il CHECK ownership richiede proprietario presente per un custom e assente per un system.
 
@@ -173,7 +175,7 @@ Gli schemi DB Zod derivano da Drizzle tramite `drizzle-zod`; vivono nel subpath 
 
 ## Auth futura e limiti del task
 
-`users.id` è l'ID applicativo stabile. Un futuro identity provider potrà essere collegato tramite una nuova tabella di identità esterne con provider/subject univoci, mantenendo tutte le FK attuali. Il Task 4 aggiunge endpoint CRUD dei programmi, client API mobile e builder manuale. Non sono presenti password, OAuth, workout execution, AI, statistiche, abbonamenti o offline sync. Task 5 non è iniziato.
+`users.id` è l'ID applicativo stabile. Un futuro identity provider potrà essere collegato tramite una nuova tabella di identità esterne con provider/subject univoci, mantenendo tutte le FK attuali. Il Task 4 aggiunge endpoint CRUD dei programmi, client API mobile e builder manuale. Non sono presenti password, OAuth, AI, statistiche avanzate, abbonamenti o offline sync. Workout execution è implementata dal Task 5; Task 6 non è iniziato.
 
 Verifica eseguita nel cloud il 6 ottobre 2026: Neon HTTP e SELECT 1 riusciti su PostgreSQL 18.6; migration applicate e rerun senza modifiche; seed 12 righe e rerun 0; test di integrazione completati con cleanup.
 
@@ -181,4 +183,16 @@ Correzione locale: migration `0002` applicata esclusivamente a development dopo 
 
 ## Program Management (Task 4)
 
-Il Task 4 aggiunge `exercise_translations` (PK exercise/locale, FK cascade, audit), indice unico per un active per utente e indice custom name per proprietario tramite `0003_program_management.sql`, applicata solo a development. Ora ci sono nove tabelle e sei enum stabili; `users.locale` resta text invariato. Il seed contiene 12 identità system e 24 traduzioni. Runner e seed verificano `NEON_DEVELOPMENT_BRANCH_ID` prima delle scritture. API, transazioni HTTP, ownership, ordine e UI sono descritti in [programs.md](programs.md). I CRUD del programma sono ora presenti; workout execution e auth production restano successivi.
+Il Task 4 aggiunge `exercise_translations` (PK exercise/locale, FK cascade, audit), indice unico per un active per utente e indice custom name per proprietario tramite `0003_program_management.sql`, applicata solo a development. Ora ci sono nove tabelle e sei enum stabili; `users.locale` resta text invariato. Il seed contiene 12 identità system e 24 traduzioni. Runner e seed verificano `NEON_DEVELOPMENT_BRANCH_ID` prima delle scritture. API, transazioni HTTP, ownership, ordine e UI sono descritti in [programs.md](programs.md). I CRUD del programma sono presenti; workout execution è ora descritta nel Task 5, mentre auth production resta successiva.
+
+## Workout Engine (Task 5)
+
+`0004_single_active_workout.sql` aggiunge soltanto l'indice `workout_sessions_single_active_unique` su user_id WHERE status = in_progress, applicato solo al branch development verificato. Nove tabelle e sei enum stabili restano invariati. Start snapshot, actual validation, finish/cancel atomici, protezioni concorrenza e test con cleanup sono descritti in [workout-engine.md](workout-engine.md). Nessun seed eseguito in questo task e production non contattata.
+
+## Task 6: ricevute sync
+
+La migration `0005_workout_sync.sql` aggiunge `sync_operations` per deduplicazione atomica, hash del contenuto e sequenza per sessione. Applicata al solo Neon development con guard del branch. Le transazioni continuano a usare neon-http; nessun nuovo enum né modifica a target/actual. Dettagli in [offline-sync.md](offline-sync.md).
+
+Task 7: analytics read-only dallo storico actual; nessuna nuova migration Neon, nessuna tabella stats/PR. SQLite mobile 0002_progress_cache aggiunge cache owner-scoped di risposte server; dettagli in [Progress Analytics](progress-analytics.md).
+
+Task 8: see [Authentication and account identity](authentication.md) for Clerk → CurrentUser → internal UUID, versioned Neon identity migration, profile preferences and account-scoped offline/401 behavior.

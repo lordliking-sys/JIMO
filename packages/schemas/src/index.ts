@@ -9,3 +9,10 @@ export * from './onboarding';
 
 export * from './fitness';
 export * from './programs';
+
+export * from './workouts';
+export * from './sync';
+export * from './progress';
+export * from './calendar';
+
+export * from './profile';

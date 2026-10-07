@@ -127,7 +127,11 @@ export const exerciseQuerySchema = z
   })
   .strict();
 export const apiErrorSchema = z.object({
-  error: z.object({ code: z.string(), message: z.string() }),
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    sessionId: z.uuid().optional(),
+  }),
 });
 export const exerciseDtoSchema = z.object({
   id: z.uuid(),

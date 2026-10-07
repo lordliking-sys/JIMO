@@ -32,6 +32,7 @@ type PreferencesContextValue = {
   saveError: boolean;
   retry: () => void;
   changeLocale: (locale: LocalePreference) => Promise<boolean>;
+  applyAccountProfile: (locale: LocalePreference) => Promise<boolean>;
   complete: (data: OnboardingData) => Promise<boolean>;
 };
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
@@ -112,6 +113,14 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
         changeLocale: async (locale) =>
           preferences
             ? persist({ ...preferences, localePreference: locale })
+            : false,
+        applyAccountProfile: async (locale) =>
+          preferences
+            ? persist({
+                ...preferences,
+                localePreference: locale,
+                accountOnboarded: true,
+              })
             : false,
         complete: async (data) => {
           if (!preferences) return false;

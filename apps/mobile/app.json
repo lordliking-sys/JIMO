@@ -19,7 +19,8 @@
             "image": "./assets/wordmark.png"
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "ios": {
       "supportsTablet": true

@@ -1,3 +1,4 @@
+import { useOffline } from '../db/Provider';
 import { useRef } from 'react';
 import {
   QueryClient,
@@ -28,32 +29,38 @@ export function useApiLocale() {
   return i18n.resolvedLanguage === 'it' ? 'it' : 'en';
 }
 export function usePrograms() {
-  const locale = useApiLocale();
+  const locale = useApiLocale(),
+    { runtime } = useOffline();
   return useQuery({
-    queryKey: ['programs', locale],
+    queryKey: ['programs', runtime.owner, locale],
     queryFn: ({ signal }) => programsApi.list(locale, signal),
+    enabled: !!runtime.owner,
   });
 }
 export function useProgram(id: string) {
-  const locale = useApiLocale();
+  const locale = useApiLocale(),
+    { runtime } = useOffline();
   return useQuery({
-    queryKey: ['program', id, locale],
+    queryKey: ['program', runtime.owner, id, locale],
     queryFn: ({ signal }) => programsApi.detail(id, locale, signal),
-    enabled: !!id,
+    enabled: !!id && !!runtime.owner,
   });
 }
 export function useExercise(id: string) {
-  const locale = useApiLocale();
+  const locale = useApiLocale(),
+    { runtime } = useOffline();
   return useQuery({
-    queryKey: ['exercise', id, locale],
+    queryKey: ['exercise', runtime.owner, id, locale],
     queryFn: ({ signal }) => exercisesApi.get(id, locale, signal),
-    enabled: !!id,
+    enabled: !!id && !!runtime.owner,
   });
 }
 export function useExercises(search: string) {
-  const locale = useApiLocale();
+  const locale = useApiLocale(),
+    { runtime } = useOffline();
   return useInfiniteQuery({
-    queryKey: ['exercises', locale, search],
+    queryKey: ['exercises', runtime.owner, locale, search],
+    enabled: !!runtime.owner,
     initialPageParam: null as string | null,
     queryFn: ({ signal, pageParam }) =>
       exercisesApi.list(locale, search, pageParam, signal),
@@ -63,6 +70,7 @@ export function useExercises(search: string) {
 export function useProgramMutation<T>(
   action: (input: T) => ReturnType<typeof programsApi.detail>,
 ) {
+  const { runtime } = useOffline();
   const cache = useQueryClient(),
     submitting = useRef(false);
   const mutation = useMutation({
@@ -71,6 +79,7 @@ export function useProgramMutation<T>(
       submitting.current = false;
     },
     onSuccess: async () => {
+      void runtime.engine.request(true);
       await Promise.all([
         cache.invalidateQueries({ queryKey: ['programs'] }),
         cache.invalidateQueries({ queryKey: ['program'] }),

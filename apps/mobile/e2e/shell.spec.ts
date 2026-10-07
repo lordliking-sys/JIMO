@@ -1,5 +1,50 @@
-import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+test.beforeEach(async ({ page }) => {
+  await page.route('**/sync/identity', (route) =>
+    route.fulfill({ json: { userId: '3c9e1b7d-7596-4f15-a11c-48b8ef237413' } }),
+  );
+  await page.route('**/progress/**', (route) => {
+    const url = new URL(route.request().url()),
+      period = {
+        range: url.searchParams.get('range') ?? '8w',
+        timeZone: url.searchParams.get('timeZone') ?? 'UTC',
+        from: '2026-08-12T00:00:00Z',
+        to: '2026-10-06T19:00:00Z',
+        effectiveWeeks: 8,
+      };
+    const payload = url.pathname.endsWith('/summary')
+      ? {
+          period,
+          completedWorkouts: 0,
+          trainingSeconds: null,
+          completedSets: 0,
+          skippedSets: 0,
+          totalReps: null,
+          averageRpe: null,
+          sessionsPerWeek: 0,
+          adherence: null,
+        }
+      : url.pathname.endsWith('/weekly')
+        ? { period, weeks: [] }
+        : url.pathname.endsWith('/prs')
+          ? { period, records: [], nextCursor: null }
+          : { period, exercises: [], nextCursor: null };
+    return route.fulfill({
+      json: payload,
+      headers: {
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': '*',
+      },
+    });
+  });
+  await page.route('**/workouts/active', (route) =>
+    route.fulfill({ json: { workout: null } }),
+  );
+  await page.route('**/workouts?*', (route) =>
+    route.fulfill({ json: { workouts: [] } }),
+  );
+});
 async function checkWidths(page: Page) {
   for (const width of [320, 375, 390, 393, 430]) {
     await page.setViewportSize({ width, height: 844 });
@@ -106,12 +151,12 @@ test('complete onboarding, reload, change language and open program placeholders
   await page.getByRole('button', { name: 'Back', exact: true }).click();
   await page.getByText('Workout', { exact: true }).last().click();
   await expect(
-    page.getByText('No workout in progress.', { exact: true }),
+    page.getByText('Activate a program to get started', { exact: true }),
   ).toBeVisible();
   await checkWidths(page);
   await page.getByText('Progress', { exact: true }).last().click();
   await expect(
-    page.getByText('Complete your first workouts to see your progress.', {
+    page.getByText('Complete your first workout to start seeing progress.', {
       exact: true,
     }),
   ).toBeVisible();

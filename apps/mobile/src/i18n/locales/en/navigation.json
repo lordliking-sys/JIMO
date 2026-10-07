@@ -6,6 +6,12 @@
   "profile": "Profile",
   "compact": {
     "program": "Program",
-    "workout": "Workout"
+    "workout": "Workout",
+    "progress": "Stats"
+  },
+  "short": {
+    "program": "Plan",
+    "workout": "Gym",
+    "profile": "Me"
   }
 }

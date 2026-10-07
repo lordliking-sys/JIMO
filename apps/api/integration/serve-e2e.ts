@@ -6,6 +6,7 @@ import {
   safeDatabaseError,
   users,
   programs,
+  workoutSessions,
   exercises,
 } from '@jimo/database';
 import { buildApp } from '../src/app';
@@ -17,6 +18,9 @@ async function run() {
   let verified = false;
   const cleanup = async () => {
     if (!verified) return;
+    await client.db
+      .delete(workoutSessions)
+      .where(eq(workoutSessions.userId, userId));
     await client.db.delete(programs).where(eq(programs.userId, userId));
     await client.db
       .delete(exercises)

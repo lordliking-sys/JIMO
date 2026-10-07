@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { manualField } from './helpers';
 test('manual program persists on Neon: builder, edit, activation, archive and custom exercise', async ({
   page,
 }, testInfo) => {
@@ -40,7 +41,7 @@ test('manual program persists on Neon: builder, edit, activation, archive and cu
     .getByRole('button', { name: '+ Aggiungi giorno', exact: true })
     .click();
   await page
-    .getByRole('textbox', { name: 'Nome giorno', exact: true })
+    .getByRole('textbox', { name: 'Nome giornata', exact: true })
     .fill('Push');
   await page.getByRole('button', { name: 'Salva giorno', exact: true }).click();
   await expect(visibleText('Push')).toBeVisible();
@@ -54,28 +55,23 @@ test('manual program persists on Neon: builder, edit, activation, archive and cu
   await page
     .getByRole('button', { name: 'Carico esterno', exact: true })
     .click();
-  await page.getByRole('textbox', { name: 'Serie', exact: true }).fill('4');
-  await page
-    .getByRole('textbox', { name: 'Ripetizioni', exact: true })
-    .fill('8');
-  await page
-    .getByRole('textbox', { name: 'Carico (kg)', exact: true })
-    .fill('80');
-  await page
-    .getByRole('textbox', {
-      name: 'Recupero (secondi, opzionale)',
-      exact: true,
-    })
-    .fill('180');
-  await page
-    .getByRole('textbox', { name: 'RPE (opzionale)', exact: true })
-    .fill('8');
+  await (await manualField(page, 'Serie')).fill('4');
+  await (await manualField(page, 'Ripetizioni')).fill('8');
+  await (await manualField(page, 'Carico (kg)')).fill('80');
+  await (
+    await manualField(
+      page,
+      'Recupero (secondi, opzionale)',
+      'it',
+      'Recupero personalizzato',
+    )
+  ).fill('180');
+  await (await manualField(page, 'RPE (opzionale)')).fill('8');
   await page
     .getByRole('button', { name: 'Salva esercizio', exact: true })
     .click();
-  await expect(visibleText('4 × 8')).toBeVisible();
-  await expect(visibleText('Carico esterno · 80 kg')).toBeVisible();
-  await expect(visibleText('Recupero 3:00')).toBeVisible();
+  await expect(visibleText('4 × 8 · 80 kg')).toBeVisible();
+  await expect(visibleText('RPE 8 · Recupero 3:00')).toBeVisible();
   const url = page.url();
   await page.reload();
   await expect(visibleText('Panca piana')).toBeVisible();
@@ -85,13 +81,11 @@ test('manual program persists on Neon: builder, edit, activation, archive and cu
       exact: true,
     })
     .click();
+  await (await manualField(page, 'Carico (kg)')).fill('82,5');
   await page
-    .getByRole('textbox', { name: 'Carico (kg)', exact: true })
-    .fill('82,5');
-  await page
-    .getByRole('button', { name: 'Salva esercizio', exact: true })
+    .getByRole('button', { name: 'Salva modifiche', exact: true })
     .click();
-  await expect(visibleText('Carico esterno · 82,5 kg')).toBeVisible();
+  await expect(visibleText('4 × 8 · 82,5 kg')).toBeVisible();
   await page
     .getByRole('button', { name: 'Attiva programma', exact: true })
     .click();
@@ -101,9 +95,12 @@ test('manual program persists on Neon: builder, edit, activation, archive and cu
     fullPage: true,
   });
   await page.goto('/');
-  await expect(visibleText('PROGRAMMA ATTIVO')).toBeVisible();
+  await expect(visibleText('Programma attivo')).toBeVisible();
   await page
-    .getByRole('button', { name: 'Visualizza programma', exact: true })
+    .getByRole('button', { name: 'Scegli allenamento', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Azioni programma', exact: true })
     .click();
   await page
     .getByRole('button', { name: 'Archivia programma', exact: true })

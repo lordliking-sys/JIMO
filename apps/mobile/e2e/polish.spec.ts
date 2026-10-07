@@ -1,4 +1,15 @@
 import { expect, test } from '@playwright/test';
+test.beforeEach(async ({ page }) => {
+  await page.route('**/sync/identity', (route) =>
+    route.fulfill({ json: { userId: '3c9e1b7d-7596-4f15-a11c-48b8ef237413' } }),
+  );
+  await page.route('**/workouts/active', (route) =>
+    route.fulfill({ json: { workout: null } }),
+  );
+  await page.route('**/workouts?*', (route) =>
+    route.fulfill({ json: { workouts: [] } }),
+  );
+});
 test.use({ timezoneId: 'Europe/Rome' });
 test('compact tabs, a single manual CTA, local greeting and accessible language rows', async ({
   page,
@@ -43,6 +54,30 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
           (element) => element.scrollWidth <= element.clientWidth,
         ),
       ).toBe(true);
+      const caption = await tab.evaluate((element) => {
+        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+        const leaf = walker.nextNode();
+        const text = leaf?.parentElement?.closest('[dir="auto"]');
+        if (!leaf || !text) throw new Error('Tab caption missing');
+        const range = document.createRange();
+        range.selectNodeContents(leaf);
+        const rects = Array.from(range.getClientRects()).filter(
+          (rect) => rect.width > 0,
+        );
+        const style = getComputedStyle(text);
+        return {
+          lines: new Set(rects.map((rect) => Math.round(rect.top))).size,
+          textWidth: range.getBoundingClientRect().width,
+          available:
+            text.clientWidth -
+            parseFloat(style.paddingLeft) -
+            parseFloat(style.paddingRight),
+          fontSize: parseFloat(style.fontSize),
+        };
+      });
+      expect(caption.lines).toBe(1);
+      expect(caption.textWidth).toBeLessThanOrEqual(caption.available + 1);
+      expect(caption.fontSize).toBeGreaterThanOrEqual(12);
     }
     expect(
       await page.evaluate(
@@ -51,6 +86,13 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
     ).toBe(true);
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByRole('tab')).toHaveText([
+    'Home',
+    'Scheda',
+    'Workout',
+    'Progressi',
+    'Profilo',
+  ]);
   await page.getByRole('tab', { name: 'Programma', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Crea programma', exact: true }),

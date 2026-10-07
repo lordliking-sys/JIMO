@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { TextInput, StyleSheet, View, Modal } from 'react-native';
+import { TextInput, StyleSheet, View, Modal, Platform } from 'react-native';
 import type { TextInputProps } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -14,8 +14,11 @@ import {
   radius,
   sizes,
   useFormFocus,
+  IconButton,
 } from '@jimo/ui';
 import { ApiClientError } from '../api/client';
+import ChevronLeft from 'lucide-react-native/icons/chevron-left';
+import EllipsisVertical from 'lucide-react-native/icons/ellipsis-vertical';
 export function FormScreen({
   children,
   footer,
@@ -29,6 +32,7 @@ export function FormScreen({
   return (
     <Screen
       keyboardAware
+      contentStyle={{ padding: spacing.lg, gap: spacing.lg }}
       dismissKeyboardLabel={t('keyboardDone')}
       {...(footer
         ? {
@@ -93,17 +97,105 @@ export function Field({ label, ...props }: TextInputProps & { label: string }) {
     </View>
   );
 }
-export function Back() {
+export function Back({ compact = false }: { compact?: boolean }) {
   const router = useRouter(),
     { t } = useTranslation('programs');
+  const goBack = () =>
+    router.canGoBack() ? router.back() : router.replace('/program');
+  if (compact)
+    return (
+      <IconButton
+        label={t('back')}
+        icon={<ChevronLeft size={sizes.icon} color={colors.secondary} />}
+        onPress={goBack}
+      />
+    );
+  return <Button variant="secondary" label={t('back')} onPress={goBack} />;
+}
+export function FormHeader({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle?: string;
+}) {
   return (
-    <Button
-      variant="secondary"
-      label={t('back')}
-      onPress={() =>
-        router.canGoBack() ? router.back() : router.replace('/program')
-      }
-    />
+    <View style={{ gap: spacing.sm }}>
+      <View
+        style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
+      >
+        <Back compact />
+        <Text variant="h2" accessibilityRole="header" style={{ flex: 1 }}>
+          {title}
+        </Text>
+      </View>
+      {subtitle ? (
+        <Text variant="caption" color={colors.secondary}>
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+export function ActionMenu({
+  label,
+  title,
+  actions,
+  disabled = false,
+}: {
+  label: string;
+  title: string;
+  disabled?: boolean;
+  actions: { label: string; action: () => void; disabled?: boolean }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const pendingAction = useRef<(() => void) | null>(null);
+  const perform = () => {
+    const action = pendingAction.current;
+    pendingAction.current = null;
+    action?.();
+  };
+  const { t } = useTranslation('programs');
+  return (
+    <>
+      <IconButton
+        label={label}
+        disabled={disabled}
+        icon={<EllipsisVertical size={sizes.icon} color={colors.secondary} />}
+        onPress={() => setOpen(true)}
+      />
+      <Modal
+        visible={open}
+        transparent
+        animationType="none"
+        onDismiss={perform}
+        onRequestClose={() => setOpen(false)}
+      >
+        <View style={styles.overlay}>
+          <Card accessibilityViewIsModal>
+            <Text variant="h3">{title}</Text>
+            {actions.map((item) => (
+              <Button
+                key={item.label}
+                variant="secondary"
+                label={item.label}
+                disabled={disabled || item.disabled === true}
+                onPress={() => {
+                  pendingAction.current = item.action;
+                  setOpen(false);
+                  if (Platform.OS !== 'ios') requestAnimationFrame(perform);
+                }}
+              />
+            ))}
+            <Button
+              variant="secondary"
+              label={t('cancel')}
+              onPress={() => setOpen(false)}
+            />
+          </Card>
+        </View>
+      </Modal>
+    </>
   );
 }
 export function ErrorNotice({

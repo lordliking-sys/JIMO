@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { manualField, valueButton } from './helpers';
 import type { Prescription, ProgramDetail } from '@jimo/schemas';
 
 const id = 'c50afad0-7c5c-43ef-91b0-201e5795b316';
@@ -82,6 +83,10 @@ async function mockApi(
     const reply = (json: unknown) =>
       route.fulfill({ json, headers: { 'access-control-allow-origin': '*' } });
     if (path === `/exercises/${exerciseId}`) return reply(exercise);
+    if (path === '/sync/identity')
+      return reply({ userId: '3c9e1b7d-7596-4f15-a11c-48b8ef237413' });
+    if (path === '/workouts/active') return reply({ workout: null });
+    if (path === '/workouts') return reply({ workouts: [] });
     if (path === '/programs' && method === 'GET')
       return reply({ programs: [] });
     if (path === '/programs' && method === 'POST') {
@@ -138,10 +143,14 @@ test('manual form: quick weeks, localized calendar date, clear date and visible 
       exact: true,
     })
     .click();
-  await expect(weeks).toHaveValue('4');
+  await expect(valueButton(page, 'Durata in settimane (opzionale)')).toHaveText(
+    '4',
+  );
   await page.getByRole('button', { name: '8 settimane', exact: true }).click();
-  await expect(weeks).toHaveValue('8');
-  await weeks.fill('7');
+  await expect(valueButton(page, 'Durata in settimane (opzionale)')).toHaveText(
+    '8',
+  );
+  await (await manualField(page, 'Durata in settimane (opzionale)')).fill('7');
   await page
     .getByRole('button', {
       name: 'Aumenta Durata in settimane (opzionale)',
@@ -204,13 +213,11 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
   await page
     .getByRole('button', { name: 'Aumenta Serie', exact: true })
     .click();
-  await expect(
-    page.getByRole('textbox', { name: 'Serie', exact: true }),
-  ).toHaveValue('4');
+  await expect(valueButton(page, 'Serie')).toHaveText('4');
   await page
     .getByRole('button', { name: 'Aumenta Ripetizioni', exact: true })
     .click();
-  const load = page.getByRole('textbox', { name: 'Carico (kg)', exact: true });
+  const load = await manualField(page, 'Carico (kg)');
   await load.fill('1,25');
   await page
     .getByRole('button', { name: 'Aumenta Carico (kg)', exact: true })
@@ -220,15 +227,26 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
   await page
     .getByRole('button', { name: 'Aumenta RPE (opzionale)', exact: true })
     .click();
-  await expect(
-    page.getByRole('textbox', { name: 'RPE (opzionale)', exact: true }),
-  ).toHaveValue('8,5');
-  await page.getByRole('button', { name: '1:30', exact: true }).click();
+  await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('8,5');
+  await page.getByRole('button', { name: '90 sec', exact: true }).click();
   const rest = page.getByRole('textbox', {
     name: 'Recupero (secondi, opzionale)',
     exact: true,
   });
-  await expect(rest).toHaveValue('90');
+  await expect(
+    valueButton(
+      page,
+      'Recupero (secondi, opzionale)',
+      'it',
+      'Recupero personalizzato',
+    ),
+  ).toContainText('90 sec');
+  await manualField(
+    page,
+    'Recupero (secondi, opzionale)',
+    'it',
+    'Recupero personalizzato',
+  );
   await rest.fill('75');
   await page
     .getByRole('button', {
@@ -237,7 +255,7 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
     })
     .click();
   await expect(rest).toHaveValue('105');
-  const reps = page.getByRole('textbox', { name: 'Ripetizioni', exact: true });
+  const reps = await manualField(page, 'Ripetizioni');
   await reps.fill('0');
   await expect(
     page.getByRole('button', { name: 'Diminuisci Ripetizioni', exact: true }),
@@ -268,7 +286,9 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
     .getByRole('button', { name: 'Salva esercizio', exact: true })
     .click();
   await expect(
-    page.getByText('4 × 9', { exact: true }).filter({ visible: true }),
+    page
+      .getByText('4 × 9 · 3,75 kg', { exact: true })
+      .filter({ visible: true }),
   ).toBeVisible();
   expect(saved).toEqual([
     {
@@ -299,17 +319,13 @@ test('range controls preserve validation and hidden fixed targets are not submit
   await expect(
     page.getByRole('textbox', { name: 'Ripetizioni', exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole('textbox', { name: 'Ripetizioni minime', exact: true })
-    .fill('13');
+  await (await manualField(page, 'Ripetizioni minime')).fill('13');
   await page
     .getByRole('button', { name: 'Salva esercizio', exact: true })
     .click();
   await expect(page.getByRole('alert')).toBeVisible();
   expect(saved).toHaveLength(0);
-  await page
-    .getByRole('textbox', { name: 'Ripetizioni minime', exact: true })
-    .fill('8');
+  await (await manualField(page, 'Ripetizioni minime')).fill('8');
   await page
     .getByRole('button', { name: 'Aumenta Ripetizioni minime', exact: true })
     .click();
@@ -317,7 +333,9 @@ test('range controls preserve validation and hidden fixed targets are not submit
     .getByRole('button', { name: 'Salva esercizio', exact: true })
     .click();
   await expect(
-    page.getByText('3 × 9–12', { exact: true }).filter({ visible: true }),
+    page
+      .getByText('3 × 9–12 · Carico esterno', { exact: true })
+      .filter({ visible: true }),
   ).toBeVisible();
   expect(saved[0]).toMatchObject({
     targetRepMin: 9,
@@ -337,9 +355,7 @@ test('English timed exercise keeps duration controls and omits all repetition fi
   await page
     .getByRole('button', { name: 'Increase Duration (seconds)', exact: true })
     .click();
-  await expect(
-    page.getByRole('textbox', { name: 'Duration (seconds)', exact: true }),
-  ).toHaveValue('75');
+  await expect(valueButton(page, 'Duration (seconds)', 'en')).toHaveText('75');
   await page.getByRole('button', { name: 'Bodyweight', exact: true }).click();
   await expect(
     page.getByRole('textbox', { name: 'Load (kg)', exact: true }),
@@ -348,7 +364,9 @@ test('English timed exercise keeps duration controls and omits all repetition fi
     .getByRole('button', { name: 'Save exercise', exact: true })
     .click();
   await expect(
-    page.getByText('3 × 75 sec', { exact: true }).filter({ visible: true }),
+    page
+      .getByText('3 × 75 sec · Bodyweight', { exact: true })
+      .filter({ visible: true }),
   ).toBeVisible();
   expect(saved[0]).toMatchObject({
     targetDurationSeconds: 75,

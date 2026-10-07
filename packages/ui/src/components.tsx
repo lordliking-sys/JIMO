@@ -51,12 +51,14 @@ export function Screen({
   keyboardAware = false,
   footer,
   dismissKeyboardLabel,
+  contentStyle,
 }: {
   children: ReactNode;
   bottomInset?: boolean;
   keyboardAware?: boolean;
   footer?: ReactNode;
   dismissKeyboardLabel?: string;
+  contentStyle?: StyleProp<ViewStyle>;
 }) {
   const scroll = useRef<ScrollView>(null);
   const viewport = useRef<View>(null);
@@ -132,7 +134,7 @@ export function Screen({
           >
             <ScrollView
               ref={scroll}
-              contentContainerStyle={styles.content}
+              contentContainerStyle={[styles.content, contentStyle]}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={
                 Platform.OS === 'ios' ? 'interactive' : 'on-drag'

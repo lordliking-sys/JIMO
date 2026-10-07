@@ -1,23 +1,46 @@
+import { ClerkAuthProvider } from './auth/provider';
+import { authenticatedCurrentUser, CurrentUserResolver } from './auth/resolver';
 import { buildApp } from './app';
 import { developmentCurrentUser } from './current-user';
 import { ApiConfigurationError, readEnv } from './env';
-import { createDatabase, safeDatabaseError } from '@jimo/database';
+import {
+  createDatabase,
+  safeDatabaseError,
+  assertDevelopment,
+} from '@jimo/database';
 async function main() {
   const env = readEnv();
   const database = createDatabase(env.DATABASE_URL);
   let currentUser;
   try {
-    currentUser = await developmentCurrentUser(database, {
-      mode: env.NODE_ENV,
-      ...(env.DEV_USER_ID ? { userId: env.DEV_USER_ID } : {}),
-      ...(env.NEON_DEVELOPMENT_BRANCH_ID
-        ? { branchId: env.NEON_DEVELOPMENT_BRANCH_ID }
-        : {}),
-    });
+    if (env.NODE_ENV !== 'production')
+      await assertDevelopment(database, env.NEON_DEVELOPMENT_BRANCH_ID);
+    currentUser =
+      env.CLERK_SECRET_KEY && env.CLERK_ISSUER_URL
+        ? authenticatedCurrentUser(
+            new ClerkAuthProvider({
+              secretKey: env.CLERK_SECRET_KEY,
+              issuer: env.CLERK_ISSUER_URL,
+              authorizedParties:
+                env.CLERK_AUTHORIZED_PARTIES?.split(',')
+                  .map((v) => v.trim())
+                  .filter(Boolean) ?? [],
+              ...(env.CLERK_JWT_KEY ? { jwtKey: env.CLERK_JWT_KEY } : {}),
+            }),
+            new CurrentUserResolver(database),
+          )
+        : await developmentCurrentUser(database, {
+            allowDevAuth: env.ALLOW_DEV_AUTH === 'true',
+            mode: env.NODE_ENV,
+            ...(env.DEV_USER_ID ? { userId: env.DEV_USER_ID } : {}),
+            ...(env.NEON_DEVELOPMENT_BRANCH_ID
+              ? { branchId: env.NEON_DEVELOPMENT_BRANCH_ID }
+              : {}),
+          });
   } catch {
     await database.close();
     throw new ApiConfigurationError(
-      'Development identity requires the confirmed development branch and an existing DEV_USER_ID when supplied',
+      'Authentication setup failed; check provider configuration and confirmed development branch',
     );
   }
   const corsOrigins =

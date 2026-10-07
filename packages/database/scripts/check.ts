@@ -3,6 +3,7 @@ import { readMigrationFiles } from 'drizzle-orm/migrator';
 import { withDatabase } from './shared';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import {
+  syncOperations,
   users,
   exercises,
   programs,
@@ -21,6 +22,7 @@ import {
 } from '../src/schema';
 
 const expectedTables = [
+  syncOperations,
   users,
   exercises,
   programs,
@@ -53,6 +55,7 @@ if (!process.env.DATABASE_URL) {
             "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ANY($1) ORDER BY table_name",
             [
               [
+                'sync_operations',
                 'users',
                 'exercises',
                 'programs',
@@ -150,6 +153,7 @@ if (!process.env.DATABASE_URL) {
         )
           throw new Error('Live foreign key missing');
       if (
+        table.name !== 'sync_operations' &&
         !triggers?.some((trigger) => trigger.event_object_table === table.name)
       )
         throw new Error('Audit trigger missing');

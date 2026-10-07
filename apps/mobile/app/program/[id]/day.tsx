@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { dayInputSchema, type DayDto, type DayInput } from '@jimo/schemas';
-import { Button, Card } from '@jimo/ui';
+import { Button, Card, Text, colors } from '@jimo/ui';
 import {
   useProgram,
   useProgramMutation,
@@ -10,16 +10,16 @@ import {
 } from '../../../src/api/queries';
 import { programsApi } from '../../../src/api/programs';
 import {
-  Back,
+  FormHeader,
   Field,
   ErrorNotice,
   QueryState,
   FormScreen,
 } from '../../../src/programs/components';
-import { integerInput, stepInteger } from '../../../src/programs/helpers';
+import { weekdayNumbers, weekdayValue } from '../../../src/programs/weekdays';
 import { ApiClientError } from '../../../src/api/client';
-import { NumberControl } from '../../../src/programs/NumberControl';
-import { ScreenHeader } from '../../../src/components/ScreenHeader';
+import { View } from 'react-native';
+import { Choice, choiceStyles } from '../../../src/programs/NumberControl';
 function Form({ id, day }: { id: string; day?: DayDto }) {
   const { t } = useTranslation('programs'),
     router = useRouter(),
@@ -43,7 +43,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
             try {
               const input = dayInputSchema.parse({
                 name,
-                dayOfWeek: weekday.trim() ? integerInput(weekday) : null,
+                dayOfWeek: weekdayValue(weekday),
                 notes: notes.trim() || null,
               });
               setInvalid(false);
@@ -55,8 +55,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
         />
       }
     >
-      <Back />
-      <ScreenHeader title={t(day ? 'editDay' : 'addDay')} light />
+      <FormHeader title={t(day ? 'editDay' : 'addDay')} />
       <Card>
         <Field
           label={t('dayName')}
@@ -65,26 +64,26 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
           maxLength={160}
           placeholder={t('dayPlaceholder')}
         />
-        <NumberControl
-          label={t('weekday')}
-          value={weekday}
-          onChange={setWeekday}
-          min={1}
-          max={7}
-          hint={
-            /^[1-7]$/.test(weekday)
-              ? t(`weekdays.${weekday as '1'}`)
-              : t('weekdayHint')
-          }
-          presets={[{ value: '', label: t('unspecified') }]}
-          onStep={(direction) => {
-            try {
-              setWeekday(stepInteger(weekday, direction, { min: 1, max: 7 }));
-            } catch {
-              setInvalid(true);
-            }
-          }}
-        />
+        <Text variant="label">{t('weekday')}</Text>
+        <View style={choiceStyles.row}>
+          {weekdayNumbers.map((number) => (
+            <Choice
+              key={number}
+              label={t(`weekdaysShort.${number}`)}
+              accessibilityLabel={t(`weekdays.${number}`)}
+              selected={weekday === String(number)}
+              onPress={() => setWeekday(String(number))}
+            />
+          ))}
+          <Choice
+            label={t('noWeekday')}
+            selected={!weekday}
+            onPress={() => setWeekday('')}
+          />
+        </View>
+        <Text variant="caption" color={colors.secondary}>
+          {t('weekdayOptional')}
+        </Text>
         <Field
           label={t('notes')}
           value={notes}

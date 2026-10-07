@@ -1,0 +1,115 @@
+{
+  "title": "Progressi",
+  "overview": "PANORAMICA",
+  "ranges": {
+    "4w": "4 settimane",
+    "8w": "8 settimane",
+    "12w": "12 settimane",
+    "6m": "6 mesi",
+    "all": "Tutto"
+  },
+  "workouts": "Allenamenti",
+  "time": "Tempo",
+  "sets": "Serie",
+  "averageRpe": "RPE medio",
+  "frequencyValue": "{{value}} allenamenti / settimana",
+  "repsValue": "{{value}} ripetizioni",
+  "skippedValue_one": "{{count}} serie saltata",
+  "skippedValue_other": "{{count}} serie saltate",
+  "adherence": "QUESTA SETTIMANA",
+  "adherenceLimit": "Programma attivo attuale, solo nei giorni assegnati.",
+  "frequency": "Allenamenti per settimana",
+  "rpeTrend": "RPE medio settimanale",
+  "records": "RECORD PERSONALI",
+  "recordTypes": {
+    "MAX_REPS": "Massimo di ripetizioni",
+    "MAX_LOAD": "Carico massimo",
+    "MAX_DURATION": "Durata massima",
+    "MIN_ASSISTANCE": "Assistenza minima"
+  },
+  "exercises": "PROGRESSI PER ESERCIZIO",
+  "search": "Cerca esercizi allenati",
+  "last": "ULTIMA PRESTAZIONE",
+  "noRecords": "Nessun record valido nel periodo.",
+  "noExercises": "Nessun esercizio allenato corrisponde alla ricerca.",
+  "moreRecords": "Altri record",
+  "moreExercises": "Altri esercizi",
+  "history": "STORICO ALLENAMENTI",
+  "historyStatus": {
+    "completed": "Completati",
+    "cancelled": "Annullati",
+    "all": "Tutti"
+  },
+  "sessionDetails": "Riepilogo allenamento",
+  "historyCounts": "{{exercises}} esercizi · {{sets}} serie completate",
+  "noHistory": "Nessun allenamento nel periodo.",
+  "moreHistory": "Altri allenamenti",
+  "updatedAt": "Ultimo aggiornamento {{date}}",
+  "pendingSync": "Dati recenti in attesa di sincronizzazione.",
+  "loading": "Caricamento progressi…",
+  "unavailable": "Progressi non disponibili. Connettiti per caricare le statistiche; i dati salvati restano consultabili offline.",
+  "retry": "Riprova",
+  "empty": "Completa il tuo primo allenamento per iniziare a vedere i progressi.",
+  "emptyPeriod": "Nessun allenamento completato nel periodo selezionato. Prova un periodo più lungo se hai uno storico precedente.",
+  "goWorkout": "Vai a Workout",
+  "insufficient": "Servono altre sessioni per mostrare l’andamento.",
+  "lastPoints": "Mostro gli ultimi {{count}} punti.",
+  "back": "Indietro",
+  "exerciseDetail": "Progressi esercizio",
+  "noExercisePeriod": "Nessuna serie completata per questo esercizio nel periodo.",
+  "mode": "MODALITÀ",
+  "modes": {
+    "external": "Carico esterno",
+    "weighted": "Zavorra",
+    "bodyweight": "Corpo libero",
+    "assisted": "Assistito"
+  },
+  "pr": "RECORD PERSONALE",
+  "sessions": "Sessioni",
+  "reps": "Ripetizioni",
+  "duration": "Durata",
+  "averageDuration": "Durata media",
+  "totalDuration": "Durata totale",
+  "weightedVolume": "Volume zavorra aggiunta. Peso corporeo escluso.",
+  "externalVolume": "Volume carico esterno",
+  "durationTrend": "Durata massima per sessione",
+  "chart": {
+    "external": "Carico massimo per sessione",
+    "weighted": "Zavorra massima per sessione",
+    "bodyweight": "Ripetizioni massime per sessione",
+    "assisted": "Assistenza minima per sessione"
+  },
+  "assistanceNote": "Meno assistenza può indicare maggiore capacità. Confronta anche ripetizioni e condizioni di esecuzione.",
+  "timelineLimit": "Il grafico usa le ultime 100 sessioni per modalità; le metriche coprono tutto il periodo.",
+  "setsValue_one": "{{count}} serie",
+  "setsValue_other": "{{count}} serie",
+  "newRecord": "NUOVO RECORD PERSONALE",
+  "trend": {
+    "up": "In aumento",
+    "down": "In calo",
+    "same": "Stabile"
+  },
+  "period": "Periodo",
+  "trendMetrics": {
+    "duration": {
+      "up": "Durata maggiore",
+      "down": "Durata minore"
+    },
+    "bodyweight": {
+      "up": "Più ripetizioni",
+      "down": "Meno ripetizioni"
+    },
+    "external": {
+      "up": "Carico maggiore",
+      "down": "Carico minore"
+    },
+    "weighted": {
+      "up": "Più zavorra",
+      "down": "Meno zavorra"
+    },
+    "assisted": {
+      "up": "Meno assistenza",
+      "down": "Più assistenza"
+    }
+  }
+}

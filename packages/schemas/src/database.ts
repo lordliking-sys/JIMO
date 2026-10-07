@@ -22,12 +22,26 @@ const optionalKg = kilogramsSchema.nullable().optional();
 
 const displayName = z.string().trim().min(1).max(120).nullable().optional();
 export const userCreateSchema = createInsertSchema(users, { displayName })
-  .omit({ id: true, createdAt: true, updatedAt: true })
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+    authProvider: true,
+    authSubject: true,
+    profileInitializedAt: true,
+  })
   .extend({ locale: localePreferenceSchema.default('system') });
 export const userUpdateSchema = createUpdateSchema(users, {
   displayName,
   locale: localePreferenceSchema.optional(),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  authProvider: true,
+  authSubject: true,
+  profileInitializedAt: true,
+});
 
 export const programCreateSchema = createInsertSchema(programs, {
   userId: z.uuid(),

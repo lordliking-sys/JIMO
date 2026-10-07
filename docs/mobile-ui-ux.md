@@ -10,11 +10,11 @@ Gli ingranaggi di Home e Programma hanno lo stesso stile grigio e aprono il Prof
 
 Gli empty state hanno un'icona incorniciata e una gerarchia più leggibile. La CTA degli empty state Home e Programma apre direttamente la creazione manuale. In Programma AI e import rimangono testo secondario «In arrivo», senza azioni. Il selettore metodi esistente rimane disponibile dal flusso Nuovo programma.
 
-La tab bar conserva cinque tab, label a 13 px e target di almeno 48 px. Sui display compatti usa Scheda e Workout in italiano; i nomi accessibili rimangono Programma e Allenamento. Il testo può andare a capo e non viene troncato. Lo stato attivo usa soltanto i token verde/elevated.
+La tab bar conserva cinque tab, label a 13 px e target di almeno 48 px. Usa Scheda e Workout in italiano; i nomi accessibili rimangono Programma e Allenamento. Le label restano su una riga. La larghezza del testo include il padding interno delle tab di React Navigation; con font di sistema più grandi le caption diventano Dati/Gym/Piano/Io. Solo le caption della tab bar hanno un massimo di scaling 1,5 per mantenere cinque label leggibili su una riga; i nomi accessibili completi restano disponibili. Lo stato attivo usa soltanto i token verde/elevated.
 
 ## Input rapidi
 
-I valori sono modificabili direttamente nel campo centrale, affiancato da pulsanti −/+:
+I valori sono mostrati come pulsanti centrali, affiancati da −/+. Stepper e preset non aprono la tastiera. Il tap sul valore abilita esplicitamente l'inserimento manuale inline, con una conferma a check. I controlli RPE e recupero presentano prima i preset:
 
 | Campo                 | Passo      | Scorciatoie                                 |
 | --------------------- | ---------- | ------------------------------------------- |
@@ -23,12 +23,12 @@ I valori sono modificabili direttamente nel campo centrale, affiancato da pulsan
 | Ripetizioni e min/max | 1          | Limiti del contratto esistente              |
 | Durata esercizio      | 15 secondi | Inserimento manuale preciso mantenuto       |
 | Kg                    | 2,5 kg     | Inserimento manuale, anche 1,25 kg          |
-| RPE                   | 0,5        | Nessun RPE, 7, 8, 9                         |
+| RPE                   | 0,5        | Nessuno, 7, 7,5, 8, 8,5, 9, 9,5, 10         |
 | Recupero              | 30 secondi | Non impostato, 30, 60, 90, 120, 180 secondi |
 
 Gli step interi rispettano i limiti esistenti. I kg e RPE continuano a usare gli helper decimali esatti con BigInt, accettano la virgola e vengono inviati come stringhe canoniche. Nessun arrotondamento del carico manuale per adattarlo al passo. La validazione Zod precedente rimane in uso.
 
-Il form programma distingue i dettagli dalla pianificazione; la prescrizione distingue modalità, volume, intensità e recupero/note. Placeholder e bordo di focus sono tradotti e leggibili. Gli errori di validazione appaiono vicino alla CTA fissa.
+Il form programma distingue i dettagli dalla pianificazione; la prescrizione distingue modalità/carico, volume, intensità e recupero/note. Placeholder e bordo di focus sono tradotti e leggibili. Gli errori di validazione appaiono vicino alla CTA fissa. Kg compaiono accanto alla modalità; zavorra mostra `+`, assistito mostra «Assistenza». Il builder e le chip dei giorni sono descritti in [program-builder-ux.md](program-builder-ux.md).
 
 ## Calendario e tastiera
 
@@ -57,4 +57,4 @@ I test UI del form intercettano l'intero origin API e verificano i payload senza
 
 Restano da verificare fisicamente su Android/iPhone: dialog/calendario nativo, tastiere OEM, rotazione e riapertura tastiera, safe area, scaling del testo molto alto, VoiceOver/TalkBack. Il viewport ridotto nel browser non sostituisce una prova della tastiera nativa. Gli export Android/iOS sono bundle JavaScript/Hermes, non build native firmate.
 
-Verifica del 2026-10-06: lint, typecheck, 36 test unitari, export Android/iOS/web e format check passati; 7 test UI Chromium passati e 1 test Neon intenzionalmente saltato. Nessuna migration o connessione Neon eseguita per questo polish.
+Verifica del primo polish, 2026-10-06: lint, typecheck, 36 test unitari, export Android/iOS/web e format check passati; 7 test UI Chromium passati e 1 test Neon intenzionalmente saltato. Nessuna migration o connessione Neon eseguita per quel polish. I risultati successivi del completamento Program Builder sono in [program-builder-ux.md](program-builder-ux.md).

@@ -19,7 +19,7 @@ import {
 import { programsApi } from '../../../src/api/programs';
 import { ApiClientError } from '../../../src/api/client';
 import {
-  Back,
+  FormHeader,
   Field,
   ErrorNotice,
   QueryState,
@@ -31,7 +31,6 @@ import {
   decimalDisplay,
   stepDecimal,
   stepInteger,
-  restDisplay,
   loadFields,
 } from '../../../src/programs/helpers';
 import {
@@ -39,7 +38,6 @@ import {
   Choice,
   choiceStyles,
 } from '../../../src/programs/NumberControl';
-import { ScreenHeader } from '../../../src/components/ScreenHeader';
 function Editor({
   id,
   dayId,
@@ -112,6 +110,9 @@ function Editor({
       label={label}
       value={value}
       onChange={update}
+      prefix={scale === 2 && mode === 'weighted' ? '+' : ''}
+      unit={scale === 2 ? t('kgUnit') : ''}
+      presetsFirst={scale === 1}
       keyboardType="decimal-pad"
       min={scale === 1 ? 1 : 0}
       max={scale === 1 ? 10 : 9999999.99}
@@ -119,10 +120,15 @@ function Editor({
       presets={
         scale === 1
           ? [
-              { value: '', label: t('noRpe') },
-              ...[7, 8, 9].map((n) => ({
-                value: String(n),
-                label: `RPE ${n}`,
+              {
+                value: '',
+                label: t('noRpeShort'),
+                accessibilityLabel: t('noRpe'),
+              },
+              ...[7, 7.5, 8, 8.5, 9, 9.5, 10].map((n) => ({
+                value: decimalDisplay(String(n), locale),
+                label: decimalDisplay(String(n), locale),
+                accessibilityLabel: `RPE ${decimalDisplay(String(n), locale)}`,
               })),
             ]
           : []
@@ -194,19 +200,17 @@ function Editor({
       invalid={invalid}
       footer={
         <Button
-          label={t('saveExercise')}
+          label={t(initial ? 'saveChanges' : 'saveExercise')}
           busy={mutation.isPending}
           onPress={submit}
         />
       }
     >
-      <Back />
-      <ScreenHeader
+      <FormHeader
         title={exercise.displayName}
         subtitle={t('exerciseSubtitle')}
-        light
       />
-      <Card>
+      <Card style={{ padding: 16, gap: 12 }}>
         <Text variant="label">{t('mode')}</Text>
         <View style={choiceStyles.row}>
           {loadModes.map((value) => (
@@ -215,8 +219,10 @@ function Editor({
               label={t(`loadModes.${value}`)}
               selected={mode === value}
               onPress={() => {
-                setMode(value);
-                setWeight('');
+                if (value !== mode) {
+                  setMode(value);
+                  setWeight('');
+                }
               }}
             />
           ))}
@@ -226,8 +232,27 @@ function Editor({
             {t('weightedHint')}
           </Text>
         ) : null}
+        {mode === 'assisted' ? (
+          <Text variant="caption" color={colors.secondary}>
+            {t('assistedHint')}
+          </Text>
+        ) : null}
+        {mode !== 'bodyweight'
+          ? decimalControl(
+              t(
+                mode === 'weighted'
+                  ? 'addedLoad'
+                  : mode === 'assisted'
+                    ? 'assistance'
+                    : 'load',
+              ),
+              weight,
+              setWeight,
+              2,
+            )
+          : null}
       </Card>
-      <Card>
+      <Card style={{ padding: 16, gap: 12 }}>
         <Text variant="label" color={colors.secondary}>
           {t('volume')}
         </Text>
@@ -270,27 +295,13 @@ function Editor({
           </>
         )}
       </Card>
-      <Card>
+      <Card style={{ padding: 16, gap: 12 }}>
         <Text variant="label" color={colors.secondary}>
           {t('intensity')}
         </Text>
-        {mode !== 'bodyweight'
-          ? decimalControl(
-              t(
-                mode === 'weighted'
-                  ? 'addedLoad'
-                  : mode === 'assisted'
-                    ? 'assistance'
-                    : 'load',
-              ),
-              weight,
-              setWeight,
-              2,
-            )
-          : null}
         {decimalControl(t('rpe'), rpeValue, setRpe, 1)}
       </Card>
-      <Card>
+      <Card style={{ padding: 16, gap: 12 }}>
         <Text variant="label" color={colors.secondary}>
           {t('recovery')}
         </Text>
@@ -301,6 +312,9 @@ function Editor({
           min={0}
           max={86400}
           hint={t('restHint')}
+          presetsFirst
+          unit={t('secondsShort')}
+          manualLabel={t('customRest')}
           onStep={(direction) => {
             try {
               setRest(
@@ -320,7 +334,10 @@ function Editor({
             { value: '', label: t('unspecified') },
             ...[30, 60, 90, 120, 180].map((seconds) => ({
               value: String(seconds),
-              label: `${restDisplay(seconds)}${seconds < 60 ? t('secondsSuffix') : ''}`,
+              label:
+                seconds < 120
+                  ? `${seconds} ${t('secondsShort')}`
+                  : `${seconds / 60}:00`,
             })),
           ]}
         />

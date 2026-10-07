@@ -1,0 +1,115 @@
+{
+  "title": "Progress",
+  "overview": "OVERVIEW",
+  "ranges": {
+    "4w": "4 weeks",
+    "8w": "8 weeks",
+    "12w": "12 weeks",
+    "6m": "6 months",
+    "all": "All"
+  },
+  "workouts": "Workouts",
+  "time": "Time",
+  "sets": "Sets",
+  "averageRpe": "Average RPE",
+  "frequencyValue": "{{value}} workouts / week",
+  "repsValue": "{{value}} reps",
+  "skippedValue_one": "{{count}} skipped set",
+  "skippedValue_other": "{{count}} skipped sets",
+  "adherence": "THIS WEEK",
+  "adherenceLimit": "Current active program, scheduled days only.",
+  "frequency": "Workouts per week",
+  "rpeTrend": "Weekly average RPE",
+  "records": "PERSONAL RECORDS",
+  "recordTypes": {
+    "MAX_REPS": "Most reps",
+    "MAX_LOAD": "Highest load",
+    "MAX_DURATION": "Longest hold",
+    "MIN_ASSISTANCE": "Least assistance"
+  },
+  "exercises": "EXERCISE PROGRESS",
+  "search": "Search trained exercises",
+  "last": "LAST PERFORMANCE",
+  "noRecords": "No valid records in this period.",
+  "noExercises": "No matching exercise history.",
+  "moreRecords": "More records",
+  "moreExercises": "More exercises",
+  "history": "WORKOUT HISTORY",
+  "historyStatus": {
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "all": "All"
+  },
+  "sessionDetails": "Workout summary",
+  "historyCounts": "{{exercises}} exercises · {{sets}} completed sets",
+  "noHistory": "No workouts in this period.",
+  "moreHistory": "More workouts",
+  "updatedAt": "Last updated {{date}}",
+  "pendingSync": "Recent data is waiting to sync.",
+  "loading": "Loading progress…",
+  "unavailable": "Progress is unavailable. Connect to load your statistics; saved data remains available offline.",
+  "retry": "Retry",
+  "empty": "Complete your first workout to start seeing progress.",
+  "emptyPeriod": "No completed workouts in the selected period. Try a longer range if you have older workouts.",
+  "goWorkout": "Go to Workout",
+  "insufficient": "More sessions are needed to show a trend.",
+  "lastPoints": "Showing the last {{count}} points.",
+  "back": "Back",
+  "exerciseDetail": "Exercise progress",
+  "noExercisePeriod": "No completed sets for this exercise in the selected period.",
+  "mode": "MODE",
+  "modes": {
+    "external": "External load",
+    "weighted": "Added weight",
+    "bodyweight": "Bodyweight",
+    "assisted": "Assisted"
+  },
+  "pr": "PERSONAL RECORD",
+  "sessions": "Sessions",
+  "reps": "Reps",
+  "duration": "Duration",
+  "averageDuration": "Average hold",
+  "totalDuration": "Total hold",
+  "weightedVolume": "Added-weight volume. Bodyweight is excluded.",
+  "externalVolume": "External-load volume",
+  "durationTrend": "Longest hold per session",
+  "chart": {
+    "external": "Highest load per session",
+    "weighted": "Highest added weight per session",
+    "bodyweight": "Most reps per session",
+    "assisted": "Least assistance per session"
+  },
+  "assistanceNote": "Less assistance can indicate greater capacity. Compare reps and exercise conditions.",
+  "timelineLimit": "Timeline shows the last 100 sessions per mode; metrics cover the entire period.",
+  "setsValue_one": "{{count}} set",
+  "setsValue_other": "{{count}} sets",
+  "newRecord": "NEW PERSONAL RECORD",
+  "trend": {
+    "up": "Increasing",
+    "down": "Decreasing",
+    "same": "Stable"
+  },
+  "period": "Period",
+  "trendMetrics": {
+    "duration": {
+      "up": "Longer hold",
+      "down": "Shorter hold"
+    },
+    "bodyweight": {
+      "up": "More reps",
+      "down": "Fewer reps"
+    },
+    "external": {
+      "up": "Higher load",
+      "down": "Lower load"
+    },
+    "weighted": {
+      "up": "More added weight",
+      "down": "Less added weight"
+    },
+    "assisted": {
+      "up": "Less assistance",
+      "down": "More assistance"
+    }
+  }
+}

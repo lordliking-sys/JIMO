@@ -39,6 +39,9 @@ export const preferencesSchema = z
   .object({
     version: z.literal(1),
     onboardingCompleted: z.boolean(),
+    // A server profile can complete account setup without inventing local
+    // fitness-onboarding answers on a returning user's new device.
+    accountOnboarded: z.boolean().optional(),
     localePreference: localePreferenceSchema,
     onboarding: onboardingSchema.nullable(),
   })

@@ -4,6 +4,8 @@ module.exports = [
   {
     ignores: [
       '**/dist/**',
+      '**/test-results/**',
+      '**/playwright-report/**',
       '**/.expo/**',
       '**/node_modules/**',
       '**/.turbo/**',
