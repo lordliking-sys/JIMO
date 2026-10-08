@@ -14,7 +14,6 @@ import type {
 } from '@jimo/schemas';
 import { useApiLocale } from '../../src/api/queries';
 import {
-  Back,
   ErrorNotice,
   QueryState,
   useConfirmation,
@@ -34,7 +33,11 @@ import {
 } from '../../src/workouts/helpers';
 import { useClock } from '../../src/workouts/useClock';
 import { workoutHaptic } from '../../src/workouts/haptics';
-import { InkText, WorkoutSurface } from '../../src/workouts/visual/Surface';
+import {
+  InkText,
+  WorkoutSurface,
+  useWorkoutLayout,
+} from '../../src/workouts/visual/Surface';
 import {
   InkActionMenu,
   InkButton,
@@ -53,6 +56,7 @@ import {
   type PreviewMode,
 } from '../../src/workouts/visual/WorkoutVisualPreview';
 import { ink } from '../../src/workouts/visual/theme';
+import { SafeBack, useSafeBack } from '../../src/navigation/SafeBack';
 function SetEditor({
   exercise,
   set,
@@ -168,6 +172,8 @@ export default function WorkoutScreen() {
     workoutsApi = useWorkoutActions(),
     router = useRouter(),
     { t } = useTranslation('workouts');
+  useSafeBack('/workout');
+  const { usableHeight } = useWorkoutLayout();
   const { runtime } = useOffline();
   const { refetch: queryRefetch } = query;
   const refetch = useCallback(() => {
@@ -259,16 +265,19 @@ export default function WorkoutScreen() {
         <WorkoutHeading
           title={rest && !editing ? t('rest') : workout.name}
           divider={!rest || Boolean(editing)}
-          onBack={() => router.back()}
           trailing={
-            <InkActionMenu
-              label={t('sessionActions')}
-              title={workout.name}
-              disabled={busy || !restReady}
-              actions={actions}
-            >
-              <InkText style={{ fontSize: 22 }}>{counter}</InkText>
-            </InkActionMenu>
+            rest && !editing ? (
+              <View style={{ width: 48 }} />
+            ) : (
+              <InkActionMenu
+                label={t('sessionActions')}
+                title={workout.name}
+                disabled={busy || !restReady}
+                actions={actions}
+              >
+                <InkText style={{ fontSize: 22 }}>{counter}</InkText>
+              </InkActionMenu>
+            )
           }
         />
       ) : (
@@ -279,7 +288,7 @@ export default function WorkoutScreen() {
             gap: spacing.sm,
           }}
         >
-          <Back compact />
+          <SafeBack />
           <Text variant="h3">{workout.name}</Text>
         </View>
       )}
@@ -339,6 +348,7 @@ export default function WorkoutScreen() {
     return (
       <WorkoutSurface
         centered
+        variant="rest"
         key={`rest-${rest.set.id}`}
         footer={
           <InkButton
@@ -381,7 +391,13 @@ export default function WorkoutScreen() {
             {t('offline.saveFailed')}
           </Text>
         ) : null}
-        <View style={{ flex: 1, minHeight: 85, maxHeight: 125 }} />
+        <View
+          style={{
+            flex: 1,
+            minHeight: 0,
+            maxHeight: usableHeight > 800 ? 80 : 24,
+          }}
+        />
         <EnsoTimer
           remaining={rest.remaining}
           total={rest.exercise.restSecondsSnapshot ?? 0}
@@ -392,23 +408,23 @@ export default function WorkoutScreen() {
           accessibilityRole="header"
           style={{
             textAlign: 'center',
-            fontSize: 36,
+            fontSize: 34,
             letterSpacing: 1.2,
             textTransform: 'uppercase',
           }}
         >
           {next.exercise.exerciseNameSnapshot}
         </InkText>
-        <InkText style={{ textAlign: 'center', fontSize: 24 }}>
+        <InkText style={{ textAlign: 'center', fontSize: 23 }}>
           {t('visual.nextSeries', {
             current: next.set.setNumber,
             total: next.exercise.sets.length,
           })}
         </InkText>
-        <View style={{ width: '100%', marginTop: 8 }}>
+        <View style={{ width: '100%', marginTop: 4 }}>
           <TargetPill exercise={next.exercise} set={next.set} />
         </View>
-        <View style={{ width: '100%', gap: 6, marginTop: 10 }}>
+        <View style={{ width: '100%', gap: 4, marginTop: 4 }}>
           <InkText style={{ fontSize: 19, color: ink.secondary }}>
             {t('visual.lastCompleted')}
           </InkText>

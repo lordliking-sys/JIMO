@@ -6,19 +6,18 @@ import {
   Pressable,
   StyleSheet,
   View,
-  useWindowDimensions,
 } from 'react-native';
 import type { AccessibilityValue, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import Check from 'lucide-react-native/icons/check';
 import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import { useTranslation } from 'react-i18next';
 import type { WorkoutExercise, WorkoutSet } from '@jimo/schemas';
 import { useApiLocale } from '../../api/queries';
 import { countdown, setSummary } from '../helpers';
-import { InkText } from './Surface';
+import { InkText, useWorkoutLayout } from './Surface';
+import { SafeBack } from '../../navigation/SafeBack';
 import { artwork, ink } from './theme';
 
 export function InkButton({
@@ -189,23 +188,22 @@ export function InkActionMenu({
 export function WorkoutHeading({
   title,
   counter,
-  onBack,
+  badge,
+  onClose,
   trailing,
   divider = true,
 }: {
   title: string;
   counter?: string | undefined;
-  onBack: () => void;
+  badge?: string;
+  onClose?: (() => void) | undefined;
   trailing?: ReactNode;
   divider?: boolean;
 }) {
-  const { t } = useTranslation('common');
   return (
     <View style={{ width: '100%', gap: 0 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <InkButton label={t('back')} onPress={onBack}>
-          <ChevronLeft size={30} color={ink.parchment} strokeWidth={1.4} />
-        </InkButton>
+        <SafeBack dismiss={onClose} color={ink.parchment} />
         <InkText
           accessibilityRole="header"
           style={{
@@ -225,6 +223,21 @@ export function WorkoutHeading({
         )}
       </View>
       {divider ? <BrushDivider /> : null}
+      {badge ? (
+        <InkText
+          style={{
+            position: 'absolute',
+            right: 4,
+            bottom: divider ? 0 : -8,
+            fontFamily: 'Inter_400Regular',
+            fontSize: 10,
+            letterSpacing: 1.3,
+            color: ink.secondary,
+          }}
+        >
+          {badge}
+        </InkText>
+      ) : null}
     </View>
   );
 }
@@ -235,36 +248,37 @@ export function ExerciseHero({
   name: string;
   compact?: boolean;
 }) {
-  const { width } = useWindowDimensions();
+  const { standardImageHeight, pyramidImageHeight } = useWorkoutLayout();
   const { t } = useTranslation('workouts');
   return (
     <View
       style={{
-        marginHorizontal: -8,
-        minHeight: compact ? width * 0.36 : width * 0.61,
-        justifyContent: 'flex-end',
-        padding: 8,
-        backgroundColor: 'rgba(12,16,12,0.56)',
+        gap: 4,
       }}
     >
       <View
+        testID="workout-exercise-image-slot"
         accessibilityLabel={t('visual.exercisePlaceholder')}
         style={{
-          flex: 1,
+          height: compact ? pyramidImageHeight : standardImageHeight,
+          backgroundColor: 'rgba(12,16,12,0.56)',
           alignItems: 'center',
           justifyContent: 'center',
-          paddingVertical: 28,
         }}
       >
-        <Dumbbell size={64} color={ink.border} strokeWidth={0.8} />
+        <Dumbbell
+          size={compact ? 48 : 36}
+          color={ink.border}
+          strokeWidth={0.8}
+        />
       </View>
       <InkText
         accessibilityRole="header"
         style={{
-          fontSize: compact ? 36 : 44,
+          fontSize: compact ? 34 : 38,
           textTransform: 'uppercase',
           textAlign: compact ? 'center' : 'left',
-          letterSpacing: 1.6,
+          letterSpacing: 1.2,
         }}
       >
         {name}
@@ -360,8 +374,8 @@ export function EnsoTimer({
   brush?: boolean;
   label: string;
 }) {
-  const { width, fontScale } = useWindowDimensions(),
-    diameter = Math.min(300, width - 60),
+  const { fontScale, restRing, emomRing } = useWorkoutLayout(),
+    diameter = brush ? emomRing : restRing,
     r = 46,
     circumference = 2 * Math.PI * r;
   const fraction = total > 0 ? Math.min(1, Math.max(0, remaining / total)) : 0;
@@ -441,7 +455,7 @@ export function EnsoTimer({
       <InkText
         style={{
           fontSize: Math.min(94, (diameter * 0.31) / fontScale),
-          lineHeight: 105,
+          lineHeight: Math.min(110, diameter * 0.38),
         }}
       >
         {countdown(remaining)}
@@ -541,7 +555,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     borderWidth: 1,
     borderColor: ink.sage,
-    minHeight: 58,
+    minHeight: 54,
     paddingHorizontal: 12,
     overflow: 'hidden',
   },

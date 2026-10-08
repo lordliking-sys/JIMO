@@ -1,5 +1,4 @@
-import { useCallback, useState } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Screen, spacing, Button, Text, colors } from '@jimo/ui';
 import { View } from 'react-native';
@@ -9,26 +8,11 @@ import {
 } from '../../src/workouts/visual/WorkoutVisualPreview';
 import { ScreenHeader } from '../../src/components/ScreenHeader';
 import { WorkoutSchedule } from '../../src/workouts/Schedule';
-import { useActiveWorkout } from '../../src/workouts/queries';
 export default function WorkoutTab() {
-  const { t } = useTranslation('workouts'),
-    active = useActiveWorkout(),
-    router = useRouter();
+  const { t } = useTranslation('workouts');
   const [preview, setPreview] = useState<PreviewMode | null>(null);
-  const { refetch } = active;
-  useFocusEffect(
-    useCallback(() => {
-      let live = true;
-      void refetch().then((result) => {
-        const w = result.data?.workout;
-        if (w && live)
-          router.replace({ pathname: '/workout/[id]', params: { id: w.id } });
-      });
-      return () => {
-        live = false;
-      };
-    }, [refetch, router]),
-  );
+  // WorkoutSchedule already refreshes on focus and offers Resume. An automatic
+  // replacement here would reopen a live session immediately after SafeBack.
   return (
     <Screen
       bottomInset={false}

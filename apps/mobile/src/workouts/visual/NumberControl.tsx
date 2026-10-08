@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Keyboard, TextInput, View, useWindowDimensions } from 'react-native';
+import { Keyboard, TextInput, View } from 'react-native';
 import type { KeyboardTypeOptions } from 'react-native';
 import Minus from 'lucide-react-native/icons/minus';
 import Plus from 'lucide-react-native/icons/plus';
@@ -9,7 +9,7 @@ import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import ChartNoAxesColumnIncreasing from 'lucide-react-native/icons/chart-no-axes-column-increasing';
 import { useTranslation } from 'react-i18next';
 import { InkButton } from './components';
-import { InkText, useWorkoutFieldFocus } from './Surface';
+import { InkText, useWorkoutFieldFocus, useWorkoutLayout } from './Surface';
 import { ink } from './theme';
 
 export function NumberControl({
@@ -36,7 +36,7 @@ export function NumberControl({
   presets?: { value: string; label: string; accessibilityLabel?: string }[];
 }) {
   const { t } = useTranslation('programs'),
-    { width, fontScale } = useWindowDimensions();
+    { contentWidth, fontScale } = useWorkoutLayout();
   const [editing, setEditing] = useState(false),
     focus = useWorkoutFieldFocus(),
     ref = useRef<TextInput>(null);
@@ -52,42 +52,62 @@ export function NumberControl({
     : unit === 'kg'
       ? Dumbbell
       : RotateCw;
-  const stacked = width < 360 || fontScale > 1.15 || editing;
+  const labelSize = contentWidth < 300 ? 14 : 15;
+  const labelWidth =
+    (label.length + (unit === 'kg' ? 5 : 0)) *
+      (labelSize * 0.5 + 0.45) *
+      fontScale +
+    30;
+  const stacked = contentWidth - 164 < labelWidth || fontScale > 1.2 || editing;
+  const circle = {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    borderColor: ink.border,
+    backgroundColor: 'rgba(60,64,52,0.45)',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  };
   return (
-    <View style={{ gap: 4, paddingVertical: 4 }}>
+    <View style={{ gap: 4, paddingVertical: 1 }}>
       <View
         style={{
           flexDirection: stacked ? 'column' : 'row',
           alignItems: stacked ? 'stretch' : 'center',
-          gap: stacked ? 4 : 8,
+          gap: stacked ? 2 : 6,
         }}
       >
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 10,
+            gap: 8,
             flex: stacked ? undefined : 1,
           }}
         >
-          <Icon size={25} color={ink.sage} strokeWidth={1.7} />
+          <Icon size={22} color={ink.sage} strokeWidth={1.7} />
           <InkText
             style={{
               flexShrink: 1,
-              textTransform: 'uppercase',
-              fontSize: 16,
-              letterSpacing: 1.1,
+              fontSize: labelSize,
+              letterSpacing: 0.45,
             }}
           >
-            {label}
-            {unit === 'kg' ? ' (kg)' : ''}
+            {label.toUpperCase()}
+            {unit === 'kg' ? (
+              <InkText style={{ fontSize: 13, letterSpacing: 0 }}>
+                {' '}
+                (kg)
+              </InkText>
+            ) : null}
           </InkText>
         </View>
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 4,
+            gap: 2,
             justifyContent: 'flex-end',
           }}
         >
@@ -95,14 +115,10 @@ export function NumberControl({
             label={`${t('decrease')} ${label}`}
             onPress={() => onStep(-1)}
             disabled={!value.trim() || (valid && current <= min)}
-            style={{
-              borderRadius: 28,
-              borderWidth: 1,
-              borderColor: ink.border,
-              backgroundColor: 'rgba(60,64,52,0.45)',
-            }}
           >
-            <Minus size={25} color={ink.parchment} strokeWidth={1.5} />
+            <View style={circle}>
+              <Minus size={24} color={ink.parchment} strokeWidth={1.5} />
+            </View>
           </InkButton>
           {editing ? (
             <TextInput
@@ -137,9 +153,9 @@ export function NumberControl({
               accessibilityHint={t('numberHint')}
               accessibilityValue={{ text: value || t('unspecified') }}
               onPress={() => setEditing(true)}
-              style={{ minWidth: 64, flexShrink: 1 }}
+              style={{ minWidth: 56, flexShrink: 1 }}
             >
-              <InkText style={{ fontSize: 30, textAlign: 'center' }}>
+              <InkText style={{ fontSize: 28, textAlign: 'center' }}>
                 {value ? `${prefix}${value}` : '—'}
                 {value && unit ? (
                   <InkText style={{ fontSize: 14 }}> {unit}</InkText>
@@ -151,14 +167,10 @@ export function NumberControl({
             label={`${t('increase')} ${label}`}
             onPress={() => onStep(1)}
             disabled={valid && max !== undefined && current >= max}
-            style={{
-              borderRadius: 28,
-              borderWidth: 1,
-              borderColor: ink.border,
-              backgroundColor: 'rgba(60,64,52,0.45)',
-            }}
           >
-            <Plus size={25} color={ink.parchment} strokeWidth={1.5} />
+            <View style={circle}>
+              <Plus size={24} color={ink.parchment} strokeWidth={1.5} />
+            </View>
           </InkButton>
           {editing ? (
             <InkButton label={t('confirmValue', { label })} onPress={finish}>

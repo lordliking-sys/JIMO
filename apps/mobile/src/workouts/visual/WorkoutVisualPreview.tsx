@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import Check from 'lucide-react-native/icons/check';
 import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import Circle from 'lucide-react-native/icons/circle';
@@ -18,6 +20,7 @@ import {
 import { InkText, WorkoutSurface } from './Surface';
 import { NumberControl } from './NumberControl';
 import { ink } from './theme';
+import { useSafeBack } from '../../navigation/SafeBack';
 import {
   decimalDisplay,
   stepDecimal,
@@ -48,11 +51,12 @@ function Preview({
     [load, setLoad] = useState('80'),
     [info, setInfo] = useState(false);
   return (
-    <WorkoutSurface centered={mode === 'emom'}>
+    <WorkoutSurface centered={mode === 'emom'} variant={mode}>
       <WorkoutHeading
         title={t(mode === 'emom' ? 'visual.emomTitle' : 'visual.strength')}
-        onBack={onClose}
+        onClose={onClose}
         divider={mode !== 'emom'}
+        badge={t('visual.previewBadge')}
         counter={mode === 'pyramid' ? '3 / 7' : undefined}
         trailing={
           mode === 'emom' ? (
@@ -65,35 +69,20 @@ function Preview({
           ) : undefined
         }
       />
-      <InkText
-        style={{
-          fontFamily: 'Inter_400Regular',
-          fontSize: 12,
-          color: ink.parchment,
-          textAlign: 'center',
-          backgroundColor: 'rgba(8,13,9,0.75)',
-          paddingHorizontal: 10,
-          paddingVertical: 4,
-          borderRadius: 8,
-          alignSelf: 'center',
-        }}
-      >
-        {t('visual.previewOnly')}
-      </InkText>
       {mode === 'emom' ? (
         <>
-          <View style={{ flex: 1, minHeight: 60, maxHeight: 110 }} />
+          <View style={{ flex: 1, minHeight: 0, maxHeight: 64 }} />
           <EnsoTimer remaining={38} total={60} brush label="EMOM" />
           <BrushDivider />
-          <InkText style={{ fontSize: 23, letterSpacing: 2, marginTop: 8 }}>
+          <InkText style={{ fontSize: 23, letterSpacing: 1.5, marginTop: 4 }}>
             {t('set').toUpperCase()} 3 / 10
           </InkText>
-          <InkText style={{ fontSize: 58, letterSpacing: 2 }}>5 REPS</InkText>
+          <InkText style={{ fontSize: 54, letterSpacing: 1.5 }}>5 REPS</InkText>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <View
               style={{
                 borderRadius: 24,
-                padding: 10,
+                padding: 8,
                 backgroundColor: ink.surface,
               }}
             >
@@ -108,8 +97,8 @@ function Preview({
               flexDirection: 'row',
               justifyContent: 'space-between',
               width: '100%',
-              marginTop: 28,
-              marginBottom: 18,
+              marginTop: 16,
+              marginBottom: 8,
             }}
           >
             {[1, 2, 3, 4].map((n) => (
@@ -117,8 +106,8 @@ function Preview({
                 <View
                   accessibilityLabel={`${t('set')} ${n} · ${t(n < 3 ? 'completed' : n === 3 ? 'current' : 'pending')}`}
                   style={{
-                    minHeight: 58,
-                    minWidth: 58,
+                    minHeight: 54,
+                    minWidth: 54,
                     borderWidth: n === 3 ? 2 : 1,
                     borderColor: n === 3 ? ink.sage : ink.border,
                     borderRadius: 38,
@@ -208,8 +197,8 @@ export function PyramidTimeline() {
       style={{
         borderTopWidth: 1,
         borderColor: ink.border,
-        paddingTop: 12,
-        gap: 6,
+        paddingTop: 6,
+        gap: 0,
       }}
     >
       <InkText
@@ -217,7 +206,7 @@ export function PyramidTimeline() {
           fontSize: 19,
           letterSpacing: 1.5,
           textTransform: 'uppercase',
-          marginBottom: 4,
+          marginBottom: 0,
         }}
       >
         {t('visual.pyramidProgression')}
@@ -229,14 +218,35 @@ export function PyramidTimeline() {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            minHeight: 28,
+            minHeight: 30,
             paddingHorizontal: 12,
             borderRadius: 28,
-            backgroundColor: i === 2 ? 'rgba(101,133,86,0.36)' : 'transparent',
-            borderWidth: i === 2 ? 1 : 0,
-            borderColor: ink.border,
+            paddingVertical: i === 2 ? 2 : 0,
           }}
         >
+          {i === 2 ? (
+            <Svg
+              style={StyleSheet.absoluteFill}
+              width="100%"
+              height="100%"
+              pointerEvents="none"
+            >
+              <Defs>
+                <LinearGradient id="pyramidCurrent" x1="0" y1="0" x2="1" y2="0">
+                  <Stop offset="0" stopColor="#658556" stopOpacity="0" />
+                  <Stop offset="0.18" stopColor="#658556" stopOpacity="0.32" />
+                  <Stop offset="0.72" stopColor="#658556" stopOpacity="0.32" />
+                  <Stop offset="1" stopColor="#658556" stopOpacity="0" />
+                </LinearGradient>
+              </Defs>
+              <Rect
+                width="100%"
+                height="100%"
+                rx="18"
+                fill="url(#pyramidCurrent)"
+              />
+            </Svg>
+          ) : null}
           <View
             style={{
               width: 24,
@@ -304,14 +314,17 @@ export function WorkoutVisualPreview({
   mode: PreviewMode | null;
   onClose: () => void;
 }) {
+  const close = useSafeBack('/workout', onClose, false);
   return (
     <Modal
       visible={mode !== null}
       animationType="none"
-      onRequestClose={onClose}
+      onRequestClose={close}
       presentationStyle="fullScreen"
     >
-      {mode ? <Preview key={mode} mode={mode} onClose={onClose} /> : null}
+      <SafeAreaProvider>
+        {mode ? <Preview key={mode} mode={mode} onClose={close} /> : null}
+      </SafeAreaProvider>
     </Modal>
   );
 }

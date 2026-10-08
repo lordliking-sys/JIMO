@@ -18,7 +18,10 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import type { TextInput, TextProps } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
@@ -27,6 +30,27 @@ import { artwork, ink } from './theme';
 const FontReady = createContext(false);
 const FieldFocus = createContext<(input: TextInput | null) => void>(() => {});
 export const useWorkoutFieldFocus = () => useContext(FieldFocus);
+
+export function useWorkoutLayout() {
+  const { width, height, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const usableHeight = height - insets.top - insets.bottom;
+  const padding = width < 360 ? 16 : 22;
+  return {
+    width: width - insets.left - insets.right,
+    contentWidth: width - insets.left - insets.right - padding * 2,
+    usableHeight,
+    fontScale,
+    padding,
+    standardImageHeight: Math.min(112, Math.max(64, usableHeight * 0.14)),
+    pyramidImageHeight: Math.min(
+      136,
+      Math.max(88, usableHeight * 0.17 - (width < 360 ? 16 : 0)),
+    ),
+    restRing: Math.min(300, width - 56, Math.max(200, usableHeight * 0.35)),
+    emomRing: Math.min(300, width - 56, Math.max(200, usableHeight * 0.4)),
+  };
+}
 
 export function InkText({ style, ...props }: TextProps) {
   const loaded = useContext(FontReady);
@@ -55,15 +79,18 @@ export function WorkoutSurface({
   children,
   footer,
   centered = false,
+  variant = 'standard',
 }: {
   children: ReactNode;
   footer?: ReactNode;
   centered?: boolean;
+  variant?: 'standard' | 'rest' | 'emom' | 'pyramid';
 }) {
   const [fontsReady] = useFonts({
     JimoWorkoutSerif: require('../../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
   });
   const { width, height } = useWindowDimensions();
+  const { padding } = useWorkoutLayout();
   const scroll = useRef<ScrollView>(null),
     viewport = useRef<View>(null),
     focused = useRef<TextInput | null>(null),
@@ -110,7 +137,10 @@ export function WorkoutSurface({
     };
   }, [reveal]);
   return (
-    <View style={{ flex: 1, backgroundColor: ink.background }}>
+    <View
+      testID="workout-surface"
+      style={{ flex: 1, minHeight: 0, backgroundColor: ink.background }}
+    >
       <Image
         source={artwork.background}
         resizeMode="cover"
@@ -148,12 +178,13 @@ export function WorkoutSurface({
             edges={['top', 'bottom', 'left', 'right']}
           >
             <KeyboardAvoidingView
-              style={{ flex: 1 }}
+              style={{ flex: 1, minHeight: 0 }}
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
               <View
                 ref={viewport}
-                style={{ flex: 1 }}
+                testID="workout-viewport"
+                style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}
                 onLayout={() => requestAnimationFrame(reveal)}
               >
                 <ScrollView
@@ -169,10 +200,10 @@ export function WorkoutSurface({
                   onContentSizeChange={() => requestAnimationFrame(reveal)}
                   contentContainerStyle={{
                     flexGrow: 1,
-                    paddingHorizontal: 24,
-                    paddingTop: 24,
-                    paddingBottom: 12,
-                    gap: 12,
+                    paddingHorizontal: padding,
+                    paddingTop: 12,
+                    paddingBottom: 8,
+                    gap: variant === 'pyramid' ? 3 : variant === 'rest' ? 6 : 8,
                     ...(centered ? { alignItems: 'center' as const } : {}),
                   }}
                 >
@@ -181,9 +212,11 @@ export function WorkoutSurface({
               </View>
               {footer ? (
                 <View
+                  testID="workout-footer"
                   style={{
-                    paddingHorizontal: 24,
-                    paddingBottom: 16,
+                    flexShrink: 0,
+                    paddingHorizontal: padding,
+                    paddingBottom: 8,
                     paddingTop: 8,
                   }}
                 >

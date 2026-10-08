@@ -102,13 +102,14 @@
     "emomTitle": "Pull-ups · EMOM",
     "strength": "Strength",
     "benchPress": "Bench press",
-    "soundPreview": "sound alert at -5s · preview",
+    "soundPreview": "sound alert at -5s",
     "previewInfo": "Preview information",
     "previewInfoText": "Timer and sound alert are visual examples. This preview does not modify your workout.",
     "pyramidProgression": "Pyramid progression",
     "lastCompleted": "Last completed set",
     "nextSeries": "Next · Set {{current}}/{{total}}",
     "skip": "Skip",
-    "previews": "Workout previews"
+    "previews": "Workout previews",
+    "previewBadge": "PREVIEW"
   }
 }

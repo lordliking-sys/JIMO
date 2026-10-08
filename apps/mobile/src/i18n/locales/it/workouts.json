@@ -102,13 +102,14 @@
     "emomTitle": "Trazioni · EMOM",
     "strength": "Forza",
     "benchPress": "Panca piana",
-    "soundPreview": "avviso sonoro a -5s · anteprima",
+    "soundPreview": "avviso sonoro a -5s",
     "previewInfo": "Informazioni anteprima",
     "previewInfoText": "Timer e avviso sonoro sono dimostrativi. Questa anteprima non modifica l’allenamento.",
     "pyramidProgression": "Progressione piramide",
     "lastCompleted": "Ultima serie completata",
     "nextSeries": "Prossima · Serie {{current}}/{{total}}",
     "skip": "Salta",
-    "previews": "Anteprime Workout"
+    "previews": "Anteprime Workout",
+    "previewBadge": "PREVIEW"
   }
 }

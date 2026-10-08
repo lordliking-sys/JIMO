@@ -103,11 +103,12 @@ test('EMOM and pyramid are isolated visual previews and never save a workout', a
   await page
     .getByRole('button', { name: 'Anteprima EMOM', exact: true })
     .click();
+  await expect(page.getByText('PREVIEW', { exact: true })).toBeVisible();
   await expect(
     page.getByText('Anteprima visiva · nessun allenamento viene registrato', {
       exact: true,
     }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   const timer = page.getByRole('progressbar', {
     name: 'EMOM 00:38',
     exact: true,
