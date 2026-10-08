@@ -149,7 +149,7 @@ test('complete onboarding, reload, change language and open program placeholders
     page.getByRole('textbox', { name: 'Program name', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Back', exact: true }).click();
-  await page.getByText('Workout', { exact: true }).last().click();
+  await page.goto('/workout');
   await expect(
     page.getByText('Activate a program to get started', { exact: true }),
   ).toBeVisible();
@@ -205,6 +205,19 @@ test('unsupported device language falls back to English and deep links cannot by
     viewport: { width: 320, height: 700 },
   });
   const page = await context.newPage();
+  // The new context does not inherit routes from the default page fixture.
+  await page.route('**/sync/identity', (route) =>
+    route.fulfill({ json: { userId: '3c9e1b7d-7596-4f15-a11c-48b8ef237413' } }),
+  );
+  await page.route('**/programs', (route) =>
+    route.fulfill({ json: { programs: [] } }),
+  );
+  await page.route('**/workouts/active', (route) =>
+    route.fulfill({ json: { workout: null } }),
+  );
+  await page.route('**/workouts?*', (route) =>
+    route.fulfill({ json: { workouts: [] } }),
+  );
   await page.goto('http://localhost:4173/program/create');
   await expect(
     page.getByRole('button', { name: 'Get started', exact: true }),

@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { WorkoutExercise } from '@jimo/schemas';
 import { NumberControl } from './visual/NumberControl';
-import { InkText } from './visual/Surface';
+import { InkText, useWorkoutLayout } from './visual/Surface';
 import { ink } from './visual/theme';
 import { decimalDisplay, stepDecimal, stepInteger } from '../programs/helpers';
 import type { ActualDraft } from './helpers';
@@ -10,15 +10,43 @@ export function ActualEditor({
   exercise,
   draft,
   onChange,
+  alignRows = false,
 }: {
   exercise: WorkoutExercise;
   draft: ActualDraft;
   onChange: (next: ActualDraft) => void;
+  alignRows?: boolean;
 }) {
   const { t, i18n } = useTranslation('workouts'),
     locale = i18n.resolvedLanguage === 'it' ? 'it' : 'en';
   const set = (key: keyof ActualDraft, value: string) =>
     onChange({ ...draft, [key]: value });
+  const { contentWidth, fontScale } = useWorkoutLayout();
+  const labelSize = contentWidth < (alignRows ? 330 : 300) ? 14 : 15;
+  const valueWidth = 80 * Math.max(1, fontScale);
+  const labelWidth = Math.max(0, contentWidth - (96 + valueWidth + 4) - 6);
+  const labels = [
+    t(exercise.trackingModeSnapshot === 'reps' ? 'reps' : 'duration'),
+    ...(exercise.loadModeSnapshot === 'bodyweight'
+      ? []
+      : [
+          `${t(exercise.loadModeSnapshot === 'weighted' ? 'weighted' : exercise.loadModeSnapshot === 'assisted' ? 'assisted' : 'load')} (kg)`,
+        ]),
+    t('rpe'),
+  ];
+  const rowLayout = alignRows
+    ? {
+        labelWidth,
+        valueWidth,
+        stacked:
+          fontScale > 1.2 ||
+          labels.some(
+            (label) =>
+              labelWidth <
+              label.length * (labelSize * 0.5 + 0.25) * fontScale + 30,
+          ),
+      }
+    : undefined;
   const integer = (key: 'reps' | 'duration', min: number) => ({
     value: draft[key],
     onChange: (v: string) => set(key, v),
@@ -60,15 +88,17 @@ export function ActualEditor({
     },
   });
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{ gap: alignRows ? 2 : 6 }}>
       {exercise.trackingModeSnapshot === 'reps' ? (
         <NumberControl
+          rowLayout={rowLayout}
           label={t('reps')}
           {...integer('reps', 0)}
           max={1_000_000}
         />
       ) : (
         <NumberControl
+          rowLayout={rowLayout}
           label={t('duration')}
           {...integer('duration', 1)}
           min={1}
@@ -79,6 +109,7 @@ export function ActualEditor({
       {exercise.loadModeSnapshot === 'weighted' ||
       exercise.loadModeSnapshot === 'external' ? (
         <NumberControl
+          rowLayout={rowLayout}
           label={t(
             exercise.loadModeSnapshot === 'weighted' ? 'weighted' : 'load',
           )}
@@ -89,6 +120,7 @@ export function ActualEditor({
         />
       ) : exercise.loadModeSnapshot === 'assisted' ? (
         <NumberControl
+          rowLayout={rowLayout}
           label={t('assisted')}
           {...weight('assistance')}
           unit="kg"
@@ -100,6 +132,7 @@ export function ActualEditor({
         </InkText>
       )}
       <NumberControl
+        rowLayout={rowLayout}
         label={t('rpe')}
         value={draft.rpe}
         onChange={(v) => set('rpe', v)}

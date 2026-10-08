@@ -1,0 +1,37 @@
+{
+  "title": "SCHEDA",
+  "motto": "“Disciplina oggi,\nrisultati domani.”",
+  "todayWorkout": "Allenamento del giorno",
+  "exerciseProgress": "{{completed}} / {{total}} esercizi",
+  "week": "La tua settimana",
+  "today": "oggi",
+  "streak": "Streak",
+  "unavailable": "Non disponibile",
+  "sessions4w": "allenamenti · ultime 4 settimane",
+  "cachedSessions": "allenamenti · dati salvati",
+  "nextExercises": "Prossimi esercizi",
+  "noUpcoming": "I tuoi esercizi appariranno qui.",
+  "nextExerciseAction": "Apri {{name}}",
+  "chooseDay": "Scegli un giorno",
+  "unscheduled": "Giorni non programmati",
+  "offline": "Connettiti per caricare la tua scheda.",
+  "weekNumber": "Settimana {{number}}",
+  "currentWeek": "Questa settimana",
+  "weekOverview": "Panoramica settimana",
+  "openSession": "Rivedi {{name}}",
+  "dayStates": {
+    "completed": "Completato",
+    "current": "Corrente",
+    "future": "Pianificato"
+  },
+  "weekdayLetters": {
+    "1": "L",
+    "2": "M",
+    "3": "M",
+    "4": "G",
+    "5": "V",
+    "6": "S",
+    "7": "D"
+  },
+  "dayNumber": "Giorno {{number}}"
+}

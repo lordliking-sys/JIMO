@@ -127,6 +127,7 @@ export function SetCorrectionModal({
                   {exercise.exerciseNameSnapshot} · {t('set')} {set.setNumber}
                 </InkText>
                 <ActualEditor
+                  alignRows
                   exercise={exercise}
                   draft={draft}
                   onChange={setDraft}

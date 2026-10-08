@@ -4,12 +4,11 @@ import { View, useWindowDimensions } from 'react-native';
 import type { ColorValue } from 'react-native';
 import ChartNoAxesCombined from 'lucide-react-native/icons/chart-no-axes-combined';
 import CircleUserRound from 'lucide-react-native/icons/circle-user-round';
-import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import House from 'lucide-react-native/icons/house';
-import ListChecks from 'lucide-react-native/icons/list-checks';
+import FileText from 'lucide-react-native/icons/file-text';
 import { useTranslation } from 'react-i18next';
 import { colors, sizes, spacing, Text } from '@jimo/ui';
-import { tabLabelKey } from '../../src/components/tab-labels';
+import { mainInk } from '../../src/main/theme';
 export default function TabsLayout() {
   const { t } = useTranslation('navigation');
   const insets = useSafeAreaInsets();
@@ -27,7 +26,7 @@ export default function TabsLayout() {
             ellipsizeMode="clip"
             maxFontSizeMultiplier={Math.min(
               1.5,
-              Math.max(1, (availableWidth / 5 - 4) / 58),
+              Math.max(1, (availableWidth / 4 - 4) / 58),
             )}
             style={{
               color,
@@ -43,26 +42,54 @@ export default function TabsLayout() {
     };
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarShowLabel: true,
-        tabBarLabelPosition: 'below-icon',
-        tabBarAllowFontScaling: true,
-        tabBarInactiveTintColor: colors.secondary,
-        tabBarActiveBackgroundColor: colors.elevated,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          height:
-            72 + Math.max(0, Math.min(fontScale, 1.5) - 1) * 36 + insets.bottom,
-          paddingBottom: Math.max(insets.bottom, spacing.sm),
-          borderTopColor: colors.border,
-        },
-        tabBarItemStyle: {
-          minHeight: sizes.touch,
-          paddingVertical: spacing.xs,
-        },
-        sceneStyle: { backgroundColor: colors.background },
+      screenOptions={({ route }) => {
+        const home = route.name === 'index',
+          styled = home || route.name === 'program';
+        return {
+          headerShown: false,
+          tabBarActiveTintColor: styled
+            ? home
+              ? mainInk.green
+              : mainInk.sage
+            : colors.primary,
+          tabBarShowLabel: true,
+          tabBarLabelPosition: 'below-icon',
+          tabBarAllowFontScaling: true,
+          tabBarInactiveTintColor: styled
+            ? home
+              ? mainInk.charcoal
+              : mainInk.muted
+            : colors.secondary,
+          tabBarActiveBackgroundColor: styled ? 'transparent' : colors.elevated,
+          tabBarStyle: {
+            backgroundColor: styled
+              ? home
+                ? mainInk.ivory
+                : mainInk.charcoal
+              : colors.surface,
+            height:
+              72 +
+              Math.max(0, Math.min(fontScale, 1.5) - 1) * 36 +
+              insets.bottom,
+            paddingBottom: Math.max(insets.bottom, spacing.sm),
+            borderTopColor: styled
+              ? home
+                ? mainInk.paperBorder
+                : mainInk.border
+              : colors.border,
+          },
+          tabBarItemStyle: {
+            minHeight: sizes.touch,
+            paddingVertical: spacing.xs,
+          },
+          sceneStyle: {
+            backgroundColor: home
+              ? mainInk.ivory
+              : route.name === 'program'
+                ? mainInk.charcoal
+                : colors.background,
+          },
+        };
       }}
     >
       <Tabs.Screen
@@ -79,27 +106,19 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="program"
         options={{
-          title: t('program'),
-          tabBarAccessibilityLabel: t('program'),
-          tabBarLabel: label(
-            t(tabLabelKey('program', availableWidth, fontScale)),
-          ),
+          title: t('compact.program'),
+          tabBarAccessibilityLabel: t('compact.program'),
+          tabBarLabel: label(t('compact.program')),
           tabBarIcon: ({ color }) => (
-            <ListChecks size={sizes.tabIcon} color={color} />
+            <FileText size={sizes.tabIcon} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="workout"
         options={{
+          href: null,
           title: t('workout'),
-          tabBarAccessibilityLabel: t('workout'),
-          tabBarLabel: label(
-            t(tabLabelKey('workout', availableWidth, fontScale)),
-          ),
-          tabBarIcon: ({ color }) => (
-            <Dumbbell size={sizes.tabIcon} color={color} />
-          ),
         }}
       />
       <Tabs.Screen
@@ -107,9 +126,7 @@ export default function TabsLayout() {
         options={{
           title: t('progress'),
           tabBarAccessibilityLabel: t('progress'),
-          tabBarLabel: label(
-            t(tabLabelKey('progress', availableWidth, fontScale)),
-          ),
+          tabBarLabel: label(t('progress')),
           tabBarIcon: ({ color }) => (
             <ChartNoAxesCombined size={sizes.tabIcon} color={color} />
           ),
@@ -120,9 +137,7 @@ export default function TabsLayout() {
         options={{
           title: t('profile'),
           tabBarAccessibilityLabel: t('profile'),
-          tabBarLabel: label(
-            t(tabLabelKey('profile', availableWidth, fontScale)),
-          ),
+          tabBarLabel: label(t('profile')),
           tabBarIcon: ({ color }) => (
             <CircleUserRound size={sizes.tabIcon} color={color} />
           ),

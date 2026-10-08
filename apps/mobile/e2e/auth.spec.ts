@@ -35,11 +35,11 @@ test('test auth: sign in, app guard, workout and progress; logout warning preser
     .click();
   await page.getByRole('button', { name: 'Accedi', exact: true }).click();
   await expect(
-    page.getByRole('tab', { name: 'Allenamento', exact: true }),
+    page.getByRole('tab', { name: 'Scheda', exact: true }),
   ).toBeVisible();
-  await page.getByRole('tab', { name: 'Allenamento', exact: true }).click();
+  await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Inizia allenamento', exact: true })
+    .getByRole('button', { name: /Inizia allenamento/ })
     .first()
     .click();
   await expect(

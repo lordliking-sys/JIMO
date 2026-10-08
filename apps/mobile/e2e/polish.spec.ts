@@ -43,7 +43,7 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
   for (const width of [320, 360, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     const tabs = page.getByRole('tab');
-    await expect(tabs).toHaveCount(5);
+    await expect(tabs).toHaveCount(4);
     for (const tab of await tabs.all()) {
       const bounds = await tab.boundingBox();
       expect(bounds?.width).toBeGreaterThanOrEqual(48);
@@ -89,11 +89,10 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
   await expect(page.getByRole('tab')).toHaveText([
     'Home',
     'Scheda',
-    'Workout',
     'Progressi',
     'Profilo',
   ]);
-  await page.getByRole('tab', { name: 'Programma', exact: true }).click();
+  await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Crea programma', exact: true }),
   ).toHaveCount(1);

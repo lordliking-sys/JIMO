@@ -144,6 +144,52 @@ for (const device of devices) {
     await expect(
       correction.getByTestId('set-correction-overlay'),
     ).toBeVisible();
+    const rows = await correction.getByTestId('correction-number-row').all();
+    expect(rows).toHaveLength(3);
+    const dimensions = await Promise.all(rows.map((row) => row.boundingBox()));
+    expect(new Set(dimensions.map((box) => box!.height)).size).toBe(1);
+    const columns = [[], [], [], []] as number[][];
+    for (const [index, label] of ['Ripetizioni', 'Zavorra', 'RPE'].entries()) {
+      const row = rows[index]!;
+      const cells = [
+        row.getByTestId('correction-row-label'),
+        row.getByRole('button', { name: `Diminuisci ${label}`, exact: true }),
+        row.getByRole('button', {
+          name: `Modifica manualmente ${label}`,
+          exact: true,
+        }),
+        row.getByRole('button', { name: `Aumenta ${label}`, exact: true }),
+      ];
+      for (const [column, cell] of cells.entries()) {
+        const box = (await cell.boundingBox())!;
+        columns[column]!.push(box.x);
+        if (device.width >= 390) {
+          const frame = dimensions[index]!;
+          expect(
+            Math.abs(box.y + box.height / 2 - (frame.y + frame.height / 2)),
+          ).toBeLessThanOrEqual(1);
+        }
+      }
+      const icon = (await row.locator('svg').first().boundingBox())!;
+      const labelBox = (await row
+        .getByTestId('correction-row-label')
+        .boundingBox())!;
+      expect(
+        await row
+          .getByTestId('correction-row-label')
+          .evaluate(
+            (element) => element.scrollWidth <= element.clientWidth + 1,
+          ),
+      ).toBe(true);
+      expect(
+        Math.abs(icon.y + icon.height / 2 - (labelBox.y + labelBox.height / 2)),
+      ).toBeLessThanOrEqual(1);
+    }
+    for (const values of columns)
+      expect(Math.max(...values) - Math.min(...values)).toBeLessThanOrEqual(1);
+    await expect(
+      correction.getByTestId('correction-row-label').nth(1),
+    ).toHaveText('ZAVORRA (kg)');
     const correctionFrame = (await correction
       .getByTestId('workout-viewport')
       .boundingBox())!;

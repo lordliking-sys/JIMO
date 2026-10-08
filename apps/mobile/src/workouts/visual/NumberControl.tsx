@@ -12,6 +12,12 @@ import { InkButton } from './components';
 import { InkText, useWorkoutFieldFocus, useWorkoutLayout } from './Surface';
 import { ink } from './theme';
 
+export type NumberRowLayout = {
+  labelWidth: number;
+  valueWidth: number;
+  stacked: boolean;
+};
+
 export function NumberControl({
   label,
   value,
@@ -23,6 +29,7 @@ export function NumberControl({
   prefix = '',
   unit = '',
   presets = [],
+  rowLayout,
 }: {
   label: string;
   value: string;
@@ -34,6 +41,7 @@ export function NumberControl({
   prefix?: string;
   unit?: string;
   presets?: { value: string; label: string; accessibilityLabel?: string }[];
+  rowLayout?: NumberRowLayout | undefined;
 }) {
   const { t } = useTranslation('programs'),
     { contentWidth, fontScale } = useWorkoutLayout();
@@ -58,7 +66,10 @@ export function NumberControl({
       (labelSize * 0.5 + 0.45) *
       fontScale +
     30;
-  const stacked = contentWidth - 164 < labelWidth || fontScale > 1.2 || editing;
+  const stacked =
+    (rowLayout?.stacked ??
+      (contentWidth - 164 < labelWidth || fontScale > 1.2)) ||
+    editing;
   const circle = {
     width: 42,
     height: 42,
@@ -70,12 +81,16 @@ export function NumberControl({
     alignItems: 'center' as const,
   };
   return (
-    <View style={{ gap: 4, paddingVertical: 1 }}>
+    <View
+      testID={rowLayout ? 'correction-number-row' : undefined}
+      style={{ gap: 4, paddingVertical: rowLayout ? 0 : 1 }}
+    >
       <View
         style={{
           flexDirection: stacked ? 'column' : 'row',
           alignItems: stacked ? 'stretch' : 'center',
-          gap: stacked ? 2 : 6,
+          gap: stacked ? (rowLayout ? 0 : 2) : 6,
+          minHeight: rowLayout ? (stacked ? 70 : 48) : undefined,
         }}
       >
         <View
@@ -83,19 +98,42 @@ export function NumberControl({
             flexDirection: 'row',
             alignItems: 'center',
             gap: 8,
-            flex: stacked ? undefined : 1,
+            flex: rowLayout || stacked ? undefined : 1,
+            width: rowLayout
+              ? stacked
+                ? '100%'
+                : rowLayout.labelWidth
+              : undefined,
+            minHeight: rowLayout ? (stacked ? 22 : 48) : undefined,
           }}
         >
-          <Icon size={22} color={ink.sage} strokeWidth={1.7} />
+          {rowLayout ? (
+            <View style={{ width: 22, height: 22, flexShrink: 0 }}>
+              <Icon size={22} color={ink.sage} strokeWidth={1.7} />
+            </View>
+          ) : (
+            <Icon size={22} color={ink.sage} strokeWidth={1.7} />
+          )}
           <InkText
+            testID={rowLayout ? 'correction-row-label' : undefined}
+            numberOfLines={rowLayout ? 1 : undefined}
             style={{
               flexShrink: 1,
-              fontSize: labelSize,
-              letterSpacing: 0.45,
+              fontSize: rowLayout && contentWidth < 330 ? 14 : labelSize,
+              letterSpacing: rowLayout ? 0.25 : 0.45,
+              ...(rowLayout
+                ? {
+                    lineHeight: 20,
+                    includeFontPadding: false,
+                    textAlignVertical: 'center' as const,
+                  }
+                : {}),
             }}
           >
-            {label.toUpperCase()}
-            {unit === 'kg' ? (
+            {rowLayout
+              ? `${label.toUpperCase()}${unit === 'kg' ? ' (kg)' : ''}`
+              : label.toUpperCase()}
+            {!rowLayout && unit === 'kg' ? (
               <InkText style={{ fontSize: 13, letterSpacing: 0 }}>
                 {' '}
                 (kg)
@@ -109,6 +147,7 @@ export function NumberControl({
             alignItems: 'center',
             gap: 2,
             justifyContent: 'flex-end',
+            minHeight: rowLayout ? 48 : undefined,
           }}
         >
           <InkButton
@@ -153,12 +192,39 @@ export function NumberControl({
               accessibilityHint={t('numberHint')}
               accessibilityValue={{ text: value || t('unspecified') }}
               onPress={() => setEditing(true)}
-              style={{ minWidth: 56, flexShrink: 1 }}
+              style={{
+                minWidth: rowLayout?.valueWidth ?? 56,
+                width: rowLayout?.valueWidth,
+                flexShrink: rowLayout ? 0 : 1,
+              }}
             >
-              <InkText style={{ fontSize: 28, textAlign: 'center' }}>
+              <InkText
+                numberOfLines={rowLayout ? 1 : undefined}
+                style={{
+                  fontSize: 28,
+                  textAlign: 'center',
+                  ...(rowLayout
+                    ? {
+                        lineHeight: 36,
+                        includeFontPadding: false,
+                        textAlignVertical: 'center' as const,
+                      }
+                    : {}),
+                }}
+              >
                 {value ? `${prefix}${value}` : '—'}
                 {value && unit ? (
-                  <InkText style={{ fontSize: 14 }}> {unit}</InkText>
+                  <InkText
+                    style={{
+                      fontSize: 14,
+                      ...(rowLayout
+                        ? { lineHeight: 18, includeFontPadding: false }
+                        : {}),
+                    }}
+                  >
+                    {' '}
+                    {unit}
+                  </InkText>
                 ) : null}
               </InkText>
             </InkButton>
