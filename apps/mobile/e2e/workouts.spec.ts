@@ -83,11 +83,14 @@ test('workout actual draft, retry, rest resume, correction, all modes and histor
   await expect(valueButton(page, 'Carico')).toHaveText('80 kg');
   await page.reload();
   await expect(page.getByLabel('Serie 2 di 2', { exact: true })).toBeVisible();
+  const sessionUrl = page.url();
   await page.getByRole('button', { name: 'Salta serie', exact: true }).click();
   await expect(
     page.getByText('Esercizio completato', { exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Continua', exact: true }).click();
+  await expect(page).toHaveURL(sessionUrl);
+  expect(s.completedAt).toBe(completedAt);
   await expect(valueButton(page, 'Zavorra')).toHaveText('+20 kg');
   await expect(
     page.getByLabel('8 reps · +20 kg · RPE 8', { exact: true }),

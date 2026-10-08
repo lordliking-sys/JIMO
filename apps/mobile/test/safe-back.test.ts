@@ -71,3 +71,33 @@ test('Android hardware back consumes the event, falls back safely and unregister
   release();
   assert.equal(listener, null);
 });
+
+test('Android correction hardware back closes the overlay without inspecting history or navigating', () => {
+  let listener: (() => boolean) | undefined;
+  let overlayOpen = true;
+  const unexpected = () => assert.fail('Correction back must never navigate');
+  const release = registerSafeHardwareBack(
+    {
+      addEventListener: (_name, handler) => {
+        listener = handler;
+        return {
+          remove: () => {
+            listener = undefined;
+          },
+        };
+      },
+    },
+    () =>
+      safeBack(
+        { canGoBack: unexpected, back: unexpected, replace: unexpected },
+        '/workout',
+        () => {
+          overlayOpen = false;
+        },
+      ),
+  );
+  assert.equal(listener?.(), true);
+  assert.equal(overlayOpen, false);
+  release();
+  assert.equal(listener, undefined);
+});

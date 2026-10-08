@@ -11,7 +11,6 @@ import type { AccessibilityValue, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import Check from 'lucide-react-native/icons/check';
 import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import { useTranslation } from 'react-i18next';
 import type { WorkoutExercise, WorkoutSet } from '@jimo/schemas';
 import { useApiLocale } from '../../api/queries';
@@ -60,24 +59,6 @@ export function InkButton({
         style,
       ]}
     >
-      {primary ? (
-        <Svg
-          pointerEvents="none"
-          width="100%"
-          height="100%"
-          style={StyleSheet.absoluteFill}
-          preserveAspectRatio="none"
-          viewBox="0 0 100 100"
-        >
-          <Defs>
-            <LinearGradient id="buttonSage" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor="#768766" />
-              <Stop offset="1" stopColor="#536249" />
-            </LinearGradient>
-          </Defs>
-          <Circle cx="50" cy="50" r="72" fill="url(#buttonSage)" />
-        </Svg>
-      ) : null}
       {children ?? (
         <InkText
           style={{
@@ -244,34 +225,34 @@ export function WorkoutHeading({
 export function ExerciseHero({
   name,
   compact = false,
+  imageUri,
 }: {
   name: string;
   compact?: boolean;
+  imageUri?: string | null;
 }) {
   const { standardImageHeight, pyramidImageHeight } = useWorkoutLayout();
-  const { t } = useTranslation('workouts');
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  const uri = imageUri?.trim();
   return (
     <View
       style={{
         gap: 4,
       }}
     >
-      <View
-        testID="workout-exercise-image-slot"
-        accessibilityLabel={t('visual.exercisePlaceholder')}
-        style={{
-          height: compact ? pyramidImageHeight : standardImageHeight,
-          backgroundColor: 'rgba(12,16,12,0.56)',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Dumbbell
-          size={compact ? 48 : 36}
-          color={ink.border}
-          strokeWidth={0.8}
+      {uri && uri !== failedUri ? (
+        <Image
+          testID="workout-exercise-artwork"
+          source={{ uri }}
+          onError={() => setFailedUri(uri)}
+          accessible={false}
+          resizeMode="contain"
+          style={{
+            width: '100%',
+            height: compact ? pyramidImageHeight : standardImageHeight,
+          }}
         />
-      </View>
+      ) : null}
       <InkText
         accessibilityRole="header"
         style={{
@@ -552,6 +533,7 @@ export function SetIndicators({
 export const Arrow = () => <ArrowRight size={23} color={ink.parchment} />;
 const styles = StyleSheet.create({
   primary: {
+    backgroundColor: ink.sageDark,
     borderRadius: 32,
     borderWidth: 1,
     borderColor: ink.sage,

@@ -30,6 +30,7 @@
   "completeSet": "✓ Completa serie",
   "skipSet": "Salta serie",
   "editSet": "Correggi serie {{number}}",
+  "correctionTitle": "Correggi serie",
   "saveCorrection": "Salva correzione",
   "cancelEdit": "Annulla correzione",
   "pending": "Da eseguire",

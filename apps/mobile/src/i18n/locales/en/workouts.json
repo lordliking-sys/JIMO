@@ -30,6 +30,7 @@
   "completeSet": "✓ Complete set",
   "skipSet": "Skip set",
   "editSet": "Correct set {{number}}",
+  "correctionTitle": "Correct set",
   "saveCorrection": "Save correction",
   "cancelEdit": "Cancel correction",
   "pending": "Pending",

@@ -30,6 +30,7 @@ import {
   nextPending,
   prefillDraft,
   recoverRest,
+  restRemaining,
 } from '../../src/workouts/helpers';
 import { useClock } from '../../src/workouts/useClock';
 import { workoutHaptic } from '../../src/workouts/haptics';
@@ -56,6 +57,7 @@ import {
   type PreviewMode,
 } from '../../src/workouts/visual/WorkoutVisualPreview';
 import { ink } from '../../src/workouts/visual/theme';
+import { SetCorrectionModal } from '../../src/workouts/visual/SetCorrectionModal';
 import { SafeBack, useSafeBack } from '../../src/navigation/SafeBack';
 function SetEditor({
   exercise,
@@ -172,7 +174,6 @@ export default function WorkoutScreen() {
     workoutsApi = useWorkoutActions(),
     router = useRouter(),
     { t } = useTranslation('workouts');
-  useSafeBack('/workout');
   const { usableHeight } = useWorkoutLayout();
   const { runtime } = useOffline();
   const { refetch: queryRefetch } = query;
@@ -190,8 +191,11 @@ export default function WorkoutScreen() {
   const [editing, setEditing] = useState<{
       exerciseId: string;
       setId: string;
+      rest: ReturnType<typeof recoverRest>;
     } | null>(null),
     [transition, setTransition] = useState<string | null>(null);
+  const closeCorrection = useCallback(() => setEditing(null), []);
+  useSafeBack('/workout', editing ? closeCorrection : undefined);
   const [restPreference, setRestPreference] = useState<{
     key: string;
     value: string | null;
@@ -224,18 +228,33 @@ export default function WorkoutScreen() {
     cancel = useWorkoutMutation(() => workoutsApi.cancel(id));
   const workout = query.data,
     next = workout ? nextPending(workout) : null,
+    liveRest =
+      workout && restReady ? recoverRest(workout, now, skippedRestId) : null,
     rest =
-      workout && restReady ? recoverRest(workout, now, skippedRestId) : null;
+      liveRest ??
+      (editing?.rest
+        ? {
+            ...editing.rest,
+            remaining: restRemaining(
+              editing.rest.set.completedAt,
+              editing.rest.exercise.restSecondsSnapshot,
+              now,
+            ),
+          }
+        : null);
+  const openCorrection = (exerciseId: string, setId: string) =>
+    setEditing({ exerciseId, setId, rest: liveRest });
+  const restSetId = rest?.set.id;
   useEffect(() => {
-    if (rest) {
-      previousRest.current = rest.set.id;
+    if (restSetId) {
+      previousRest.current = restSetId;
     } else if (previousRest.current && restReady) {
       previousRest.current = null;
       workoutHaptic('rest', reducedMotion);
       AccessibilityInfo.announceForAccessibility(t('nextSet'));
     }
-  }, [rest, restReady, reducedMotion, t]);
-  if (query.isPending || query.error || !workout)
+  }, [restSetId, restReady, reducedMotion, t]);
+  if (query.isPending || !workout)
     return (
       <QueryState
         pending={query.isPending}
@@ -258,15 +277,16 @@ export default function WorkoutScreen() {
     { label: t('visual.emomPreview'), action: () => setPreview('emom') },
     { label: t('visual.pyramidPreview'), action: () => setPreview('pyramid') },
   ];
-  const counter = `${(editing ? workout.exercises.findIndex((e) => e.id === editing.exerciseId) : (next?.exerciseIndex ?? 0)) + 1} / ${workout.exercises.length}`;
+  const counter = `${(next?.exerciseIndex ?? 0) + 1} / ${workout.exercises.length}`;
   const header = (
     <>
       {workout.status === 'in_progress' ? (
         <WorkoutHeading
-          title={rest && !editing ? t('rest') : workout.name}
-          divider={!rest || Boolean(editing)}
+          title={rest ? t('rest') : workout.name}
+          onClose={editing ? closeCorrection : undefined}
+          divider={!rest}
           trailing={
-            rest && !editing ? (
+            rest ? (
               <View style={{ width: 48 }} />
             ) : (
               <InkActionMenu
@@ -305,211 +325,213 @@ export default function WorkoutScreen() {
       {cancel.error ? <ErrorNotice error={cancel.error} /> : null}
     </>
   );
-  if (workout.status !== 'in_progress')
-    return (
-      <Screen contentStyle={{ padding: spacing.lg, gap: spacing.lg }}>
-        {header}
-        {workout.status === 'completed' ? (
-          <Text variant="h2">{t('workoutStatus.completed')}</Text>
-        ) : null}
-        <SessionSummary workout={workout} />
-        <Button label={t('back')} onPress={() => router.replace('/workout')} />
-      </Screen>
-    );
   const selectedExercise = editing
     ? workout.exercises.find((e) => e.id === editing.exerciseId)
-    : next?.exercise;
-  const selectedSet = editing
-    ? selectedExercise?.sets.find((s) => s.id === editing.setId)
-    : next?.set;
-  if (editing && selectedExercise && selectedSet)
-    return (
-      <SetEditor
-        key={`edit-${selectedSet.id}`}
-        exercise={selectedExercise}
-        set={selectedSet}
-        editing
-        header={header}
-        onEdit={(s) =>
-          setEditing({ exerciseId: selectedExercise.id, setId: s.id })
-        }
-        onCancel={() => setEditing(null)}
-        onSaved={() => setEditing(null)}
-      />
-    );
-  if (!restReady)
-    return (
-      <Screen>
-        {header}
-        <Text>{t('loading')}</Text>
-      </Screen>
-    );
-  if (rest && next)
-    return (
-      <WorkoutSurface
-        centered
-        variant="rest"
-        key={`rest-${rest.set.id}`}
-        footer={
-          <InkButton
-            label={t('skipRest')}
-            disabled={restSaving}
-            onPress={() => {
-              setRestSaving(true);
-              setRestSaveError(false);
-              void runtime
-                .metadata(runtime.identity(), storageKey, rest.set.id)
-                .then(() => {
-                  previousRest.current = null;
-                  setRestPreference({ key: storageKey, value: rest.set.id });
-                })
-                .catch(() => setRestSaveError(true))
-                .finally(() => setRestSaving(false));
+    : null;
+  const selectedSet = selectedExercise?.sets.find(
+    (s) => s.id === editing?.setId,
+  );
+  // Calling a render function (rather than swapping component types for editing)
+  // preserves the exact live subtree, background and scroll position.
+  const renderWorkout = () => {
+    if (workout.status !== 'in_progress')
+      return (
+        <Screen contentStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+          {header}
+          {workout.status === 'completed' ? (
+            <Text variant="h2">{t('workoutStatus.completed')}</Text>
+          ) : null}
+          <SessionSummary workout={workout} />
+          <Button
+            label={t('back')}
+            onPress={() => router.replace('/workout')}
+          />
+        </Screen>
+      );
+
+    if (!restReady)
+      return (
+        <Screen>
+          {header}
+          <Text>{t('loading')}</Text>
+        </Screen>
+      );
+    if (rest && next)
+      return (
+        <WorkoutSurface
+          centered
+          variant="rest"
+          key={`rest-${rest.set.id}`}
+          footer={
+            <InkButton
+              label={t('skipRest')}
+              disabled={restSaving}
+              onPress={() => {
+                setRestSaving(true);
+                setRestSaveError(false);
+                void runtime
+                  .metadata(runtime.identity(), storageKey, rest.set.id)
+                  .then(() => {
+                    previousRest.current = null;
+                    setRestPreference({ key: storageKey, value: rest.set.id });
+                  })
+                  .catch(() => setRestSaveError(true))
+                  .finally(() => setRestSaving(false));
+              }}
+            >
+              <View
+                style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}
+              >
+                <InkText
+                  style={{
+                    letterSpacing: 1.4,
+                    fontSize: 21,
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {t('visual.skip')}
+                </InkText>
+                <Arrow />
+              </View>
+            </InkButton>
+          }
+        >
+          {header}
+          {errors}
+          {restSaveError ? (
+            <Text color={colors.danger} accessibilityRole="alert">
+              {t('offline.saveFailed')}
+            </Text>
+          ) : null}
+          <View
+            style={{
+              flex: 1,
+              minHeight: 0,
+              maxHeight: usableHeight > 800 ? 80 : 24,
+            }}
+          />
+          <EnsoTimer
+            remaining={rest.remaining}
+            total={rest.exercise.restSecondsSnapshot ?? 0}
+            label={t('rest')}
+          />
+          <BrushDivider />
+          <InkText
+            accessibilityRole="header"
+            style={{
+              textAlign: 'center',
+              fontSize: 34,
+              letterSpacing: 1.2,
+              textTransform: 'uppercase',
             }}
           >
-            <View
-              style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}
-            >
-              <InkText
-                style={{
-                  letterSpacing: 1.4,
-                  fontSize: 21,
-                  textTransform: 'uppercase',
-                }}
-              >
-                {t('visual.skip')}
-              </InkText>
-              <Arrow />
-            </View>
-          </InkButton>
-        }
-      >
-        {header}
-        {errors}
-        {restSaveError ? (
-          <Text color={colors.danger} accessibilityRole="alert">
-            {t('offline.saveFailed')}
-          </Text>
-        ) : null}
-        <View
-          style={{
-            flex: 1,
-            minHeight: 0,
-            maxHeight: usableHeight > 800 ? 80 : 24,
-          }}
-        />
-        <EnsoTimer
-          remaining={rest.remaining}
-          total={rest.exercise.restSecondsSnapshot ?? 0}
-          label={t('rest')}
-        />
-        <BrushDivider />
-        <InkText
-          accessibilityRole="header"
-          style={{
-            textAlign: 'center',
-            fontSize: 34,
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-          }}
-        >
-          {next.exercise.exerciseNameSnapshot}
-        </InkText>
-        <InkText style={{ textAlign: 'center', fontSize: 23 }}>
-          {t('visual.nextSeries', {
-            current: next.set.setNumber,
-            total: next.exercise.sets.length,
-          })}
-        </InkText>
-        <View style={{ width: '100%', marginTop: 4 }}>
-          <TargetPill exercise={next.exercise} set={next.set} />
-        </View>
-        <View style={{ width: '100%', gap: 4, marginTop: 4 }}>
-          <InkText style={{ fontSize: 19, color: ink.secondary }}>
-            {t('visual.lastCompleted')}
+            {next.exercise.exerciseNameSnapshot}
           </InkText>
-          <CompletedSet
-            exercise={rest.exercise}
-            set={rest.set}
-            onEdit={() =>
-              setEditing({ exerciseId: rest.exercise.id, setId: rest.set.id })
-            }
-          />
-          {rest.exercise.sets
-            .filter((s) => s.status === 'completed' && s.id !== rest.set.id)
-            .map((s) => (
-              <CompletedSet
-                key={s.id}
-                exercise={rest.exercise}
-                set={s}
-                onEdit={() =>
-                  setEditing({ exerciseId: rest.exercise.id, setId: s.id })
-                }
-              />
-            ))}
-        </View>
-      </WorkoutSurface>
-    );
-  if (transition && next)
-    return (
-      <Screen
-        contentStyle={{ padding: spacing.lg, gap: spacing.xl }}
-        footer={
-          <Button label={t('continue')} onPress={() => setTransition(null)} />
-        }
-      >
-        {header}
-        {errors}
-        <Text variant="h2">{t('exerciseDone')}</Text>
-        <Text variant="label" color={colors.secondary}>
-          {t('nextExercise')}
-        </Text>
-        <Text variant="h1">{transition}</Text>
-        <Values exercise={next.exercise} set={next.set} />
-      </Screen>
-    );
-  if (!next)
-    return (
-      <Screen
-        contentStyle={{ padding: spacing.lg, gap: spacing.lg }}
-        footer={
-          <Button label={t('finish')} disabled={busy} onPress={finishAction} />
-        }
-      >
-        {header}
-        {errors}
-        <Text variant="h2">{t('readyFinish')}</Text>
-        <SessionSummary
-          workout={workout}
-          onEdit={(exercise, s) =>
-            setEditing({ exerciseId: exercise.id, setId: s.id })
+          <InkText style={{ textAlign: 'center', fontSize: 23 }}>
+            {t('visual.nextSeries', {
+              current: next.set.setNumber,
+              total: next.exercise.sets.length,
+            })}
+          </InkText>
+          <View style={{ width: '100%', marginTop: 4 }}>
+            <TargetPill exercise={next.exercise} set={next.set} />
+          </View>
+          <View style={{ width: '100%', gap: 4, marginTop: 4 }}>
+            <InkText style={{ fontSize: 19, color: ink.secondary }}>
+              {t('visual.lastCompleted')}
+            </InkText>
+            <CompletedSet
+              exercise={rest.exercise}
+              set={rest.set}
+              onEdit={() => openCorrection(rest.exercise.id, rest.set.id)}
+            />
+            {rest.exercise.sets
+              .filter((s) => s.status === 'completed' && s.id !== rest.set.id)
+              .map((s) => (
+                <CompletedSet
+                  key={s.id}
+                  exercise={rest.exercise}
+                  set={s}
+                  onEdit={() => openCorrection(rest.exercise.id, s.id)}
+                />
+              ))}
+          </View>
+        </WorkoutSurface>
+      );
+    if (transition && next)
+      return (
+        <Screen
+          contentStyle={{ padding: spacing.lg, gap: spacing.xl }}
+          footer={
+            <Button label={t('continue')} onPress={() => setTransition(null)} />
           }
+        >
+          {header}
+          {errors}
+          <Text variant="h2">{t('exerciseDone')}</Text>
+          <Text variant="label" color={colors.secondary}>
+            {t('nextExercise')}
+          </Text>
+          <Text variant="h1">{transition}</Text>
+          <Values exercise={next.exercise} set={next.set} />
+        </Screen>
+      );
+    if (!next)
+      return (
+        <Screen
+          contentStyle={{ padding: spacing.lg, gap: spacing.lg }}
+          footer={
+            <Button
+              label={t('finish')}
+              disabled={busy}
+              onPress={finishAction}
+            />
+          }
+        >
+          {header}
+          {errors}
+          <Text variant="h2">{t('readyFinish')}</Text>
+          <SessionSummary
+            workout={workout}
+            onEdit={(exercise, s) => openCorrection(exercise.id, s.id)}
+          />
+        </Screen>
+      );
+    return (
+      <View style={{ flex: 1 }}>
+        <SetEditor
+          key={next.set.id}
+          exercise={next.exercise}
+          set={next.set}
+          editing={false}
+          onEdit={(s) => openCorrection(next.exercise.id, s.id)}
+          header={
+            <>
+              {header}
+              {errors}
+            </>
+          }
+          onCancel={() => {}}
+          onSaved={(updated) => {
+            const following = nextPending(updated);
+            if (following && following.exercise.id !== next.exercise.id)
+              setTransition(following.exercise.exerciseNameSnapshot);
+          }}
         />
-      </Screen>
+      </View>
     );
+  };
   return (
     <View style={{ flex: 1 }}>
-      <SetEditor
-        key={next.set.id}
-        exercise={next.exercise}
-        set={next.set}
-        editing={false}
-        onEdit={(s) =>
-          setEditing({ exerciseId: next.exercise.id, setId: s.id })
-        }
-        header={
-          <>
-            {header}
-            {errors}
-          </>
-        }
-        onCancel={() => {}}
-        onSaved={(updated) => {
-          const following = nextPending(updated);
-          if (following && following.exercise.id !== next.exercise.id)
-            setTransition(following.exercise.exerciseNameSnapshot);
-        }}
-      />
+      {renderWorkout()}
+      {selectedExercise && selectedSet ? (
+        <SetCorrectionModal
+          key={selectedSet.id}
+          exercise={selectedExercise}
+          set={selectedSet}
+          onClose={closeCorrection}
+        />
+      ) : null}
     </View>
   );
 }

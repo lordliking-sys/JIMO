@@ -134,6 +134,51 @@ for (const device of devices) {
     ).toHaveCount(0);
     await insideViewport(page, ['Indietro', 'Correggi serie 1'], true);
     await page.screenshot({ path: info.outputPath('recovery-safe-area.png') });
+    const restSurface = await page
+      .getByTestId('workout-surface')
+      .elementHandle();
+    await page
+      .getByRole('button', { name: 'Correggi serie 1', exact: true })
+      .click();
+    const correction = page.getByRole('dialog');
+    await expect(
+      correction.getByTestId('set-correction-overlay'),
+    ).toBeVisible();
+    const correctionFrame = (await correction
+      .getByTestId('workout-viewport')
+      .boundingBox())!;
+    for (const label of [
+      'Aumenta Ripetizioni',
+      'Aumenta Zavorra',
+      'Aumenta RPE',
+    ]) {
+      const bounds = (await correction
+        .getByRole('button', { name: label, exact: true })
+        .boundingBox())!;
+      expect(bounds.width).toBeGreaterThanOrEqual(44);
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.y).toBeGreaterThanOrEqual(correctionFrame.y - 1);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(
+        correctionFrame.y + correctionFrame.height + 1,
+      );
+    }
+    const save = (await correction
+      .getByRole('button', { name: 'Salva correzione', exact: true })
+      .boundingBox())!;
+    expect(save.y).toBeGreaterThanOrEqual(
+      correctionFrame.y + correctionFrame.height - 1,
+    );
+    expect(save.y + save.height).toBeLessThanOrEqual(
+      device.height - device.bottom,
+    );
+    await page.screenshot({
+      path: info.outputPath('correction-safe-area.png'),
+    });
+    await correction
+      .getByRole('button', { name: 'Indietro', exact: true })
+      .click();
+    await expect(correction).toHaveCount(0);
+    expect(await restSurface!.evaluate((node) => node.isConnected)).toBe(true);
     await page.getByRole('button', { name: 'Indietro', exact: true }).click();
     await expect(
       page.getByRole('button', { name: 'Riprendi allenamento', exact: true }),

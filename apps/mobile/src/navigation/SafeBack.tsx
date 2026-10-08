@@ -23,10 +23,11 @@ export function useSafeBack(
     useCallback(() => {
       if (Platform.OS !== 'android' || !hardware) return;
       return registerSafeHardwareBack(BackHandler, () => {
-        if (Keyboard.isVisible()) Keyboard.dismiss();
+        if (dismiss) goBack();
+        else if (Keyboard.isVisible()) Keyboard.dismiss();
         else goBack();
       });
-    }, [goBack, hardware]),
+    }, [goBack, hardware, dismiss]),
   );
   return goBack;
 }

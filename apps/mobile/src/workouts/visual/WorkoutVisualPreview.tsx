@@ -51,7 +51,20 @@ function Preview({
     [load, setLoad] = useState('80'),
     [info, setInfo] = useState(false);
   return (
-    <WorkoutSurface centered={mode === 'emom'} variant={mode}>
+    <WorkoutSurface
+      centered={mode === 'emom'}
+      variant={mode}
+      footer={
+        mode === 'pyramid' ? (
+          <InkButton
+            primary
+            disabled
+            label={t('completeSet')}
+            onPress={() => {}}
+          />
+        ) : undefined
+      }
+    >
       <WorkoutHeading
         title={t(mode === 'emom' ? 'visual.emomTitle' : 'visual.strength')}
         onClose={onClose}

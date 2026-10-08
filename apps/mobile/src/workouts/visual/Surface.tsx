@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useCallback,
+  useState,
 } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -28,6 +29,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { artwork, ink } from './theme';
 
 const FontReady = createContext(false);
+const ContentWidth = createContext<number | null>(null);
 const FieldFocus = createContext<(input: TextInput | null) => void>(() => {});
 export const useWorkoutFieldFocus = () => useContext(FieldFocus);
 
@@ -36,9 +38,11 @@ export function useWorkoutLayout() {
   const insets = useSafeAreaInsets();
   const usableHeight = height - insets.top - insets.bottom;
   const padding = width < 360 ? 16 : 22;
+  const measuredWidth = useContext(ContentWidth);
   return {
     width: width - insets.left - insets.right,
-    contentWidth: width - insets.left - insets.right - padding * 2,
+    contentWidth:
+      measuredWidth ?? width - insets.left - insets.right - padding * 2,
     usableHeight,
     fontScale,
     padding,
@@ -74,8 +78,15 @@ export function InkText({ style, ...props }: TextProps) {
   );
 }
 
-/** Keyboard handling is local to Workout, including focus after viewport resize. */
-export function WorkoutSurface({
+export function WorkoutTypography({ children }: { children: ReactNode }) {
+  const [ready] = useFonts({
+    JimoWorkoutSerif: require('../../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
+  });
+  return <FontReady.Provider value={ready}>{children}</FontReady.Provider>;
+}
+
+/** Shared workout-only form viewport; keeps keyboard/scroll and footer apart. */
+export function WorkoutFormViewport({
   children,
   footer,
   centered = false,
@@ -86,11 +97,9 @@ export function WorkoutSurface({
   centered?: boolean;
   variant?: 'standard' | 'rest' | 'emom' | 'pyramid';
 }) {
-  const [fontsReady] = useFonts({
-    JimoWorkoutSerif: require('../../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
-  });
   const { width, height } = useWindowDimensions();
   const { padding } = useWorkoutLayout();
+  const [contentWidth, setContentWidth] = useState<number | null>(null);
   const scroll = useRef<ScrollView>(null),
     viewport = useRef<View>(null),
     focused = useRef<TextInput | null>(null),
@@ -137,6 +146,78 @@ export function WorkoutSurface({
     };
   }, [reveal]);
   return (
+    <FieldFocus.Provider
+      value={(input) => {
+        focused.current = input;
+        requestAnimationFrame(reveal);
+      }}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1, minHeight: 0 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View
+          ref={viewport}
+          testID="workout-viewport"
+          style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}
+          onLayout={(event) => {
+            setContentWidth(event.nativeEvent.layout.width - padding * 2);
+            requestAnimationFrame(reveal);
+          }}
+        >
+          <ScrollView
+            ref={scroll}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'web' ? 'none' : 'on-drag'}
+            onScroll={(e) => {
+              offset.current = e.nativeEvent.contentOffset.y;
+            }}
+            scrollEventThrottle={16}
+            onContentSizeChange={() => requestAnimationFrame(reveal)}
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingHorizontal: padding,
+              paddingTop: 12,
+              paddingBottom: 8,
+              gap: variant === 'pyramid' ? 3 : variant === 'rest' ? 6 : 8,
+              ...(centered ? { alignItems: 'center' as const } : {}),
+            }}
+          >
+            <ContentWidth.Provider value={contentWidth}>
+              {children}
+            </ContentWidth.Provider>
+          </ScrollView>
+        </View>
+        {footer ? (
+          <View
+            testID="workout-footer"
+            style={{
+              flexShrink: 0,
+              paddingHorizontal: padding,
+              paddingBottom: 8,
+              paddingTop: 8,
+            }}
+          >
+            {footer}
+          </View>
+        ) : null}
+      </KeyboardAvoidingView>
+    </FieldFocus.Provider>
+  );
+}
+
+export function WorkoutSurface({
+  children,
+  footer,
+  centered = false,
+  variant = 'standard',
+}: {
+  children: ReactNode;
+  footer?: ReactNode;
+  centered?: boolean;
+  variant?: 'standard' | 'rest' | 'emom' | 'pyramid';
+}) {
+  return (
     <View
       testID="workout-surface"
       style={{ flex: 1, minHeight: 0, backgroundColor: ink.background }}
@@ -166,67 +247,20 @@ export function WorkoutSurface({
         <Rect width="100%" height="100%" fill="url(#workoutInkShade)" />
       </Svg>
       <StatusBar style="light" />
-      <FontReady.Provider value={fontsReady}>
-        <FieldFocus.Provider
-          value={(input) => {
-            focused.current = input;
-            requestAnimationFrame(reveal);
-          }}
+      <WorkoutTypography>
+        <SafeAreaView
+          style={{ flex: 1 }}
+          edges={['top', 'bottom', 'left', 'right']}
         >
-          <SafeAreaView
-            style={{ flex: 1 }}
-            edges={['top', 'bottom', 'left', 'right']}
+          <WorkoutFormViewport
+            footer={footer}
+            centered={centered}
+            variant={variant}
           >
-            <KeyboardAvoidingView
-              style={{ flex: 1, minHeight: 0 }}
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-              <View
-                ref={viewport}
-                testID="workout-viewport"
-                style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}
-                onLayout={() => requestAnimationFrame(reveal)}
-              >
-                <ScrollView
-                  ref={scroll}
-                  keyboardShouldPersistTaps="handled"
-                  keyboardDismissMode={
-                    Platform.OS === 'web' ? 'none' : 'on-drag'
-                  }
-                  onScroll={(e) => {
-                    offset.current = e.nativeEvent.contentOffset.y;
-                  }}
-                  scrollEventThrottle={16}
-                  onContentSizeChange={() => requestAnimationFrame(reveal)}
-                  contentContainerStyle={{
-                    flexGrow: 1,
-                    paddingHorizontal: padding,
-                    paddingTop: 12,
-                    paddingBottom: 8,
-                    gap: variant === 'pyramid' ? 3 : variant === 'rest' ? 6 : 8,
-                    ...(centered ? { alignItems: 'center' as const } : {}),
-                  }}
-                >
-                  {children}
-                </ScrollView>
-              </View>
-              {footer ? (
-                <View
-                  testID="workout-footer"
-                  style={{
-                    flexShrink: 0,
-                    paddingHorizontal: padding,
-                    paddingBottom: 8,
-                    paddingTop: 8,
-                  }}
-                >
-                  {footer}
-                </View>
-              ) : null}
-            </KeyboardAvoidingView>
-          </SafeAreaView>
-        </FieldFocus.Provider>
-      </FontReady.Provider>
+            {children}
+          </WorkoutFormViewport>
+        </SafeAreaView>
+      </WorkoutTypography>
     </View>
   );
 }
