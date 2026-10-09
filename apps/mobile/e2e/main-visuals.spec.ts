@@ -9,9 +9,15 @@ const devices = [
   { width: 393, height: 851, top: 24, bottom: 48 },
   { width: 430, height: 860, top: 47, bottom: 34 },
 ];
-async function insets(page: Page, top: number, bottom: number) {
+async function insets(
+  page: Page,
+  top: number,
+  bottom: number,
+  left = 0,
+  right = 0,
+) {
   await page.addInitScript(
-    ({ top, bottom }) => {
+    ({ top, bottom, left, right }) => {
       const original = window.getComputedStyle.bind(window);
       window.getComputedStyle = (element, pseudo) => {
         const style = original(element, pseudo);
@@ -24,13 +30,15 @@ async function insets(page: Page, top: number, bottom: number) {
           get(target, key) {
             if (key === 'paddingTop') return `${top}px`;
             if (key === 'paddingBottom') return `${bottom}px`;
+            if (key === 'paddingLeft') return `${left}px`;
+            if (key === 'paddingRight') return `${right}px`;
             const value: unknown = Reflect.get(target, key, target);
             return typeof value === 'function' ? value.bind(target) : value;
           },
         });
       };
     },
-    { top, bottom },
+    { top, bottom, left, right },
   );
 }
 async function visualFixture(page: Page, locale = 'it') {
@@ -142,6 +150,7 @@ for (const device of devices)
     await page.clock.install({ time: new Date('2026-10-08T10:00:00Z') });
     const fixture = await visualFixture(page),
       errors: string[] = [];
+    fixture.program.durationWeeks = 12;
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/');
     await expect(page.getByTestId('home-workout-card')).toContainText(
@@ -149,14 +158,22 @@ for (const device of devices)
     );
     await page.evaluate(() => document.fonts.ready);
     const background = (await page
-      .getByTestId('home-main-screen')
-      .locator('img')
-      .first()
+      .getByTestId('home-background')
       .boundingBox())!;
-    expect(background.width).toBeLessThanOrEqual(device.width);
-    expect(
-      Math.abs(background.height / background.width - 1672 / 941),
-    ).toBeLessThan(0.02);
+    expect(Math.abs(background.x)).toBeLessThan(1);
+    expect(Math.abs(background.width - device.width)).toBeLessThan(1);
+    const hero = (await page.getByTestId('home-hero').boundingBox())!,
+      brand = (await page.getByTestId('home-brand').boundingBox())!,
+      greeting = (await page.getByTestId('home-greeting').boundingBox())!,
+      motto = (await page.getByTestId('home-motto').boundingBox())!,
+      workoutCard = (await page
+        .getByTestId('home-workout-card')
+        .boundingBox())!;
+    expect(hero.height).toBeLessThan(device.width * 0.8);
+    expect(brand.y + brand.height).toBeLessThanOrEqual(greeting.y);
+    expect(greeting.y + greeting.height).toBeLessThanOrEqual(motto.y);
+    expect(motto.y + motto.height).toBeLessThanOrEqual(workoutCard.y - 8);
+    await expect(page.getByTestId('home-progress')).toBeInViewport();
     await expect(page.getByRole('tab')).toHaveText([
       'Home',
       'Scheda',
@@ -204,10 +221,48 @@ for (const device of devices)
     await expect(
       page.getByRole('radio', { name: 'Settimana 1', exact: true }),
     ).toBeChecked();
+    await expect(page.getByRole('radio')).toHaveCount(12);
+    const weekScroll = page.getByTestId('program-week-scroll');
+    if (device.width === 390) {
+      const viewport = (await weekScroll.boundingBox())!,
+        third = (await page
+          .getByRole('radio', { name: 'Settimana 3', exact: true })
+          .boundingBox())!;
+      expect(third.x).toBeLessThan(viewport.x + viewport.width);
+      expect(third.x + third.width).toBeGreaterThan(
+        viewport.x + viewport.width,
+      );
+    }
     await noOverflow(page);
     await page.screenshot({ path: info.outputPath('program-reference.png') });
     await page.getByRole('radio', { name: 'Settimana 2', exact: true }).click();
     await expect(push).toHaveAccessibleName(/Pianificato/);
+    await weekScroll.hover();
+    await page.mouse.wheel(330, 0);
+    await expect
+      .poll(() => weekScroll.evaluate((element) => element.scrollLeft))
+      .toBeGreaterThan(100);
+    await page
+      .getByRole('radio', { name: 'Settimana 12', exact: true })
+      .evaluate((element: HTMLElement) => element.click());
+    await expect(
+      page.getByRole('radio', { name: 'Settimana 12', exact: true }),
+    ).toBeChecked();
+    await expect
+      .poll(async () => {
+        const viewport = (await weekScroll.boundingBox())!,
+          selected = (await page
+            .getByRole('radio', { name: 'Settimana 12', exact: true })
+            .boundingBox())!;
+        return (
+          selected.x >= viewport.x - 1 &&
+          selected.x + selected.width <= viewport.x + viewport.width + 1
+        );
+      })
+      .toBe(true);
+    await page
+      .getByRole('radio', { name: 'Settimana 1', exact: true })
+      .evaluate((element: HTMLElement) => element.click());
     await page.getByRole('radio', { name: 'Settimana 1', exact: true }).click();
     await expect(push).toHaveAccessibleName(/Completato/);
     await page.getByTestId('program-week-overview').scrollIntoViewIfNeeded();
@@ -243,6 +298,36 @@ test('Home starts the actual scheduled day and Workout remains fullscreen', asyn
     )
     .toBe(1);
   expect(fixture.workout.programDayId).toBe(fixture.program.days[1]!.id);
+});
+test('Home stays full bleed with lateral insets and its last row clears the navbar', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 780 });
+  await insets(page, 24, 48, 12, 8);
+  await page.clock.install({ time: new Date('2026-10-08T10:00:00Z') });
+  const fixture = await visualFixture(page);
+  await page.goto('/');
+  await expect(page.getByTestId('home-workout-card')).toContainText(
+    'Push Pull Legs',
+  );
+  const background = (await page.getByTestId('home-background').boundingBox())!,
+    card = (await page.getByTestId('home-workout-card').boundingBox())!;
+  expect(Math.abs(background.x)).toBeLessThan(1);
+  expect(Math.abs(background.width - 390)).toBeLessThan(1);
+  expect(card.x).toBeGreaterThanOrEqual(32);
+  await page.getByTestId('main-scroll').evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  const upcoming = page.getByRole('button', {
+    name: 'Apri Panca piana',
+    exact: true,
+  });
+  await expect(upcoming).toBeInViewport();
+  const row = (await upcoming.boundingBox())!,
+    tab = (await page.getByRole('tab').first().boundingBox())!;
+  expect(row.y + row.height).toBeLessThanOrEqual(tab.y);
+  await noOverflow(page);
+  expect(fixture.writes).toHaveLength(0);
 });
 test('Home shows actual exercise progress and resumes without creating another workout', async ({
   page,
@@ -324,7 +409,117 @@ test('English, unknown artwork, long names and missing dates retain readable fal
     page
       .getByTestId(`program-day-${fixture.program.days[0]!.id}`)
       .locator('img'),
-  ).toHaveCount(0);
+  ).toHaveCount(1);
+  await expect(
+    page
+      .getByTestId(`program-day-${fixture.program.days[0]!.id}`)
+      .getByTestId('program-day-artwork'),
+  ).toBeVisible();
   await noOverflow(page);
+  expect(fixture.writes).toHaveLength(0);
+});
+
+test('one-day overview and archived programs stay compact; program access uses the header', async ({
+  page,
+}, info) => {
+  await page.clock.install({ time: new Date('2026-10-08T10:00:00Z') });
+  const fixture = await visualFixture(page);
+  fixture.program.name = 'Forza';
+  fixture.program.days = [fixture.program.days[0]!];
+  fixture.program.days[0]!.name = 'Forza';
+  fixture.program.daysCount = 1;
+  const archived = {
+    ...fixture.program,
+    id: randomUUID(),
+    name: 'Forza precedente',
+    status: 'archived',
+    daysCount: 0,
+  };
+  await page.route('**/programs', (route) =>
+    route.fulfill({ json: { programs: [fixture.program, archived] } }),
+  );
+  await page.goto('/program');
+  await expect(page.getByTestId('program-single-day-overview')).toBeVisible();
+  const overview = (await page
+      .getByTestId('program-week-overview')
+      .boundingBox())!,
+    row = (await page
+      .getByTestId(`other-program-${archived.id}`)
+      .boundingBox())!,
+    headerAction = (await page
+      .getByTestId('program-header-action')
+      .boundingBox())!;
+  expect(overview.height).toBeLessThanOrEqual(90);
+  expect(row.height).toBeLessThanOrEqual(85);
+  expect(headerAction.width).toBe(48);
+  await expect(
+    page.getByRole('button', { name: 'Apri Forza', exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByTestId(`other-program-${archived.id}`),
+  ).toHaveAccessibleName(/Archiviato.*0 giorni/i);
+  await expect(
+    page
+      .getByTestId(`program-day-${fixture.program.days[0]!.id}`)
+      .getByTestId('program-day-artwork'),
+  ).toBeVisible();
+  await page.getByTestId('program-new-action').scrollIntoViewIfNeeded();
+  const newAction = (await page
+      .getByTestId('program-new-action')
+      .boundingBox())!,
+    tab = (await page.getByRole('tab').first().boundingBox())!;
+  expect(newAction.y + newAction.height).toBeLessThanOrEqual(tab.y);
+  await noOverflow(page);
+  await page.screenshot({ path: info.outputPath('single-day-program.png') });
+  expect(fixture.writes).toHaveLength(0);
+});
+
+test('an archived-only account does not turn its archive into a primary program', async ({
+  page,
+}) => {
+  const fixture = await visualFixture(page);
+  fixture.program.status = 'archived';
+  fixture.program.days = [];
+  fixture.program.daysCount = 0;
+  await page.goto('/program');
+  await expect(
+    page.getByTestId(`other-program-${fixture.program.id}`),
+  ).toBeVisible();
+  await expect(page.getByTestId('program-week-selector')).toHaveCount(0);
+  await expect(page.getByTestId('program-week-overview')).toHaveCount(0);
+  await expect(page.getByTestId('program-header-action')).toHaveCount(0);
+  await noOverflow(page);
+  expect(fixture.writes).toHaveLength(0);
+});
+
+test('the initial current week is visible and stays visible after viewport changes', async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date('2026-10-08T10:00:00Z') });
+  const fixture = await visualFixture(page);
+  fixture.program.startsOn = '2026-08-17';
+  fixture.program.durationWeeks = 12;
+  await page.goto('/program');
+  const selected = page.getByRole('radio', {
+    name: 'Settimana 8',
+    exact: true,
+  });
+  await expect(selected).toBeChecked();
+  for (const device of devices) {
+    await page.setViewportSize(device);
+    await expect
+      .poll(async () => {
+        const viewport = (await page
+            .getByTestId('program-week-scroll')
+            .boundingBox())!,
+          chip = (await selected.boundingBox())!;
+        return (
+          chip.x >= viewport.x - 1 &&
+          chip.x + chip.width <= viewport.x + viewport.width + 1
+        );
+      })
+      .toBe(true);
+    await noOverflow(page);
+  }
   expect(fixture.writes).toHaveLength(0);
 });

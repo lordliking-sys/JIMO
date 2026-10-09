@@ -68,14 +68,13 @@ export function DayCard({
           opacity: pressed ? 0.8 : 1,
         })}
       >
-        {artwork ? (
-          <Image
-            source={mainArtwork[artwork]}
-            accessible={false}
-            resizeMode="cover"
-            style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
-          />
-        ) : null}
+        <Image
+          testID="program-day-artwork"
+          source={artwork ? mainArtwork[artwork] : mainArtwork.program}
+          accessible={false}
+          resizeMode="cover"
+          style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
+        />
         <Svg
           accessible={false}
           width="100%"

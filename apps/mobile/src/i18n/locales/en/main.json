@@ -18,6 +18,7 @@
   "weekNumber": "Week {{number}}",
   "currentWeek": "This week",
   "weekOverview": "Week overview",
+  "otherPrograms": "OTHER PROGRAMS",
   "openSession": "Review {{name}}",
   "dayStates": {
     "completed": "Completed",

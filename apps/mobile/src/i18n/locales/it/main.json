@@ -18,6 +18,7 @@
   "weekNumber": "Settimana {{number}}",
   "currentWeek": "Questa settimana",
   "weekOverview": "Panoramica settimana",
+  "otherPrograms": "ALTRI PROGRAMMI",
   "openSession": "Rivedi {{name}}",
   "dayStates": {
     "completed": "Completato",

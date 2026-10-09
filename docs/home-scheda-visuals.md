@@ -31,13 +31,19 @@ I token di Home/Scheda sono locali e non cambiano il tema degli altri moduli.
 - Le settimane sono ricavate da `startsOn` e `durationWeeks` e seguono settimane
   di calendario locali, inclusi i cambi di ora legale. Se manca uno dei due dati,
   viene mostrata soltanto **Questa settimana**. Le pill avanzano su una finestra
-  di massimo tre settimane, senza scorrimento orizzontale.
+  scorrevole orizzontalmente che include tutta la durata reale del programma.
+  I chip mantengono la propria larghezza; la selezione viene portata in vista
+  all'apertura, al cambio settimana e al cambio della larghezza disponibile.
 - I check richiedono una sessione davvero completata del medesimo programma,
   giorno e settimana. La sessione in corso o il prossimo giorno disponibile
   determina l'accento corrente. Le altre card restano pianificate e apribili:
   nessun lock è aggiunto, poiché il motore non lo prevede.
 - I nomi Push/Spinta, Pull/Tirata, Gambe/Legs e Full/Total Body selezionano
-  artwork decorativi; un nome non riconosciuto usa una superficie neutra.
+  artwork decorativi; un nome non riconosciuto usa un crop paesaggistico dello
+  sfondo Scheda, senza associare un esercizio o una modalità non dichiarati.
+- L'accesso al builder rimane nell'azione discreta dell'header. Le altre schede,
+  comprese quelle archiviate, sono righe compatte nella sezione Altri programmi;
+  un programma archiviato non diventa il contenuto primario della pagina.
 
 ## Navigazione e adattamento
 
@@ -48,10 +54,18 @@ allenamenti continuano ad aprirsi in `/workout/[id]`, fullscreen.
 Home e Scheda possono scorrere verticalmente. Il calendario usa sette colonne
 passive, i pulsanti hanno touch target di almeno 48 px, la navbar rispetta gli
 inset e la timeline va su ulteriori righe se ci sono più di quattro giorni.
+Con un solo giorno la panoramica è una singola riga compatta. Nuovo programma
+è un'azione secondaria leggera, senza un grande pannello aggiuntivo.
+Lo sfondo Home è separato dal contenitore con padding e copre tutta la larghezza
+con `cover`, anche quando i contenuti rispettano inset laterali. Hero e testi
+sono più compatti; un overlay parchment locale protegge la leggibilità del
+saluto/nome/motto senza oscurare l'illustrazione. Le card restano nel normale
+flusso verticale e sono raggiungibili sopra la navbar.
 Non ci sono nuove animazioni; reduced motion è rispettato.
 
 I test browser con fixture locali coprono 320×740, 390×780, 393×851, 430×860,
 safe area, assenza di overflow orizzontale, IT/EN, nomi lunghi, fallback,
-stati, selezione settimana e avvio/ripresa. Non sostituiscono la prova fisica
+stati, swipe delle settimane, visibilità della selezione, archivio compatto,
+panoramica a un giorno e avvio/ripresa. Non sostituiscono la prova fisica
 su Expo Go. Workout, builder, Progressi, Profilo, Auth, API e database non
 vengono ridisegnati né modificati.

@@ -17,6 +17,7 @@ import { useFonts } from 'expo-font';
 import { Text as UtilityText } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import { mainArtwork, mainInk } from './theme';
+import { HomeBackdrop } from './HomeBackdrop';
 
 const Typeface = createContext(false);
 const LightSurface = createContext(false);
@@ -63,8 +64,6 @@ export function MainScreen({
           style={{
             flex: 1,
             backgroundColor: light ? mainInk.ivory : mainInk.charcoal,
-            paddingLeft: insets.left,
-            paddingRight: insets.right,
           }}
         >
           {focused ? <StatusBar style={light ? 'dark' : 'light'} /> : null}
@@ -84,31 +83,24 @@ export function MainScreen({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               width: '100%',
-              maxWidth: 560,
-              alignSelf: 'center',
-              paddingHorizontal: width < 360 ? 16 : 20,
               paddingTop: insets.top,
               paddingBottom: 24,
             }}
           >
             {light ? (
-              <Image
-                source={mainArtwork.home}
-                resizeMode="cover"
-                accessible={false}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height:
-                    (Math.min(width - insets.left - insets.right, 560) * 1672) /
-                    941,
-                  aspectRatio: 941 / 1672,
-                }}
-              />
+              <HomeBackdrop width={width} topInset={insets.top} />
             ) : null}
-            {children}
+            <View
+              style={{
+                width: '100%',
+                maxWidth: 560,
+                alignSelf: 'center',
+                paddingLeft: insets.left + (width < 360 ? 16 : 20),
+                paddingRight: insets.right + (width < 360 ? 16 : 20),
+              }}
+            >
+              {children}
+            </View>
           </ScrollView>
         </View>
       </LightSurface.Provider>

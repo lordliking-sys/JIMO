@@ -14,7 +14,7 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
       style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginVertical: 16,
+        marginVertical: 12,
       }}
     >
       {week.map((day) => {
@@ -35,13 +35,13 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
             accessibilityLabel={`${t(`programs:weekdays.${day.weekday}`)}, ${state}`}
             style={{
               flex: 1,
-              minHeight: 58,
-              gap: 8,
+              minHeight: 52,
+              gap: 6,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <MainText style={{ fontSize: 19 }}>
+            <MainText style={{ fontSize: 18 }}>
               {t(`weekdayLetters.${day.weekday}`)}
             </MainText>
             <View

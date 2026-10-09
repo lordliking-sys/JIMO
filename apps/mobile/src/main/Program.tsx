@@ -3,6 +3,8 @@ import { Pressable, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@jimo/ui';
+import Pencil from 'lucide-react-native/icons/pencil';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { usePrograms, useProgram } from '../api/queries';
 import { useHistory } from '../workouts/queries';
 import { statusKey } from '../programs/helpers';
@@ -14,6 +16,7 @@ import { programWeek, selectedWeekBounds, dayStates } from './helpers';
 import { useTraining } from './useTraining';
 import { DayCard } from './DayCard';
 import { WeekOverview } from './WeekOverview';
+import { WeekSelector } from './WeekSelector';
 
 export function MainProgram() {
   const { t } = useTranslation(['main', 'programs', 'common']),
@@ -24,10 +27,11 @@ export function MainProgram() {
     importEnabled = useImportFeature();
   const summary =
     list.data?.programs.find((p) => p.status === 'active') ??
-    list.data?.programs.find((p) => p.status === 'draft') ??
-    list.data?.programs[0];
+    list.data?.programs.find((p) => p.status === 'draft');
   const cachedMatches =
-    cached.data && (!summary || cached.data.id === summary.id);
+    cached.data &&
+    cached.data.status !== 'archived' &&
+    (!list.data || cached.data.id === summary?.id);
   const detail = useProgram(cachedMatches ? '' : (summary?.id ?? '')),
     program = cachedMatches ? cached.data : detail.data;
   const weeks = programWeek(program, now),
@@ -57,11 +61,9 @@ export function MainProgram() {
         now,
       )
     : new Map();
-  const firstWeek = Math.max(1, Math.min(selected - 1, weeks.total - 2)),
-    visibleWeeks = Array.from(
-      { length: Math.min(3, weeks.total) },
-      (_, index) => firstWeek + index,
-    );
+  const otherPrograms = (list.data?.programs ?? []).filter(
+    (p) => p.id !== program?.id,
+  );
   const pending =
     !program &&
     (cached.isPending || list.isPending || (!!summary && detail.isPending));
@@ -97,6 +99,33 @@ export function MainProgram() {
         ) : (
           <MainText style={{ fontSize: 23 }}>{t('programs:subtitle')}</MainText>
         )}
+        {program ? (
+          <Pressable
+            testID="program-header-action"
+            accessibilityRole="button"
+            accessibilityLabel={`${t('programs:open')} ${program.name}`}
+            onPress={() =>
+              router.push({
+                pathname: '/program/[id]',
+                params: { id: program.id },
+              })
+            }
+            style={({ pressed }) => ({
+              position: 'absolute',
+              right: 0,
+              top: width < 360 ? 64 : 76,
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: mainInk.darkSurface,
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <Pencil size={19} color={mainInk.muted} />
+          </Pressable>
+        ) : null}
       </View>
       <PendingReview />
       {pending ? (
@@ -148,66 +177,28 @@ export function MainProgram() {
               {t(`programs:${statusKey(program.status)}`)}
             </Text>
           ) : null}
-          <View
-            testID="program-week-selector"
-            accessibilityRole="radiogroup"
-            accessibilityLabel={t('week')}
-            style={{ flexDirection: 'row', gap: 6, marginBottom: 12 }}
-          >
-            {weeks.anchored ? (
-              visibleWeeks.map((week) => (
-                <Pressable
-                  key={week}
-                  accessibilityRole="radio"
-                  accessibilityLabel={t('weekNumber', { number: week })}
-                  accessibilityState={{ checked: selected === week }}
-                  aria-checked={selected === week}
-                  onPress={() => setSelection({ programId: program.id, week })}
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    minWidth: 0,
-                    minHeight: 48,
-                    paddingHorizontal: 4,
-                    paddingVertical: 8,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor:
-                      selected === week ? mainInk.sage : mainInk.border,
-                    backgroundColor:
-                      selected === week ? mainInk.sage : mainInk.darkSurface,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    opacity: pressed ? 0.8 : 1,
-                  })}
-                >
-                  <MainText
-                    style={{
-                      fontSize: width < 360 ? 17 : 19,
-                      textAlign: 'center',
-                      color:
-                        selected === week
-                          ? mainInk.charcoal
-                          : mainInk.parchment,
-                    }}
-                  >
-                    {t('weekNumber', { number: week })}
-                  </MainText>
-                </Pressable>
-              ))
-            ) : (
-              <View
-                style={{
-                  minHeight: 48,
-                  padding: 12,
-                  borderRadius: 14,
-                  backgroundColor: mainInk.darkSurface,
-                  justifyContent: 'center',
-                }}
-              >
-                <MainText style={{ fontSize: 20 }}>{t('currentWeek')}</MainText>
-              </View>
-            )}
-          </View>
+          {weeks.anchored ? (
+            <WeekSelector
+              key={program.id}
+              total={weeks.total}
+              selected={selected}
+              onSelect={(week) => setSelection({ programId: program.id, week })}
+            />
+          ) : (
+            <View
+              style={{
+                minHeight: 48,
+                padding: 12,
+                borderRadius: 14,
+                backgroundColor: mainInk.darkSurface,
+                justifyContent: 'center',
+                alignSelf: 'flex-start',
+                marginBottom: 12,
+              }}
+            >
+              <MainText style={{ fontSize: 20 }}>{t('currentWeek')}</MainText>
+            </View>
+          )}
           {history.error ? (
             <MainNotice retry={() => void history.refetch()} />
           ) : null}
@@ -250,56 +241,79 @@ export function MainProgram() {
           {program.days.length ? (
             <WeekOverview days={program.days} states={states} />
           ) : null}
-          <MainButton
-            subtle
-            label={`${t('programs:open')} ${program.name}`}
-            onPress={() =>
-              router.push({
-                pathname: '/program/[id]',
-                params: { id: program.id },
-              })
-            }
-          />
-          <View style={{ gap: 12, marginTop: 14 }}>
-            {(list.data?.programs ?? [])
-              .filter((p) => p.id !== program.id)
-              .map((p) => (
-                <View
-                  key={p.id}
-                  style={{
-                    padding: 14,
-                    backgroundColor: mainInk.darkSurface,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: mainInk.border,
-                    gap: 6,
-                  }}
-                >
-                  <Text variant="caption" color={mainInk.muted}>
-                    {t(`programs:${statusKey(p.status)}`)} ·{' '}
-                    {t('programs:dayCount', { count: p.daysCount })}
-                  </Text>
-                  <MainText style={{ fontSize: 25 }}>{p.name}</MainText>
-                  <MainButton
-                    subtle
-                    label={`${t('programs:open')} ${p.name}`}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/program/[id]',
-                        params: { id: p.id },
-                      })
-                    }
-                  />
-                </View>
-              ))}
-            <MainButton
-              subtle
-              label={t('programs:newProgram')}
-              onPress={() => router.push('/program/create')}
-            />
-          </View>
         </>
       )}
+      {otherPrograms.length ? (
+        <View
+          testID="program-other-programs"
+          style={{
+            marginTop: 18,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: mainInk.darkSurface,
+            borderRadius: 8,
+          }}
+        >
+          <Text
+            variant="caption"
+            color={mainInk.muted}
+            style={{ letterSpacing: 1, marginBottom: 4 }}
+          >
+            {t('otherPrograms')}
+          </Text>
+          {otherPrograms.map((p) => (
+            <Pressable
+              key={p.id}
+              testID={`other-program-${p.id}`}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('programs:open')} ${p.name}, ${t(`programs:${statusKey(p.status)}`)}, ${t('programs:dayCount', { count: p.daysCount })}`}
+              onPress={() =>
+                router.push({ pathname: '/program/[id]', params: { id: p.id } })
+              }
+              style={({ pressed }) => ({
+                minHeight: 60,
+                paddingVertical: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                <MainText style={{ fontSize: 22 }}>{p.name}</MainText>
+                <Text variant="caption" color={mainInk.muted}>
+                  {t(`programs:${statusKey(p.status)}`)} ·{' '}
+                  {t('programs:dayCount', { count: p.daysCount })}
+                </Text>
+              </View>
+              <ChevronRight size={20} color={mainInk.muted} />
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      {program ? (
+        <Pressable
+          testID="program-new-action"
+          accessibilityRole="button"
+          accessibilityLabel={t('programs:newProgram')}
+          onPress={() => router.push('/program/create')}
+          style={({ pressed }) => ({
+            minHeight: 48,
+            paddingHorizontal: 6,
+            paddingVertical: 10,
+            borderRadius: 8,
+            backgroundColor: mainInk.darkSurface,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignSelf: 'flex-start',
+            opacity: pressed ? 0.8 : 1,
+          })}
+        >
+          <MainText style={{ fontSize: 21, color: mainInk.sage }}>
+            {t('programs:newProgram')}
+          </MainText>
+        </Pressable>
+      ) : null}
     </MainScreen>
   );
 }

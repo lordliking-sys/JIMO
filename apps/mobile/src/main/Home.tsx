@@ -21,6 +21,7 @@ import { completedDay, completedExerciseCount, homeDay } from './helpers';
 import { useTraining } from './useTraining';
 import { useDayStart } from './useDayStart';
 import { WeekStrip } from './WeekStrip';
+import { HomeHero } from './HomeHero';
 
 export function MainHome() {
   const { t, i18n } = useTranslation([
@@ -135,58 +136,7 @@ export function MainHome() {
   const upcomingPrescription = prescription ?? activePrescription;
   return (
     <MainScreen light>
-      <View
-        style={{
-          minHeight: Math.min(width, 560) * 0.88,
-          paddingTop: 22,
-          paddingLeft: 12,
-          paddingBottom: 24,
-        }}
-      >
-        <MainText
-          style={{
-            fontSize: width < 360 ? 54 : 64,
-            lineHeight: width < 360 ? 62 : 72,
-            letterSpacing: 1,
-          }}
-        >
-          JIMO
-        </MainText>
-        <View
-          accessible={false}
-          style={{
-            width: 104,
-            height: 3,
-            backgroundColor: mainInk.green,
-            transform: [{ rotate: '-1deg' }],
-            marginLeft: 5,
-            marginBottom: 22,
-          }}
-        />
-        <MainText
-          accessibilityRole="header"
-          style={{ fontSize: width < 360 ? 25 : 29, lineHeight: 32 }}
-        >
-          {t(`common:home.greetings.${greeting}`)}
-        </MainText>
-        {name ? (
-          <MainText
-            testID="home-name"
-            style={{
-              fontSize: width < 360 ? 34 : 39,
-              lineHeight: 43,
-              maxWidth: '75%',
-            }}
-          >
-            {name}
-          </MainText>
-        ) : null}
-        <MainText
-          style={{ fontSize: 18, lineHeight: 23, maxWidth: 190, marginTop: 8 }}
-        >
-          {t('motto')}
-        </MainText>
-      </View>
+      <HomeHero name={name} greeting={greeting} />
       {query.isPending || session.isPending ? (
         <MainNotice loading />
       ) : !program && (query.error || session.error) ? (
@@ -204,12 +154,13 @@ export function MainHome() {
               flexDirection: 'row',
               gap: 14,
               alignItems: 'center',
-              padding: width < 360 ? 16 : 20,
-              minHeight: 116,
+              padding: 16,
+              marginTop: 8,
+              minHeight: 104,
               borderRadius: 20,
               borderWidth: 1,
               borderColor: mainInk.paperBorder,
-              backgroundColor: mainInk.paperSurface,
+              backgroundColor: '#f8f0dd',
               opacity: pressed ? 0.85 : 1,
             })}
           >
@@ -304,39 +255,33 @@ export function MainHome() {
       {history.error ? (
         <MainNotice retry={() => void history.refetch()} />
       ) : null}
-      <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
         <View
           testID="home-streak"
           style={{
             flex: 1,
             minWidth: 0,
-            minHeight: 88,
-            padding: 12,
+            minHeight: 84,
+            padding: 10,
             borderRadius: 16,
             borderWidth: 1,
             borderColor: mainInk.paperBorder,
             backgroundColor: 'rgba(240, 228, 204, 0.76)',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
+            gap: 4,
           }}
         >
-          <Flame
-            size={width < 360 ? 24 : 30}
-            color="#a56d37"
-            strokeWidth={1.6}
-          />
-          <View style={{ flex: 1 }}>
-            <MainText style={{ fontSize: 21 }}>{t('streak')}</MainText>
-            <MainText style={{ fontSize: 27 }}>—</MainText>
-            <Text
-              variant="caption"
-              color={mainInk.darkMuted}
-              style={{ fontSize: 12 }}
-            >
-              {t('unavailable')}
-            </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Flame size={18} color="#a56d37" strokeWidth={1.6} />
+            <MainText style={{ fontSize: 19 }}>{t('streak')}</MainText>
           </View>
+          <MainText style={{ fontSize: 25, lineHeight: 27 }}>—</MainText>
+          <Text
+            variant="caption"
+            color={mainInk.darkMuted}
+            style={{ fontSize: 12 }}
+          >
+            {t('unavailable')}
+          </Text>
         </View>
         <Pressable
           testID="home-progress"
@@ -346,44 +291,42 @@ export function MainHome() {
           style={({ pressed }) => ({
             flex: 1,
             minWidth: 0,
-            minHeight: 88,
-            padding: 12,
+            minHeight: 84,
+            padding: 10,
             borderRadius: 16,
             borderWidth: 1,
             borderColor: mainInk.paperBorder,
             backgroundColor: 'rgba(240, 228, 204, 0.76)',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
+            gap: 4,
             opacity: pressed ? 0.8 : 1,
           })}
         >
-          <ChartNoAxesColumnIncreasing
-            size={width < 360 ? 24 : 30}
-            color={mainInk.green}
-            strokeWidth={2}
-          />
-          <View style={{ flex: 1 }}>
-            <MainText style={{ fontSize: 21 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <ChartNoAxesColumnIncreasing
+              size={18}
+              color={mainInk.green}
+              strokeWidth={2}
+            />
+            <MainText style={{ fontSize: 19 }}>
               {t('navigation:progress')}
             </MainText>
-            <MainText style={{ fontSize: 27 }}>
-              {progress.data?.payload.completedWorkouts ?? '—'}
-            </MainText>
-            <Text
-              variant="caption"
-              color={mainInk.darkMuted}
-              style={{ fontSize: 12 }}
-            >
-              {t(
-                progress.data
-                  ? progress.data.stale
-                    ? 'cachedSessions'
-                    : 'sessions4w'
-                  : 'unavailable',
-              )}
-            </Text>
           </View>
+          <MainText style={{ fontSize: 25, lineHeight: 27 }}>
+            {progress.data?.payload.completedWorkouts ?? '—'}
+          </MainText>
+          <Text
+            variant="caption"
+            color={mainInk.darkMuted}
+            style={{ fontSize: 12 }}
+          >
+            {t(
+              progress.data
+                ? progress.data.stale
+                  ? 'cachedSessions'
+                  : 'sessions4w'
+                : 'unavailable',
+            )}
+          </Text>
         </Pressable>
       </View>
       <MainText
