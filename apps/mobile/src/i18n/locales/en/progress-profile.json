@@ -21,6 +21,22 @@
   "sessionsPerWeek": "Workouts / week in this period",
   "historyTitle": "Workout history",
   "avatar": "Profile monogram",
+  "avatarActions": {
+    "title": "Change profile picture",
+    "camera": "Take photo",
+    "gallery": "Choose from gallery",
+    "remove": "Remove photo",
+    "cancel": "Cancel",
+    "localOnly": "The photo stays on this device, only for your account.",
+    "errors": {
+      "cameraPermission": "Allow camera access in your device settings to take a photo.",
+      "galleryPermission": "Allow photo access in your device settings to choose an image.",
+      "unavailable": "This photo is unavailable. Choose another image.",
+      "phoneOnly": "Photo editing is available in the phone app.",
+      "storage": "The change could not be saved. Please try again.",
+      "identityChanged": "The account changed. Open your profile and try again."
+    }
+  },
   "identityFallback": "Your account",
   "motto": "Discipline · Consistency · Results",
   "statWorkouts": "Workouts",

@@ -19,9 +19,19 @@ SVG nativi responsivi alla larghezza effettiva della card, palette verde/sage, e
 
 ## Profilo
 
-Hero scuro del pack, nome reale da AccountProvider, monogramma derivato dal nome e motto editoriale. Non esiste un avatar fotografico nel contratto attuale: nessuna fotografia illustrativa è attribuita all’utente. L’altezza dell’hero segue il layout del testo, anche quando cresce il nome.
+Hero scuro del pack, nome reale da AccountProvider, monogramma derivato dal nome e motto editoriale. La foto opzionale è esclusivamente locale: non aggiunge campi al contratto account. L’altezza dell’hero segue il layout del testo, anche quando cresce il nome.
 
-L’ingranaggio parchment nell’hero porta al menu della stessa schermata con uno scroll immediato e touch target di 48 px. Non introduce una route o un’impostazione nuova. Una superficie fissa nell’inset superiore mantiene il contrasto delle icone di sistema anche dopo lo scroll.
+L’ingranaggio parchment nell’hero porta al menu della stessa schermata con uno scroll immediato e touch target di 48 px. Non introduce una route o un’impostazione nuova.
+
+### Avatar locale
+
+Il monogramma/foto è un pulsante di 84 px con un piccolo indicatore camera. Apre un modal accessibile con Scatta foto, Scegli dalla galleria, Rimuovi foto (solo quando presente) e Annulla. L’immagine usa crop circolare, `cover` e bordo cream. Nessuna modifica del resto del menu o di Clerk.
+
+`expo-image-picker` richiede il relativo permesso solo alla scelta di camera/galleria. La copia viene conservata in `Paths.document/jimo/profile-avatars/<JIMO users.id>/`, mai nell’URI temporaneo del picker. Il riferimento persistente è salvato con `runtime.metadata(owner, 'localProfileAvatar:v1', uri)` nella struttura locale già esistente. Non è una nuova tabella e questa chiave non viene inserita nell’outbox né inviata all’API. I messaggi di permesso sono aggiornati in IT/EN; in Expo Go i prompt di sistema appartengono all’app host.
+
+Lo stato visibile è vincolato all’owner corrente e le operazioni in corso vengono invalidate al cambio account. Un riferimento verso un’altra directory/account, un URL remoto o un file mancante viene ignorato. Riavvio e logout/login dello stesso account mantengono la foto sullo stesso dispositivo; disinstallare l’app/cancellarne i dati la rimuove. Non viene trasferita ad altri dispositivi.
+
+Sostituzione: nuova copia prima di aggiornare l’associazione, eliminazione della vecchia copia dopo il salvataggio; se il salvataggio fallisce si elimina la nuova copia e si mantiene la precedente. Rimozione: associazione svuotata e copia locale eliminata, senza logout né modifica del profilo remoto. Le operazioni sono serializzate e un callback tardivo di un’immagine non può eliminare la nuova foto. Annullamento non cambia nulla; permessi negati e file/storage indisponibili producono messaggi locali IT/EN, senza log dei path. Expo web non offre il filesystem documenti nativo: mostra un messaggio di disponibilità sul telefono, senza fingere persistenza web.
 
 Stat row: allenamenti completati, serie completate e allenamenti/settimana dal summary esistente, con intervallo reale (otto settimane). Nessuna streak, variazione di volume o conteggio PR parziale presentato come totale.
 
@@ -38,8 +48,12 @@ Obiettivi, Misure, Tema, Notifiche e Backup manuale sono omessi perché non hann
 
 ## Layout e verifiche
 
-ScrollView verticali, padding inferiore pari all’altezza completa della tab bar (già comprensiva di safe area) più 24 px; safe area superiore/laterale; larghezza massima 560 e nessun overflow orizzontale. Touch target menu e scelte almeno 48 px, etichette Inter, selezione dei tab con underline/stato accessibile e selezione navbar Progressi/Profilo anche con label più marcata. Navbar a quattro destinazioni; Workout resta escluso. Lo stile navbar Home/Scheda rimane invariato.
+Gli hero di entrambe le schermate partono da y=0 e proseguono dietro la status bar. Rimossa la superficie fissa colorata che copriva l’inset superiore. L’automatismo degli inset della ScrollView è disabilitato: il contenuto applica esplicitamente gli inset, il background no. Status bar visibile, icone scure sull’hero chiaro di Progressi; chiare sull’hero scuro di Profilo e scure quando lo scroll porta il fondo parchment dietro le icone. Nessuna animazione aggiunta.
 
-Test browser a 320×740, 390×780, 393×851 e 430×860 con safe area simulate: valori DTO, grafici, selezione, route persistente, periodi, fallback, IT/EN e bottom inset. Il Profilo viene inoltre verificato con il componente reale e hook fixture isolati: nome/email, salvataggio nome, lingua, unità, assenza di menu fittizi, logout e guard offline/attivo/pending. Questa fixture vive solo nei test e genera un bundle temporaneo separato dal bundle Expo; non modifica Auth e non simula una verifica Clerk reale. Test helper per gap null, zero, punto singolo, limiti e monogramma.
+Titolo Progressi leggermente ridotto (32/36 px), stessi font/brush/background. Tab su una sola riga: pill visive di almeno 34 px, touch target di almeno 44 px, testo 15 px scalabile senza wrap; scorrimento orizzontale quando necessario. Selezione sage e underline/stato accessibile. Period selector e relativa logica invariati. Il warning nativo SVG `".6" is not a valid number or percentage` veniva da `Stop offset=".6"` nel velo del titolo: gli offset di questo SVG e dei grafici sono ora numeri, incluso `0.6`. Nessun LogBox silenziato.
+
+ScrollView verticali, padding inferiore pari all’altezza completa della tab bar (già comprensiva di safe area) più 24 px; safe area superiore/laterale; larghezza massima 560 e nessun overflow orizzontale della schermata. Touch target menu e scelte almeno 48 px, etichette Inter e selezione navbar Progressi/Profilo anche con label più marcata. Navbar a quattro destinazioni; Workout resta escluso. Lo stile navbar Home/Scheda rimane invariato.
+
+Test browser a 320×740, 390×780, 393×851 e 430×860 con safe area simulate: hero da y=0, contenuto protetto, avatar non tagliato, pill su una riga/touch target, valori DTO, grafici, route persistente, periodi, fallback, IT/EN e bottom inset. Il Profilo viene inoltre verificato con il componente reale e hook fixture isolati: nome/email, salvataggio nome, lingua, unità, logout/guard, avatar monogramma/foto/crop/cambio/rimozione/annullamento/permesso negato/file assente, account A/B, riavvio e logout/login. Le primitive OS del picker/filesystem sono simulate; store, hook e UI avatar restano quelli reali. Verificata anche la scelta del colore status bar durante lo scroll, senza simulare le icone native. Questa fixture genera un bundle temporaneo separato da Expo e non modifica Auth. Test unitari per copia persistente, rollback, invalidazione in corso, isolamento, file mancanti, permessi e annullamenti; test helper dei grafici invariati.
 
 Tutti i comandi sono eseguiti senza DATABASE_URL e OPENAI_API_KEY nel processo: lint, typecheck, test, build Android/iOS/web e format:check. Nessuna migration e nessuna connessione a Neon, OpenAI o production. Il bundle finale usa `EXPO_PUBLIC_AUTH_TEST=false`. Le prove browser e i bundle Expo non sostituiscono la verifica fisica su Expo Go, VoiceOver/TalkBack e tastiera nativa.

@@ -56,6 +56,9 @@ export async function profileComponentFixture() {
           build.onResolve({ filter: /^expo-constants$/ }, () => ({
             path: join(out, 'constants.js'),
           }));
+          build.onResolve({ filter: /\/avatar-native$/ }, () => ({
+            path: join(mobile, 'e2e/avatar-mocks.ts'),
+          }));
         },
       },
     ],

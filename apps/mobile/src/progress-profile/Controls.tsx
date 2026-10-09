@@ -21,53 +21,74 @@ export function ProgressTabs({
 }) {
   const { t } = useTranslation('progressProfile');
   return (
-    <View
-      accessibilityRole="tablist"
-      accessibilityLabel={t('sections')}
-      style={{ flexDirection: 'row', gap: 2 }}
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      testID="progress-tabs-scroll"
+      contentContainerStyle={{ flexGrow: 1 }}
     >
-      {progressTabs.map((tab) => (
-        <Pressable
-          key={tab}
-          accessibilityRole="tab"
-          aria-selected={tab === value}
-          accessibilityState={{ selected: tab === value }}
-          onPress={() => onChange(tab)}
-          style={{
-            flex: 1,
-            minWidth: 0,
-            minHeight: 48,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: tab === value ? ink.sage : ink.charcoal,
-            borderRadius: 10,
-            paddingHorizontal: 2,
-            paddingVertical: 7,
-            borderWidth: 1,
-            borderColor: tab === value ? ink.green : '#5b6657',
-          }}
-        >
-          <EditorialText
+      <View
+        accessibilityRole="tablist"
+        accessibilityLabel={t('sections')}
+        style={{ flexDirection: 'row', gap: 6, flexGrow: 1 }}
+      >
+        {progressTabs.map((tab) => (
+          <Pressable
+            key={tab}
+            accessibilityRole="tab"
+            aria-selected={tab === value}
+            accessibilityState={{ selected: tab === value }}
+            onPress={() => onChange(tab)}
             style={{
-              fontSize: 16,
-              textAlign: 'center',
-              color: tab === value ? ink.charcoal : ink.paper,
+              flexGrow: 1,
+              flexShrink: 0,
+              minHeight: 44,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 5,
             }}
           >
-            {t(`tabs.${tab}`)}
-          </EditorialText>
-          <View
-            accessible={false}
-            style={{
-              height: 2,
-              width: 20,
-              marginTop: 2,
-              backgroundColor: tab === value ? ink.green : 'transparent',
-            }}
-          />
-        </Pressable>
-      ))}
-    </View>
+            <View
+              pointerEvents="none"
+              style={{
+                minHeight: 34,
+                justifyContent: 'center',
+                alignItems: 'center',
+                alignSelf: 'stretch',
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+                borderRadius: 17,
+                borderWidth: 1,
+                backgroundColor: tab === value ? ink.sage : ink.charcoal,
+                borderColor: tab === value ? ink.green : '#5b6657',
+              }}
+            >
+              <EditorialText
+                numberOfLines={1}
+                style={{
+                  fontSize: 15,
+                  lineHeight: 20,
+                  textAlign: 'center',
+                  color: tab === value ? ink.charcoal : ink.paper,
+                }}
+              >
+                {t(`tabs.${tab}`)}
+              </EditorialText>
+              <View
+                accessible={false}
+                style={{
+                  height: 2,
+                  width: 20,
+                  position: 'absolute',
+                  bottom: 3,
+                  backgroundColor: tab === value ? ink.green : 'transparent',
+                }}
+              />
+            </View>
+          </Pressable>
+        ))}
+      </View>
+    </ScrollView>
   );
 }
 export function PeriodSelector({

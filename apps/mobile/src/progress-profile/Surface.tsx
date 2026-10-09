@@ -100,6 +100,7 @@ export function EditorialScreen({
     tabHeight = useBottomTabBarHeight(),
     focused = useIsFocused();
   const [measuredHero, setMeasuredHero] = useState(0);
+  const [heroBehindStatusBar, setHeroBehindStatusBar] = useState(true);
   const scroll = useRef<ScrollView>(null),
     menuOffset = useRef(0);
   const anchor = useMemo(
@@ -128,12 +129,32 @@ export function EditorialScreen({
         }
         style={{ flex: 1, backgroundColor: ink.paper }}
       >
-        {focused ? <StatusBar style={profile ? 'light' : 'dark'} /> : null}
+        {focused ? (
+          <StatusBar
+            hidden={false}
+            style={profile && heroBehindStatusBar ? 'light' : 'dark'}
+          />
+        ) : null}
         <ScrollView
           ref={scroll}
           testID="editorial-scroll"
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          contentInsetAdjustmentBehavior="never"
+          automaticallyAdjustContentInsets={false}
+          automaticallyAdjustsScrollIndicatorInsets={false}
+          bounces={false}
+          overScrollMode="never"
+          scrollEventThrottle={32}
+          onScroll={
+            profile
+              ? (event) =>
+                  setHeroBehindStatusBar(
+                    event.nativeEvent.contentOffset.y <
+                      heroHeight - insets.top / 2,
+                  )
+              : undefined
+          }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingBottom: tabHeight + 24,
@@ -207,18 +228,6 @@ export function EditorialScreen({
             </MenuAnchor.Provider>
           </View>
         </ScrollView>
-        <View
-          pointerEvents="none"
-          accessible={false}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: insets.top,
-            backgroundColor: profile ? ink.charcoal : ink.paper,
-          }}
-        />
       </KeyboardAvoidingView>
     </Typeface.Provider>
   );

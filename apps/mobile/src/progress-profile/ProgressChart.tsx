@@ -64,8 +64,8 @@ export const ProgressChart = memo(function ProgressChart({
         >
           <Defs>
             <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={ink.green} stopOpacity={0.42} />
-              <Stop offset="1" stopColor={ink.sage} stopOpacity={0.22} />
+              <Stop offset={0} stopColor={ink.green} stopOpacity={0.42} />
+              <Stop offset={1} stopColor={ink.sage} stopOpacity={0.22} />
             </LinearGradient>
           </Defs>
           <Line

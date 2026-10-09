@@ -1,5 +1,11 @@
 /** Browser-only component fixture. It never replaces providers in the Expo app. */
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { View } from 'react-native';
 import { i18n } from '../src/i18n';
 import type { Profile, ProfileUpdate } from '@jimo/schemas';
@@ -17,6 +23,7 @@ type FixtureState = {
   update: (patch: ProfileUpdate) => Promise<void>;
   signedOut: boolean;
   logout: () => Promise<void>;
+  loginAs: (id: string) => void;
 };
 const Context = createContext<FixtureState | null>(null);
 export const actions: ProfileUpdate[] = [];
@@ -29,6 +36,15 @@ export function FixtureProvider({ children }: { children: ReactNode }) {
         profile,
         signedOut,
         logout: async () => setSignedOut(true),
+        loginAs: (id) => {
+          setSignedOut(false);
+          setProfile({
+            ...initial,
+            id,
+            displayName:
+              id === initial.id ? initial.displayName : 'Bruno Verdi',
+          });
+        },
         update: async (patch) => {
           actions.push(patch);
           setProfile((current) => ({
@@ -72,9 +88,10 @@ export function usePreferences() {
   };
 }
 export function useOffline() {
-  return {
-    runtime: {
-      owner: initial.id,
+  const state = useContext(Context)!;
+  const runtime = useMemo(
+    () => ({
+      owner: state.profile.id,
       online: !new URLSearchParams(location.search).has('offline'),
       workouts: {
         active: async () =>
@@ -86,8 +103,15 @@ export function useOffline() {
         list: async () =>
           new URLSearchParams(location.search).has('pending') ? [{}] : [],
       },
-    },
-  };
+      metadata: async (owner: string, key: string, value?: string) => {
+        const name = `profileFixture:${owner}:${key}`;
+        if (value !== undefined) localStorage.setItem(name, value);
+        return localStorage.getItem(name);
+      },
+    }),
+    [state.profile.id],
+  );
+  return { runtime };
 }
 export function progressParams(range: string) {
   return { range, timeZone: 'Europe/Rome' };
@@ -130,6 +154,6 @@ export function SafeAreaView({ children }: { children: ReactNode }) {
 export function useFonts() {
   return [false];
 }
-export function StatusBar() {
-  return null;
+export function StatusBar({ style }: { style: string }) {
+  return <View testID={`fixture-status-bar-${style}`} />;
 }

@@ -221,6 +221,26 @@ for (const device of devices)
         .evaluate((el) => el.getBoundingClientRect().top),
     ).toBeGreaterThanOrEqual(24);
     expect(
+      (await page
+        .getByTestId('progress-editorial-screen')
+        .getByTestId('editorial-hero-art')
+        .boundingBox())!.y,
+    ).toBe(0);
+    for (const name of ['Panoramica', 'Forza', 'Volume', 'Frequenza']) {
+      const tab = page.getByRole('tab', { name, exact: true });
+      expect((await tab.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+      const label = tab.locator('[dir="auto"]').first();
+      expect(
+        await label.evaluate((el) => {
+          const style = getComputedStyle(el);
+          return (
+            el.getBoundingClientRect().height <=
+            parseFloat(style.lineHeight) + 1
+          );
+        }),
+      ).toBe(true);
+    }
+    expect(
       await page
         .getByTestId('progress-editorial-screen')
         .evaluate((el) => el.scrollWidth <= innerWidth),
@@ -231,6 +251,16 @@ for (const device of devices)
     await expect(page.getByTestId('profile-display-name')).toHaveText(
       'Il tuo account',
     );
+    expect(
+      (await page
+        .getByTestId('profile-editorial-screen')
+        .getByTestId('editorial-hero-art')
+        .boundingBox())!.y,
+    ).toBe(0);
+    const avatar = (await page.getByTestId('profile-avatar').boundingBox())!;
+    expect(avatar.y).toBeGreaterThanOrEqual(24);
+    expect(avatar.x).toBeGreaterThanOrEqual(0);
+    expect(avatar.x + avatar.width).toBeLessThanOrEqual(device.width);
     await expect(
       page.getByRole('tab', { name: 'Profilo', exact: true }),
     ).toHaveAttribute('aria-selected', 'true');
@@ -276,6 +306,11 @@ for (const device of devices)
 test('four content tabs stay on one screen, preserve query state and use real exercise volume; all periods survive', async ({
   page,
 }) => {
+  const warnings: string[] = [];
+  page.on('console', (message) => {
+    if (/not a valid number or percentage/i.test(message.text()))
+      warnings.push(message.text());
+  });
   const requests = await analyticsFixture(page);
   await page.goto('/progress');
   await expect(page.getByTestId('workouts-stat')).toContainText('7');
@@ -333,6 +368,7 @@ test('four content tabs stay on one screen, preserve query state and use real ex
       )
       .toBe(true);
   }
+  expect(warnings).toEqual([]);
 });
 test('empty and unavailable analytics never create illustrative values; English has working content tabs', async ({
   page,
@@ -546,5 +582,191 @@ test.describe('isolated Profile component with account data (no Clerk or databas
       .getByRole('button', { name: 'Esci comunque', exact: true })
       .click();
     await expect(page.getByText('Fixture signed out')).toBeVisible();
+  });
+  async function setPicker(
+    page: Page,
+    patch: { granted?: boolean; result?: 'photo' | 'cancel' | 'missing' },
+  ) {
+    await page.evaluate((patch) => {
+      Object.assign(
+        (window as unknown as { avatarFixture: object }).avatarFixture,
+        patch,
+      );
+    }, patch);
+  }
+  async function choosePhoto(
+    page: Page,
+    source = 'Scegli dalla galleria',
+    title = 'Cambia immagine profilo',
+  ) {
+    await page.getByRole('button', { name: title, exact: true }).click();
+    await page.getByRole('button', { name: source, exact: true }).click();
+  }
+  test('avatar: monogram, permission timing, circular photo, replacement, persistent restart and removal', async ({
+    page,
+  }) => {
+    await openProfile(page);
+    await expect(page.getByTestId('profile-avatar')).toBeEnabled();
+    await expect(page.getByTestId('profile-avatar-monogram')).toHaveText('A');
+    expect(
+      await page.evaluate(
+        () =>
+          (window as unknown as { avatarFixture: { calls: string[] } })
+            .avatarFixture.calls,
+      ),
+    ).toEqual([]);
+    await page
+      .getByRole('button', { name: 'Cambia immagine profilo', exact: true })
+      .click();
+    await expect(
+      page.getByRole('button', { name: 'Rimuovi foto', exact: true }),
+    ).toHaveCount(0);
+    await page
+      .getByRole('button', { name: 'Scegli dalla galleria', exact: true })
+      .click();
+    const image = page.getByTestId('profile-avatar-photo');
+    await expect(image).toBeVisible();
+    const first = await image.locator('img').getAttribute('src');
+    expect(
+      await image.evaluate((el) =>
+        [el, ...Array.from(el.querySelectorAll('*'))].some(
+          (node) => getComputedStyle(node).backgroundSize === 'cover',
+        ),
+      ),
+    ).toBe(true);
+    const frame = image.locator('..');
+    expect(
+      await frame.evaluate((el) => getComputedStyle(el).borderRadius),
+    ).toBe('42px');
+    expect(await frame.evaluate((el) => getComputedStyle(el).overflow)).toBe(
+      'hidden',
+    );
+    await page.reload();
+    await expect(image).toBeVisible();
+    expect(await image.locator('img').getAttribute('src')).toBe(first);
+    await choosePhoto(page, 'Scatta foto');
+    await expect(image.locator('img')).not.toHaveAttribute('src', first!);
+    expect(
+      await page.evaluate(
+        () =>
+          Object.keys(localStorage).filter((key) =>
+            key.startsWith('avatarFixture:file:'),
+          ).length,
+      ),
+    ).toBe(1);
+    await page
+      .getByRole('button', { name: 'Cambia immagine profilo', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Rimuovi foto', exact: true })
+      .click();
+    await expect(page.getByTestId('profile-avatar-monogram')).toHaveText('A');
+    await expect(image).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () =>
+          Object.keys(localStorage).filter((key) =>
+            key.startsWith('avatarFixture:file:'),
+          ).length,
+      ),
+    ).toBe(0);
+    await expect(page.getByTestId('profile-display-name')).toHaveText(
+      'Ada Bianchi',
+    );
+  });
+  test('avatar: picker cancellation, denied permission and missing file preserve the previous picture with IT/EN messages', async ({
+    page,
+  }) => {
+    await openProfile(page);
+    await expect(page.getByTestId('profile-avatar')).toBeEnabled();
+    await choosePhoto(page);
+    const image = page.getByTestId('profile-avatar-photo');
+    await expect(image).toBeVisible();
+    const original = await image.locator('img').getAttribute('src');
+    for (const source of ['Scatta foto', 'Scegli dalla galleria']) {
+      await setPicker(page, { result: 'cancel' });
+      await choosePhoto(page, source);
+      await expect(
+        page.getByRole('heading', { name: 'Cambia immagine profilo' }),
+      ).toHaveCount(0);
+      expect(await image.locator('img').getAttribute('src')).toBe(original);
+    }
+    await setPicker(page, { granted: false, result: 'photo' });
+    await choosePhoto(page, 'Scatta foto');
+    await expect(page.getByRole('alert')).toContainText(
+      'Consenti l’accesso alla fotocamera',
+    );
+    await page.getByRole('button', { name: 'Annulla', exact: true }).click();
+    expect(await image.locator('img').getAttribute('src')).toBe(original);
+    await setPicker(page, { granted: true, result: 'missing' });
+    await choosePhoto(page);
+    await expect(page.getByRole('alert')).toContainText(
+      'Questa foto non è disponibile',
+    );
+    await page.getByRole('button', { name: 'Annulla', exact: true }).click();
+    expect(await image.locator('img').getAttribute('src')).toBe(original);
+    await page.getByRole('button', { name: 'Lingua', exact: true }).click();
+    await page.getByRole('radio', { name: 'English', exact: true }).click();
+    await setPicker(page, { granted: false });
+    await choosePhoto(page, 'Choose from gallery', 'Change profile picture');
+    await expect(
+      page.getByRole('alert').filter({ hasText: 'Allow photo access' }),
+    ).toBeVisible();
+  });
+  test('avatar: account switch hides another account photo; logout/login retains only the current account association', async ({
+    page,
+  }) => {
+    await openProfile(page);
+    await expect(page.getByTestId('profile-avatar')).toBeEnabled();
+    await choosePhoto(page);
+    await expect(page.getByTestId('profile-avatar-photo')).toBeVisible();
+    const original = await page
+      .getByTestId('profile-avatar-photo')
+      .locator('img')
+      .getAttribute('src');
+    const a = '7cf8a71c-9dc4-48ab-a245-df1bfb7d063e',
+      b = '430a8212-2c21-4326-a828-2d9e8f519932';
+    const login = (id: string) =>
+      page.evaluate(
+        (id) =>
+          (
+            window as unknown as { profileFixtureLoginAs: (id: string) => void }
+          ).profileFixtureLoginAs(id),
+        id,
+      );
+    await login(b);
+    await expect(page.getByTestId('profile-avatar-photo')).toHaveCount(0);
+    await expect(page.getByTestId('profile-avatar-monogram')).toHaveText('B');
+    await expect(page.getByTestId('profile-avatar')).toBeEnabled();
+    await choosePhoto(page);
+    await expect(
+      page.getByTestId('profile-avatar-photo').locator('img'),
+    ).not.toHaveAttribute('src', original!);
+    await login(a);
+    await expect(
+      page.getByTestId('profile-avatar-photo').locator('img'),
+    ).toHaveAttribute('src', original!);
+    await page.getByRole('button', { name: 'Esci', exact: true }).click();
+    await expect(page.getByText('Fixture signed out')).toBeVisible();
+    await login(a);
+    await expect(
+      page.getByTestId('profile-avatar-photo').locator('img'),
+    ).toHaveAttribute('src', original!);
+  });
+  test('profile status bar switches from light icons over the full bleed hero to dark icons over paper after scrolling', async ({
+    page,
+  }) => {
+    await openProfile(page);
+    await expect(page.getByTestId('fixture-status-bar-light')).toHaveCount(1);
+    expect(
+      (await page.getByTestId('editorial-hero-art').boundingBox())!.y,
+    ).toBe(0);
+    // A short profile may clamp before the hero leaves the safe inset. Expand
+    // existing content so the test actually scrolls the parchment under the bar.
+    await page.getByRole('button', { name: 'Lingua', exact: true }).click();
+    await page.getByTestId('editorial-scroll').evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await expect(page.getByTestId('fixture-status-bar-dark')).toHaveCount(1);
   });
 });

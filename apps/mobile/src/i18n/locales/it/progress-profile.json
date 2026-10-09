@@ -21,6 +21,22 @@
   "sessionsPerWeek": "Allenamenti / settimana nel periodo",
   "historyTitle": "Storico allenamenti",
   "avatar": "Monogramma del profilo",
+  "avatarActions": {
+    "title": "Cambia immagine profilo",
+    "camera": "Scatta foto",
+    "gallery": "Scegli dalla galleria",
+    "remove": "Rimuovi foto",
+    "cancel": "Annulla",
+    "localOnly": "La foto resta su questo dispositivo, solo per il tuo account.",
+    "errors": {
+      "cameraPermission": "Consenti l’accesso alla fotocamera nelle impostazioni del dispositivo per scattare una foto.",
+      "galleryPermission": "Consenti l’accesso alle foto nelle impostazioni del dispositivo per scegliere un’immagine.",
+      "unavailable": "Questa foto non è disponibile. Scegli un’altra immagine.",
+      "phoneOnly": "La modifica della foto è disponibile nell’app sul telefono.",
+      "storage": "Non è stato possibile salvare la modifica. Riprova.",
+      "identityChanged": "L’account è cambiato. Riapri il profilo e riprova."
+    }
+  },
   "identityFallback": "Il tuo account",
   "motto": "Disciplina · Costanza · Risultati",
   "statWorkouts": "Allenamenti",

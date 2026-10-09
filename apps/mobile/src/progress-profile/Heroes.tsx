@@ -9,13 +9,13 @@ import {
 import Settings from 'lucide-react-native/icons/settings';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { artwork, ink } from './theme';
-import { monogram } from './chart';
+import { ProfileAvatar } from './ProfileAvatar';
 
 export function ProgressHero() {
   const { t } = useTranslation('progressProfile'),
     { width } = useWindowDimensions();
   return (
-    <View style={{ paddingTop: 22, paddingLeft: 8, paddingBottom: 24 }}>
+    <View style={{ paddingTop: 26, paddingLeft: 8, paddingBottom: 24 }}>
       <Svg
         pointerEvents="none"
         accessible={false}
@@ -25,9 +25,9 @@ export function ProgressHero() {
       >
         <Defs>
           <RadialGradient id="progress-title-paper" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor={ink.paper} stopOpacity={0.95} />
-            <Stop offset=".6" stopColor={ink.paper} stopOpacity={0.82} />
-            <Stop offset="1" stopColor={ink.paper} stopOpacity={0} />
+            <Stop offset={0} stopColor={ink.paper} stopOpacity={0.95} />
+            <Stop offset={0.6} stopColor={ink.paper} stopOpacity={0.82} />
+            <Stop offset={1} stopColor={ink.paper} stopOpacity={0} />
           </RadialGradient>
         </Defs>
         <Ellipse
@@ -40,7 +40,7 @@ export function ProgressHero() {
       </Svg>
       <EditorialText
         accessibilityRole="header"
-        style={{ fontSize: width < 360 ? 35 : 40, lineHeight: 48 }}
+        style={{ fontSize: width < 360 ? 32 : 36, lineHeight: 44 }}
       >
         {t('progressTitle')}
       </EditorialText>
@@ -57,7 +57,6 @@ export function ProgressHero() {
 export function ProfileHero({ name }: { name: string | null }) {
   const { t } = useTranslation('progressProfile'),
     { width } = useWindowDimensions();
-  const initial = monogram(name);
   const reportSize = useProfileHeroSize();
   const { jumpToMenu } = useProfileMenuAnchor();
   return (
@@ -105,26 +104,7 @@ export function ProfileHero({ name }: { name: string | null }) {
         style={{ width: 126, height: 16, marginLeft: 16 }}
       />
       <View style={{ alignItems: 'center', marginTop: 10, gap: 2 }}>
-        <View
-          accessible
-          accessibilityRole="image"
-          accessibilityLabel={`${t('avatar')}: ${initial}`}
-          style={{
-            width: 84,
-            height: 84,
-            borderRadius: 42,
-            borderWidth: 2,
-            borderColor: ink.paper,
-            backgroundColor: 'rgba(12, 20, 14, .65)',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 4,
-          }}
-        >
-          <EditorialText style={{ color: ink.paper, fontSize: 42 }}>
-            {initial}
-          </EditorialText>
-        </View>
+        <ProfileAvatar name={name} />
         <EditorialText
           testID="profile-display-name"
           style={{

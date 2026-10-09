@@ -1,6 +1,6 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "JIMO usa la fotocamera solo per fotografare la tua scheda di allenamento.",
-    "NSPhotoLibraryUsageDescription": "JIMO accede alle immagini che scegli per importare la tua scheda."
+    "NSCameraUsageDescription": "JIMO usa la fotocamera quando scegli di scattare una foto profilo o fotografare la tua scheda di allenamento.",
+    "NSPhotoLibraryUsageDescription": "JIMO accede alle immagini che scegli per la foto profilo o per importare la tua scheda."
   }
 }
