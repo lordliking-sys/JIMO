@@ -1,7 +1,7 @@
 import { Directory, File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { randomUUID } from 'expo-crypto';
-import { Platform } from 'react-native';
+import { Image, Platform } from 'react-native';
 import {
   AvatarError,
   LocalAvatarStore,
@@ -51,14 +51,26 @@ export function createAvatarStore(metadata: AvatarMetadata) {
         ).uri.replace(/\/+$/, '') + '/',
       exists: async (uri) => Platform.OS !== 'web' && new File(uri).exists,
       copy: async (source, destination) => {
+        if (!/^(file|content):\/\//.test(source))
+          throw new AvatarError('unavailable');
         const file = new File(source),
           target = new File(destination);
-        if (!file.exists) throw new AvatarError('unavailable');
         target.parentDirectory.create({
           intermediates: true,
           idempotent: true,
         });
-        file.copy(target);
+        // Expo 57 copy() is asynchronous. A provider URI need not expose a
+        // reliable stat: the awaited stream copy is the actual readability test.
+        try {
+          await file.copy(target);
+          if (!target.exists || target.size <= 0)
+            throw new AvatarError('unavailable');
+          const { width, height } = await Image.getSize(target.uri);
+          if (!(width > 0 && height > 0)) throw new AvatarError('unavailable');
+        } catch {
+          // LocalAvatarStore rolls back this copy before changing the old avatar.
+          throw new AvatarError('unavailable');
+        }
       },
       delete: async (uri) => {
         const file = new File(uri);

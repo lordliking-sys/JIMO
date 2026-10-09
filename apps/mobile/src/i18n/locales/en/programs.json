@@ -162,5 +162,21 @@
     "7": "Sun"
   },
   "noRpeShort": "None",
-  "import": "Import workout plan"
+  "import": "Import workout plan",
+  "managerTitle": "Programs",
+  "myPrograms": "My programs",
+  "managePrograms": "Manage programs",
+  "manageDays": "Manage days",
+  "structureTitle": "Program structure",
+  "addDaysTitle": "Add days",
+  "openDay": "Open day",
+  "newDay": "New day",
+  "libraryTitle": "Exercise library",
+  "customTitle": "Custom exercise",
+  "allExercises": "All",
+  "filterExercises": "Filter exercises",
+  "requiredName": "Enter a name.",
+  "durationShort": "Duration",
+  "restShort": "Rest",
+  "confirmArchiveAny": "Archive this program? Workout history will be preserved."
 }

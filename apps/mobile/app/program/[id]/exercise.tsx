@@ -32,6 +32,8 @@ function ConnectedEditor({
     );
   return (
     <PrescriptionEditor
+      presentation
+      fallback={{ pathname: '/program/[id]/day-detail', params: { id, dayId } }}
       exercise={exercise}
       {...(initial ? { initial } : {})}
       pending={mutation.isPending}
@@ -39,7 +41,10 @@ function ConnectedEditor({
       save={(input) =>
         mutation.mutate(input, {
           onSuccess: () =>
-            router.dismissTo({ pathname: '/program/[id]', params: { id } }),
+            router.dismissTo({
+              pathname: '/program/[id]/day-detail',
+              params: { id, dayId },
+            }),
         })
       }
     />
@@ -57,6 +62,7 @@ export default function ExerciseEditor() {
   if (!query.data || !exercise.data)
     return (
       <QueryState
+        presentation
         pending={query.isPending || exercise.isPending}
         error={query.error || exercise.error}
         retry={() => {
@@ -70,6 +76,7 @@ export default function ExerciseEditor() {
   if (!day || (prescriptionId && !initial))
     return (
       <QueryState
+        presentation
         pending={false}
         error={new ApiClientError('NOT_FOUND', 404)}
         retry={() => void query.refetch()}

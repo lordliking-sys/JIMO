@@ -3,21 +3,16 @@ import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import {
-  Button,
-  IconButton,
-  Screen,
-  Text,
-  spacing,
-  colors,
-  sizes,
-} from '@jimo/ui';
-import Eye from 'lucide-react-native/icons/eye';
-import EyeOff from 'lucide-react-native/icons/eye-off';
+import { Button, Screen, Text, spacing, colors } from '@jimo/ui';
 import { Field } from '../programs/components';
 import { Wordmark } from '../components/Wordmark';
 import { useAuthSession } from './SessionProvider';
 import { authErrorKey, authErrorParams } from './helpers';
+import {
+  PasswordField,
+  PasswordRequirements,
+  PasswordConfirmation,
+} from './PasswordFields';
 export function AuthForm({
   mode,
 }: {
@@ -33,13 +28,24 @@ export function AuthForm({
   const [stage, setStage] = useState<'credentials' | 'verify' | 'reset'>(
       'credentials',
     ),
-    [visible, setVisible] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<
       ReturnType<typeof authErrorKey> | 'errors.confirm' | 'errors.wait' | null
     >(null),
     [sent, setSent] = useState(false);
-  const [errorParams, setErrorParams] = useState<{ min?: number }>({});
+  const [errorParams, setErrorParams] = useState<{
+    min?: number;
+    max?: number;
+  }>({});
+  const changePassword = (value: string) => {
+    setPassword(value);
+    if (error?.startsWith('errors.password') || error === 'errors.confirm')
+      setError(null);
+  };
+  const changeConfirmation = (value: string) => {
+    setConfirm(value);
+    if (error === 'errors.confirm') setError(null);
+  };
   const lock = useRef(false),
     resendAt = useRef(0);
   const run = async (action: () => Promise<void>) => {
@@ -238,66 +244,40 @@ export function AuthForm({
           ) : null}
           {showPassword ? (
             <View style={{ gap: spacing.sm }}>
-              <Field
-                label={t('password')}
+              {stage === 'reset' ? (
+                <PasswordRequirements
+                  value={password}
+                  policy={auth.passwordPolicy}
+                  submittedError={!!error?.startsWith('errors.password')}
+                />
+              ) : null}
+              <PasswordField
+                key={stage === 'reset' ? 'reset' : mode}
+                label={t(stage === 'reset' ? 'newPassword' : 'password')}
                 value={password}
-                onChangeText={setPassword}
-                editable={!busy}
-                secureTextEntry={!visible}
-                accessory={
-                  <IconButton
-                    label={t(visible ? 'hidePassword' : 'showPassword')}
-                    disabled={busy}
-                    onPress={() => setVisible((v) => !v)}
-                    icon={
-                      visible ? (
-                        <EyeOff size={sizes.icon} color={colors.secondary} />
-                      ) : (
-                        <Eye size={sizes.icon} color={colors.secondary} />
-                      )
-                    }
-                  />
-                }
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete={
-                  mode === 'sign-in' ? 'current-password' : 'new-password'
-                }
-                textContentType={
-                  mode === 'sign-in' ? 'password' : 'newPassword'
-                }
+                onChangeText={changePassword}
+                disabled={busy}
+                current={stage === 'credentials' && mode === 'sign-in'}
               />
-
+              {mode === 'sign-up' && stage !== 'reset' ? (
+                <PasswordRequirements
+                  value={password}
+                  policy={auth.passwordPolicy}
+                  submittedError={!!error?.startsWith('errors.password')}
+                />
+              ) : null}
               {mode === 'sign-up' || stage === 'reset' ? (
                 <Text variant="caption" color={colors.secondary}>
                   {t('passwordHelp')}
                 </Text>
               ) : null}
               {mode === 'sign-up' || stage === 'reset' ? (
-                <Field
-                  label={t('confirmPassword')}
+                <PasswordConfirmation
+                  password={password}
                   value={confirm}
-                  onChangeText={setConfirm}
-                  editable={!busy}
-                  secureTextEntry={!visible}
-                  accessory={
-                    <IconButton
-                      label={t(visible ? 'hidePassword' : 'showPassword')}
-                      disabled={busy}
-                      onPress={() => setVisible((v) => !v)}
-                      icon={
-                        visible ? (
-                          <EyeOff size={sizes.icon} color={colors.secondary} />
-                        ) : (
-                          <Eye size={sizes.icon} color={colors.secondary} />
-                        )
-                      }
-                    />
-                  }
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="new-password"
-                  textContentType="newPassword"
+                  onChangeText={changeConfirmation}
+                  disabled={busy}
+                  submittedError={error === 'errors.confirm'}
                 />
               ) : null}
             </View>

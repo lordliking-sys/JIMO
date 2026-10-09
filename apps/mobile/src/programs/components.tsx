@@ -1,8 +1,15 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { TextInput, StyleSheet, View, Modal, Platform } from 'react-native';
+import {
+  TextInput,
+  StyleSheet,
+  View,
+  Modal,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
 import type { TextInputProps } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -19,15 +26,26 @@ import {
 import { ApiClientError } from '../api/client';
 import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import EllipsisVertical from 'lucide-react-native/icons/ellipsis-vertical';
+import {
+  ProgramScreen,
+  ProgramText,
+  ProgramButton,
+  useProgramPresentation,
+  useProgramBackTarget,
+  programInk,
+  type programArtwork,
+} from './presentation';
+import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 /** Form sections use hierarchy and dividers instead of nested surfaces. */
 export function FormSection({ children }: { children: ReactNode }) {
+  const visual = useProgramPresentation();
   return (
     <View
       style={{
         gap: spacing.lg,
-        paddingTop: spacing.lg,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: colors.border,
+        paddingTop: visual ? 0 : spacing.lg,
+        borderTopWidth: visual ? 0 : StyleSheet.hairlineWidth,
+        borderTopColor: visual ? programInk.border : colors.border,
       }}
     >
       {children}
@@ -38,12 +56,37 @@ export function FormScreen({
   children,
   footer,
   invalid = false,
+  presentation = false,
+  background = 'programs',
+  fallback,
 }: {
   children: ReactNode;
   footer?: ReactNode;
   invalid?: boolean;
+  presentation?: boolean;
+  background?: keyof typeof programArtwork;
+  fallback?: Href;
 }) {
   const { t } = useTranslation('programs');
+  if (presentation)
+    return (
+      <ProgramScreen
+        background={background}
+        {...(fallback ? { fallback } : {})}
+        {...(footer ? { footer } : {})}
+      >
+        {children}
+        {invalid ? (
+          <Text
+            variant="caption"
+            color={programInk.danger}
+            accessibilityRole="alert"
+          >
+            {t('invalidForm')}
+          </Text>
+        ) : null}
+      </ProgramScreen>
+    );
   return (
     <Screen
       keyboardAware
@@ -76,12 +119,21 @@ export function FocusInput(props: TextInputProps) {
   const input = useRef<TextInput>(null);
   const focus = useFormFocus();
   const [focused, setFocused] = useState(false);
+  const visual = useProgramPresentation();
+  const { width, height } = useWindowDimensions();
+  useEffect(() => {
+    if (!visual || !focused) return;
+    // Re-register after the inline editor and its responsive layout commit.
+    // Focus can precede layout when a numeric value becomes a native input.
+    const frame = requestAnimationFrame(() => focus(input.current));
+    return () => cancelAnimationFrame(frame);
+  }, [visual, focused, focus, width, height]);
   return (
     <TextInput
       {...props}
       ref={input}
-      placeholderTextColor={colors.secondary}
-      selectionColor={colors.primary}
+      placeholderTextColor={visual ? programInk.secondary : colors.secondary}
+      selectionColor={visual ? programInk.green : colors.primary}
       returnKeyType={
         props.returnKeyType ?? (props.multiline ? 'default' : 'done')
       }
@@ -97,9 +149,19 @@ export function FocusInput(props: TextInputProps) {
       }}
       style={[
         styles.input,
+        visual && {
+          backgroundColor: 'rgba(250,242,223,0.55)',
+          borderColor: programInk.border,
+          color: programInk.charcoal,
+          borderRadius: 8,
+          fontSize: 14,
+        },
         props.multiline && { minHeight: 96, textAlignVertical: 'top' },
         props.style,
-        focused && { borderColor: colors.primary, borderWidth: 1 },
+        focused && {
+          borderColor: visual ? programInk.green : colors.primary,
+          borderWidth: 1,
+        },
       ]}
     />
   );
@@ -107,11 +169,20 @@ export function FocusInput(props: TextInputProps) {
 export function Field({
   label,
   accessory,
+  error,
   ...props
-}: TextInputProps & { label: string; accessory?: ReactNode }) {
+}: TextInputProps & { label: string; accessory?: ReactNode; error?: string }) {
+  const visual = useProgramPresentation();
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text variant="label">{label}</Text>
+      <Text
+        variant="label"
+        {...(visual
+          ? { color: programInk.charcoal, style: { fontSize: 13 } }
+          : {})}
+      >
+        {label}
+      </Text>
       {accessory ? (
         <View
           style={{
@@ -141,19 +212,43 @@ export function Field({
       ) : (
         <FocusInput {...props} accessibilityLabel={label} />
       )}
+      {error ? (
+        <Text
+          variant="caption"
+          color={visual ? programInk.danger : colors.danger}
+          accessibilityRole="alert"
+        >
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
-export function Back({ compact = false }: { compact?: boolean }) {
+export function Back({
+  compact = false,
+  color,
+}: {
+  compact?: boolean;
+  color?: string;
+}) {
   const router = useRouter(),
     { t } = useTranslation('programs');
+  const visual = useProgramPresentation();
+  const fallback = useProgramBackTarget();
   const goBack = () =>
-    router.canGoBack() ? router.back() : router.replace('/program');
-  if (compact)
+    router.canGoBack()
+      ? router.back()
+      : router.replace(visual ? fallback : '/program');
+  if (compact || visual)
     return (
       <IconButton
         label={t('back')}
-        icon={<ChevronLeft size={sizes.icon} color={colors.secondary} />}
+        icon={
+          <ChevronLeft
+            size={sizes.icon}
+            color={color ?? (visual ? programInk.charcoal : colors.secondary)}
+          />
+        }
         onPress={goBack}
       />
     );
@@ -162,10 +257,33 @@ export function Back({ compact = false }: { compact?: boolean }) {
 export function FormHeader({
   title,
   subtitle,
+  fontSize = 26,
 }: {
   title: string;
   subtitle?: string;
+  fontSize?: number;
 }) {
+  const visual = useProgramPresentation();
+  if (visual)
+    return (
+      <View style={{ gap: 8, position: 'relative', paddingBottom: 8 }}>
+        <HeroReadabilityWash />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Back compact />
+          <ProgramText
+            accessibilityRole="header"
+            style={{ flex: 1, fontSize, lineHeight: fontSize + 4 }}
+          >
+            {title.toUpperCase()}
+          </ProgramText>
+        </View>
+        {subtitle ? (
+          <Text variant="caption" color={programInk.secondary}>
+            {subtitle}
+          </Text>
+        ) : null}
+      </View>
+    );
   return (
     <View style={{ gap: spacing.sm }}>
       <View
@@ -189,13 +307,17 @@ export function ActionMenu({
   title,
   actions,
   disabled = false,
+  icon,
 }: {
   label: string;
   title: string;
   disabled?: boolean;
+  icon?: ReactNode;
   actions: { label: string; action: () => void; disabled?: boolean }[];
 }) {
   const [open, setOpen] = useState(false);
+  const visual = useProgramPresentation();
+  const ActionButton = visual ? ProgramButton : Button;
   const pendingAction = useRef<(() => void) | null>(null);
   const perform = () => {
     const action = pendingAction.current;
@@ -208,7 +330,14 @@ export function ActionMenu({
       <IconButton
         label={label}
         disabled={disabled}
-        icon={<EllipsisVertical size={sizes.icon} color={colors.secondary} />}
+        icon={
+          icon ?? (
+            <EllipsisVertical
+              size={sizes.icon}
+              color={visual ? programInk.secondary : colors.secondary}
+            />
+          )
+        }
         onPress={() => setOpen(true)}
       />
       <Modal
@@ -219,10 +348,25 @@ export function ActionMenu({
         onRequestClose={() => setOpen(false)}
       >
         <View style={styles.overlay}>
-          <Card accessibilityViewIsModal>
-            <Text variant="h3">{title}</Text>
+          <Card
+            accessibilityViewIsModal
+            style={
+              visual
+                ? {
+                    backgroundColor: programInk.paper,
+                    borderColor: programInk.border,
+                  }
+                : {}
+            }
+          >
+            <Text
+              variant="h3"
+              color={visual ? programInk.charcoal : colors.text}
+            >
+              {title}
+            </Text>
             {actions.map((item) => (
-              <Button
+              <ActionButton
                 key={item.label}
                 variant="secondary"
                 label={item.label}
@@ -234,7 +378,7 @@ export function ActionMenu({
                 }}
               />
             ))}
-            <Button
+            <ActionButton
               variant="secondary"
               label={t('cancel')}
               onPress={() => setOpen(false)}
@@ -253,9 +397,19 @@ export function ErrorNotice({
   retry?: () => void;
 }) {
   const { t } = useTranslation('programs');
+  const visual = useProgramPresentation();
   return (
-    <Card>
-      <Text accessibilityRole="alert">
+    <Card
+      style={
+        visual
+          ? { backgroundColor: programInk.card, borderColor: programInk.border }
+          : {}
+      }
+    >
+      <Text
+        accessibilityRole="alert"
+        color={visual ? programInk.danger : colors.text}
+      >
         {t(
           error instanceof ApiClientError && error.code === 'CONFLICT'
             ? 'conflictError'
@@ -275,12 +429,27 @@ export function QueryState({
   pending,
   error,
   retry,
+  presentation = false,
 }: {
   pending: boolean;
   error: unknown;
   retry: () => void;
+  presentation?: boolean;
 }) {
   const { t } = useTranslation('programs');
+  if (presentation)
+    return (
+      <ProgramScreen>
+        <Back compact />
+        {pending ? (
+          <Text color={programInk.secondary} accessibilityRole="progressbar">
+            {t('loading')}
+          </Text>
+        ) : (
+          <ErrorNotice error={error} retry={retry} />
+        )}
+      </ProgramScreen>
+    );
   return (
     <Screen>
       <Back />
@@ -302,13 +471,31 @@ export function Confirm({
   onCancel: () => void;
 }) {
   const { t } = useTranslation('programs');
+  const visual = useProgramPresentation(),
+    ActionButton = visual ? ProgramButton : Button;
   return (
     <Modal transparent animationType="none" onRequestClose={onCancel}>
       <View style={styles.overlay}>
-        <Card accessibilityViewIsModal>
-          <Text variant="h3">{title}</Text>
-          <Button label={t('confirm')} onPress={onConfirm} />
-          <Button variant="secondary" label={t('cancel')} onPress={onCancel} />
+        <Card
+          accessibilityViewIsModal
+          style={
+            visual
+              ? {
+                  backgroundColor: programInk.paper,
+                  borderColor: programInk.border,
+                }
+              : {}
+          }
+        >
+          <Text variant="h3" color={visual ? programInk.charcoal : colors.text}>
+            {title}
+          </Text>
+          <ActionButton label={t('confirm')} onPress={onConfirm} />
+          <ActionButton
+            variant="secondary"
+            label={t('cancel')}
+            onPress={onCancel}
+          />
         </Card>
       </View>
     </Modal>

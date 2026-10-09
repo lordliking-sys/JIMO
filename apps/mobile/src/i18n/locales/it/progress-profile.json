@@ -15,7 +15,7 @@
   "trainingTime": "Tempo di allenamento",
   "personalRecords": "Record personali",
   "current": "Ultima prestazione: {{value}}",
-  "volumeByExercise": "Volume per esercizio",
+  "volumeByExercise": "Per esercizio",
   "volumeEmpty": "Nessun esercizio allenato nel periodo. Il volume sarà disponibile dopo le prime serie completate con carico.",
   "volumeUnavailableMode": "Volume in kg non disponibile per questa modalità. Corpo libero, assistenza e durata non vengono sommati al carico esterno.",
   "sessionsPerWeek": "Allenamenti / settimana nel periodo",

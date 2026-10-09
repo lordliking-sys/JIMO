@@ -1,5 +1,13 @@
 # Progressi e Profilo — CLEAN
 
+## Correzione funzionale avatar Android
+
+Il contratto Expo 57 di `File.copy()` è asincrono. La precedente implementazione controllava la destinazione prima che la copia terminasse, rifiutando foto valide e rischiando di lasciare una copia tardiva. L'adapter ora attende la copia e verifica file non vuoto e decodifica con `Image.getSize` prima di aggiornare l'associazione. Il controllo preventivo `File.exists` sulla sorgente è stato rimosso: un provider Android `content://` può offrire uno stream leggibile senza uno stat affidabile.
+
+Galleria e camera condividono questo percorso per `file://` e `content://`; la destinazione resta univoca e privata per UUID account. Filename/estensione del picker non sono necessari e la validazione verifica l'immagine effettiva. Solo la copia persistente viene salvata nei metadata esistenti. File illeggibili, vuoti o corrotti conservano il vecchio avatar ed eliminano la nuova copia; annullamento e permessi negati non salvano nulla. Nessuna modifica a schema, sync, API o grafica.
+
+La regressione dell'adapter esegue il codice reale con il contratto nativo simulato (copia asincrona e provider senza stat): prima 4 casi fallivano, dopo 5/5 passano. Sono coperti galleria/camera, URI senza estensione, cancellazione/permessi, corruzione, rollback, restart, isolamento e rimozione. I test store/hook/browser coprono logout e riaccesso. Non è disponibile un telefono fisico: confermare su Android galleria → avatar immediato → chiusura/riapertura → logout/login stesso account, poi camera e account B.
+
 La presentazione usa esclusivamente `JIMO_progressi_profilo_CLEAN.zip`. I cinque PNG in `apps/mobile/assets/jimo/progress-profile/` conservano i nomi e i byte originali. Le reference complete non sono incorporate nell’app. `dark-texture.png` è conservata per il pack ma non sovrapposta: l’hero scuro contiene già la texture necessaria.
 
 Componenti locali in `apps/mobile/src/progress-profile/`: EditorialScreen, EditorialText, Copy, PaperCard, ProgressHero, ProfileHero, ProgressTabs, PeriodSelector, StatCard, ProgressChart, PersonalRecordRow, VolumePanel, ProfileStats, ProfileMenuRow e ProfileChoice. Titoli e valori usano il Cormorant Garamond già presente nel progetto; testi e controlli usano Inter già caricato dall’app. Nessuna dipendenza o immagine nuova.

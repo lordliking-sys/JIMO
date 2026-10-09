@@ -7,11 +7,12 @@ import {
   loadModes,
   trackingModes,
 } from '@jimo/schemas';
-import { Text, Button } from '@jimo/ui';
+import { Text } from '@jimo/ui';
+import { ProgramButton, programInk } from '../../../src/programs/presentation';
 import { exercisesApi } from '../../../src/api/exercises';
 import { useApiLocale } from '../../../src/api/queries';
 import {
-  Back,
+  FormHeader,
   Field,
   ErrorNotice,
   FormScreen,
@@ -19,7 +20,6 @@ import {
 } from '../../../src/programs/components';
 import { Choice, choiceStyles } from '../../../src/programs/NumberControl';
 import { View } from 'react-native';
-import { ScreenHeader } from '../../../src/components/ScreenHeader';
 export default function CustomExercise() {
   const { id, dayId } = useLocalSearchParams<{ id: string; dayId: string }>(),
     router = useRouter(),
@@ -54,9 +54,11 @@ export default function CustomExercise() {
   });
   return (
     <FormScreen
+      presentation
+      background="custom"
       invalid={invalid}
       footer={
-        <Button
+        <ProgramButton
           label={t('saveCustom')}
           busy={mutation.isPending}
           onPress={() => {
@@ -75,16 +77,18 @@ export default function CustomExercise() {
         />
       }
     >
-      <Back />
-      <ScreenHeader title={t('createCustom')} light />
+      <FormHeader title={t('customTitle')} />
       <FormSection>
         <Field
           label={t('exerciseName')}
           value={name}
           onChangeText={setName}
           maxLength={160}
+          {...(invalid && !name.trim() ? { error: t('requiredName') } : {})}
         />
-        <Text variant="label">{t('tracking')}</Text>
+        <Text variant="label" color={programInk.charcoal}>
+          {t('tracking')}
+        </Text>
         <View style={choiceStyles.row}>
           {trackingModes.map((v) => (
             <Choice
@@ -95,7 +99,9 @@ export default function CustomExercise() {
             />
           ))}
         </View>
-        <Text variant="label">{t('defaultLoad')}</Text>
+        <Text variant="label" color={programInk.charcoal}>
+          {t('defaultLoad')}
+        </Text>
         <View style={choiceStyles.row}>
           <Choice
             label={t('none')}

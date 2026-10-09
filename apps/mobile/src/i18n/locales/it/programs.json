@@ -162,5 +162,21 @@
     "7": "Dom"
   },
   "noRpeShort": "Nessuno",
-  "import": "Importa scheda"
+  "import": "Importa scheda",
+  "managerTitle": "Programmi",
+  "myPrograms": "I miei programmi",
+  "managePrograms": "Gestisci programmi",
+  "manageDays": "Gestisci giorni",
+  "structureTitle": "Struttura programma",
+  "addDaysTitle": "Aggiungi giorni",
+  "openDay": "Apri giornata",
+  "newDay": "Nuovo giorno",
+  "libraryTitle": "Libreria esercizi",
+  "customTitle": "Esercizio personalizzato",
+  "allExercises": "Tutti",
+  "filterExercises": "Filtra esercizi",
+  "requiredName": "Inserisci un nome.",
+  "durationShort": "Durata",
+  "restShort": "Recupero",
+  "confirmArchiveAny": "Archiviare il programma? Lo storico sarà conservato."
 }

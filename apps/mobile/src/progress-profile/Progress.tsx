@@ -196,9 +196,6 @@ export default function ProgressScreen() {
         </Copy>
       ) : null}
       <View testID="progress-content" style={{ gap: 10 }}>
-        {tab !== 'overview' ? (
-          <SectionHeading>{t(`tabs.${tab}`)}</SectionHeading>
-        ) : null}
         {!s ? (
           <PaperCard>
             <DataNotice

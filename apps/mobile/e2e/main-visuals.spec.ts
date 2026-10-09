@@ -470,7 +470,7 @@ test('one-day overview and archived programs stay compact; program access uses t
   expect(row.height).toBeLessThanOrEqual(85);
   expect(headerAction.width).toBe(48);
   await expect(
-    page.getByRole('button', { name: 'Apri Forza', exact: true }),
+    page.getByRole('button', { name: 'Gestisci programmi', exact: true }),
   ).toHaveCount(1);
   await expect(
     page.getByTestId(`other-program-${archived.id}`),

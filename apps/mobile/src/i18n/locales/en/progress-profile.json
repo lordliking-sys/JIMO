@@ -15,7 +15,7 @@
   "trainingTime": "Training time",
   "personalRecords": "Personal records",
   "current": "Latest performance: {{value}}",
-  "volumeByExercise": "Volume by exercise",
+  "volumeByExercise": "By exercise",
   "volumeEmpty": "No trained exercises in this period. Volume becomes available after completing your first loaded sets.",
   "volumeUnavailableMode": "Volume in kg is unavailable for this mode. Bodyweight, assistance and duration are not added to external load.",
   "sessionsPerWeek": "Workouts / week in this period",

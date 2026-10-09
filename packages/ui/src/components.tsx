@@ -53,6 +53,8 @@ export function Screen({
   footer,
   dismissKeyboardLabel,
   contentStyle,
+  surfaceStyle,
+  footerStyle,
 }: {
   children: ReactNode;
   bottomInset?: boolean;
@@ -60,6 +62,8 @@ export function Screen({
   footer?: ReactNode;
   dismissKeyboardLabel?: string;
   contentStyle?: StyleProp<ViewStyle>;
+  surfaceStyle?: StyleProp<ViewStyle>;
+  footerStyle?: StyleProp<ViewStyle>;
 }) {
   const { width, height } = useWindowDimensions();
   const scroll = useRef<ScrollView>(null);
@@ -125,7 +129,7 @@ export function Screen({
   }, [keyboardAware, reveal]);
   return (
     <SafeAreaView
-      style={styles.screen}
+      style={[styles.screen, surfaceStyle]}
       edges={
         bottomInset
           ? ['top', 'bottom', 'left', 'right']
@@ -165,7 +169,7 @@ export function Screen({
             </ScrollView>
           </View>
           {footer || (keyboardVisible && dismissKeyboardLabel) ? (
-            <View style={styles.footer}>
+            <View style={[styles.footer, footerStyle]}>
               {keyboardVisible && dismissKeyboardLabel ? (
                 <Button
                   label={dismissKeyboardLabel}

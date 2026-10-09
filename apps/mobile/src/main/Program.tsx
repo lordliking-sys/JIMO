@@ -103,13 +103,8 @@ export function MainProgram() {
           <Pressable
             testID="program-header-action"
             accessibilityRole="button"
-            accessibilityLabel={`${t('programs:open')} ${program.name}`}
-            onPress={() =>
-              router.push({
-                pathname: '/program/[id]',
-                params: { id: program.id },
-              })
-            }
+            accessibilityLabel={t('programs:managePrograms')}
+            onPress={() => router.push('/program/manage')}
             style={({ pressed }) => ({
               position: 'absolute',
               right: 0,

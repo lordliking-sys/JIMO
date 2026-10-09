@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  BackHandler,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import type { KeyboardTypeOptions } from 'react-native';
 import Minus from 'lucide-react-native/icons/minus';
 import Plus from 'lucide-react-native/icons/plus';
@@ -7,6 +14,7 @@ import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { colors, IconButton, radius, sizes, spacing, Text } from '@jimo/ui';
 import { FocusInput } from './components';
+import { useProgramPresentation, programInk } from './presentation';
 
 export function Choice({
   label,
@@ -19,6 +27,7 @@ export function Choice({
   onPress: () => void;
   accessibilityLabel?: string;
 }) {
+  const visual = useProgramPresentation();
   return (
     <Pressable
       accessibilityRole="button"
@@ -29,15 +38,37 @@ export function Choice({
       style={({ pressed }) => [
         styles.choice,
         {
-          borderColor: selected ? colors.activeBorder : colors.border,
-          backgroundColor: selected ? colors.elevated : colors.surface,
+          borderColor: visual
+            ? selected
+              ? programInk.green
+              : programInk.border
+            : selected
+              ? colors.activeBorder
+              : colors.border,
+          backgroundColor: visual
+            ? selected
+              ? programInk.green
+              : 'rgba(250,242,223,0.5)'
+            : selected
+              ? colors.elevated
+              : colors.surface,
+          ...(visual ? { paddingHorizontal: 12, borderRadius: 7 } : {}),
           opacity: pressed ? 0.7 : 1,
         },
       ]}
     >
       <Text
         variant="label"
-        color={selected ? colors.primarySoft : colors.secondary}
+        color={
+          visual
+            ? selected
+              ? programInk.paper
+              : programInk.secondary
+            : selected
+              ? colors.primarySoft
+              : colors.secondary
+        }
+        style={visual ? { fontSize: 12 } : {}}
       >
         {label}
       </Text>
@@ -59,6 +90,7 @@ export function NumberControl({
   prefix = '',
   unit = '',
   manualLabel,
+  displayLabel,
 }: {
   label: string;
   value: string;
@@ -73,9 +105,21 @@ export function NumberControl({
   prefix?: string;
   unit?: string;
   manualLabel?: string;
+  displayLabel?: string;
 }) {
   const { t } = useTranslation('programs');
   const [editing, setEditing] = useState(false);
+  const visual = useProgramPresentation(),
+    controlColor = visual ? programInk.charcoal : colors.text;
+  useEffect(() => {
+    if (!editing || !visual) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      Keyboard.dismiss();
+      setEditing(false);
+      return true;
+    });
+    return () => sub.remove();
+  }, [editing, visual]);
   const finish = () => {
     Keyboard.dismiss();
     setEditing(false);
@@ -88,8 +132,13 @@ export function NumberControl({
       .replace(',', '.')
       .replace(/(\.\d*?)0+$/, '$1')
       .replace(/\.$/, '');
-  const chips = presets.length ? (
-    <View style={styles.choices}>
+  const chipsBody = presets.length ? (
+    <View
+      style={[
+        styles.choices,
+        visual && { flexWrap: 'nowrap', alignItems: 'center' },
+      ]}
+    >
       {presets.map((preset) => (
         <Choice
           key={preset.value}
@@ -106,71 +155,139 @@ export function NumberControl({
       ))}
     </View>
   ) : null;
+  const chips =
+    visual && chipsBody ? (
+      <ScrollView
+        horizontal
+        style={{ flexGrow: 0, flexShrink: 0 }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ alignItems: 'center' }}
+      >
+        {chipsBody}
+      </ScrollView>
+    ) : (
+      chipsBody
+    );
+  const compact = visual && !editing;
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text variant="label">{label}</Text>
+      {!compact ? (
+        <Text
+          variant="label"
+          color={visual ? programInk.charcoal : colors.text}
+        >
+          {displayLabel ?? label}
+        </Text>
+      ) : null}
       {presetsFirst ? chips : null}
-      <View style={styles.control}>
-        <IconButton
-          icon={<Minus size={sizes.icon} color={colors.text} />}
-          label={`${t('decrease')} ${label}`}
-          disabled={!value.trim() || (valid && current <= min)}
-          onPress={() => onStep(-1)}
-        />
-        {editing ? (
-          <FocusInput
-            accessibilityLabel={label}
-            accessibilityHint={t('numberHint')}
-            value={value}
-            onChangeText={onChange}
-            keyboardType={keyboardType}
-            placeholder="—"
-            style={styles.value}
-            autoFocus
-            onSubmitEditing={finish}
-          />
-        ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={manualLabel ?? t('manualValue', { label })}
-            accessibilityHint={t('numberHint')}
-            accessibilityValue={{ text: value || t('unspecified') }}
-            onPress={() => setEditing(true)}
-            style={[styles.display, { flex: 1 }]}
+      <View
+        style={{
+          flexDirection: compact ? 'row' : 'column',
+          alignItems: compact ? 'center' : 'stretch',
+          gap: 8,
+        }}
+      >
+        {compact ? (
+          <Text
+            variant="label"
+            color={programInk.charcoal}
+            style={{ flex: 1, minWidth: 0, fontSize: 13 }}
           >
-            <Text
-              variant="h3"
-              color={value ? colors.primarySoft : colors.secondary}
-              style={{ textAlign: 'center' }}
+            {displayLabel ?? label}
+          </Text>
+        ) : null}
+        <View
+          style={[
+            styles.control,
+            visual && {
+              gap: 0,
+              borderWidth: 1,
+              borderColor: programInk.border,
+              borderRadius: 7,
+              backgroundColor: 'rgba(250,242,223,0.65)',
+            },
+            compact && { width: 164 },
+          ]}
+        >
+          <IconButton
+            icon={<Minus size={sizes.icon} color={controlColor} />}
+            label={`${t('decrease')} ${label}`}
+            disabled={!value.trim() || (valid && current <= min)}
+            onPress={() => onStep(-1)}
+          />
+          {editing ? (
+            <FocusInput
+              accessibilityLabel={label}
+              accessibilityHint={t('numberHint')}
+              value={value}
+              onChangeText={onChange}
+              keyboardType={keyboardType}
+              placeholder="—"
+              style={styles.value}
+              autoFocus
+              onSubmitEditing={finish}
+            />
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={manualLabel ?? t('manualValue', { label })}
+              accessibilityHint={t('numberHint')}
+              accessibilityValue={{ text: value || t('unspecified') }}
+              onPress={() => setEditing(true)}
+              style={[
+                styles.display,
+                { flex: 1 },
+                visual && {
+                  backgroundColor: 'transparent',
+                  paddingHorizontal: 0,
+                },
+              ]}
             >
-              {value ? `${prefix}${value}${unit ? ` ${unit}` : ''}` : '—'}
-            </Text>
-            {manualLabel ? (
               <Text
-                variant="caption"
-                color={colors.secondary}
+                variant="h3"
+                color={
+                  visual
+                    ? programInk.charcoal
+                    : value
+                      ? colors.primarySoft
+                      : colors.secondary
+                }
                 style={{ textAlign: 'center' }}
               >
-                {manualLabel}
+                {value ? `${prefix}${value}${unit ? ` ${unit}` : ''}` : '—'}
               </Text>
-            ) : null}
-          </Pressable>
-        )}
-        <IconButton
-          icon={<Plus size={sizes.icon} color={colors.text} />}
-          label={`${t('increase')} ${label}`}
-          disabled={valid && max !== undefined && current >= max}
-          onPress={() => onStep(1)}
-        />
-        {editing ? (
+              {manualLabel ? (
+                <Text
+                  variant="caption"
+                  color={visual ? programInk.secondary : colors.secondary}
+                  style={{ textAlign: 'center' }}
+                >
+                  {manualLabel}
+                </Text>
+              ) : null}
+            </Pressable>
+          )}
           <IconButton
-            label={t('confirmValue', { label })}
-            icon={<Check color={colors.primary} size={sizes.icon} />}
-            onPress={finish}
+            icon={<Plus size={sizes.icon} color={controlColor} />}
+            label={`${t('increase')} ${label}`}
+            disabled={valid && max !== undefined && current >= max}
+            onPress={() => onStep(1)}
           />
-        ) : null}
+          {editing ? (
+            <IconButton
+              label={t('confirmValue', { label })}
+              icon={
+                <Check
+                  color={visual ? programInk.green : colors.primary}
+                  size={sizes.icon}
+                />
+              }
+              onPress={finish}
+            />
+          ) : null}
+        </View>
       </View>
-      {hint ? (
+      {hint && !visual ? (
         <Text variant="caption" color={colors.secondary}>
           {hint}
         </Text>

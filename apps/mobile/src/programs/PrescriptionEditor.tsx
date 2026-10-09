@@ -23,6 +23,8 @@ import {
   stepInteger,
   loadFields,
 } from './helpers';
+import { ProgramButton, programInk } from './presentation';
+import type { Href } from 'expo-router';
 import { NumberControl, Choice, choiceStyles } from './NumberControl';
 export function PrescriptionEditor({
   save,
@@ -32,9 +34,13 @@ export function PrescriptionEditor({
   initial,
   mappingAction,
   preserveMissing = false,
+  presentation = false,
+  fallback,
 }: {
   mappingAction?: ReactNode;
   preserveMissing?: boolean;
+  presentation?: boolean;
+  fallback?: Href;
   save: (input: Prescription) => void;
   pending: boolean;
   error: unknown;
@@ -187,162 +193,306 @@ export function PrescriptionEditor({
       setInvalid(true);
     }
   };
+  const SaveButton = presentation ? ProgramButton : Button;
   return (
     <FormScreen
+      presentation={presentation}
+      {...(fallback ? { fallback } : {})}
+      background="structure"
       invalid={invalid}
       footer={
-        <Button
+        <SaveButton
           label={t(initial ? 'saveChanges' : 'saveExercise')}
           busy={pending}
           onPress={submit}
         />
       }
     >
-      <FormHeader
-        title={exercise.displayName}
-        subtitle={t('exerciseSubtitle')}
-      />
-      {mappingAction}
-      <FormSection>
-        <Text variant="label">{t('mode')}</Text>
-        <View style={choiceStyles.row}>
-          {loadModes.map((value) => (
-            <Choice
-              key={value}
-              label={t(`loadModes.${value}`)}
-              selected={mode === value}
-              onPress={() => {
-                if (value !== mode) {
-                  setMode(value);
-                  setWeight('');
-                }
-              }}
-            />
-          ))}
-        </View>
-        {mode === 'weighted' ? (
-          <Text variant="caption" color={colors.secondary}>
-            {t('weightedHint')}
-          </Text>
-        ) : null}
-        {mode === 'assisted' ? (
-          <Text variant="caption" color={colors.secondary}>
-            {t('assistedHint')}
-          </Text>
-        ) : null}
-        {mode && mode !== 'bodyweight'
-          ? decimalControl(
-              t(
-                mode === 'weighted'
-                  ? 'addedLoad'
-                  : mode === 'assisted'
-                    ? 'assistance'
-                    : 'load',
-              ),
-              weight,
-              setWeight,
-              2,
-            )
-          : null}
-      </FormSection>
-      <FormSection>
-        <Text variant="label" color={colors.secondary}>
-          {t('volume')}
-        </Text>
-        {integerControl(t('sets'), sets, setSets, {
-          min: 1,
-          max: 100,
-          step: 1,
-          initial: 3,
-        })}
-        {exercise.trackingMode === 'duration' ? (
-          integerControl(t('duration'), duration, setDuration, {
+      {presentation ? (
+        <>
+          <FormHeader title={t(initial ? 'editExercise' : 'addExercise')} />
+          <Field
+            label={t('exerciseName')}
+            value={exercise.displayName}
+            editable={false}
+          />
+          {mappingAction}
+          {integerControl(t('sets'), sets, setSets, {
             min: 1,
-            max: 86400,
-            step: 15,
-            initial: 60,
-          })
-        ) : (
-          <>
-            <Text variant="label">{t('repsType')}</Text>
+            max: 100,
+            step: 1,
+            initial: 3,
+          })}
+          {exercise.trackingMode === 'duration' ? (
+            integerControl(t('duration'), duration, setDuration, {
+              min: 1,
+              max: 86400,
+              step: 15,
+              initial: 60,
+            })
+          ) : (
+            <>
+              <Text variant="label" color={programInk.charcoal}>
+                {t('repsType')}
+              </Text>
+              <View style={choiceStyles.row}>
+                <Choice
+                  label={t('range')}
+                  selected={kind === 'range'}
+                  onPress={() => setKind('range')}
+                />
+                <Choice
+                  label={t('fixed')}
+                  selected={kind === 'fixed'}
+                  onPress={() => setKind('fixed')}
+                />
+              </View>
+              {kind === 'fixed' ? (
+                integerControl(t('reps'), reps, setReps)
+              ) : (
+                <>
+                  {integerControl(t('repMin'), min, setMin)}
+                  {integerControl(t('repMax'), max, setMax)}
+                </>
+              )}
+            </>
+          )}
+          <Text variant="label" color={programInk.charcoal}>
+            {t('mode')}
+          </Text>
+          <View style={choiceStyles.row}>
+            {loadModes.map((value) => (
+              <Choice
+                key={value}
+                label={t(`loadModes.${value}`)}
+                selected={mode === value}
+                onPress={() => {
+                  if (value !== mode) {
+                    setMode(value);
+                    setWeight('');
+                  }
+                }}
+              />
+            ))}
+          </View>
+          {mode === 'weighted' ? (
+            <Text variant="caption" color={programInk.secondary}>
+              {t('weightedHint')}
+            </Text>
+          ) : null}
+          {mode === 'assisted' ? (
+            <Text variant="caption" color={programInk.secondary}>
+              {t('assistedHint')}
+            </Text>
+          ) : null}
+          {mode && mode !== 'bodyweight'
+            ? decimalControl(
+                t(
+                  mode === 'weighted'
+                    ? 'addedLoad'
+                    : mode === 'assisted'
+                      ? 'assistance'
+                      : 'load',
+                ),
+                weight,
+                setWeight,
+                2,
+              )
+            : null}
+          <NumberControl
+            label={t('rest')}
+            displayLabel={t('restShort')}
+            value={rest}
+            onChange={setRest}
+            min={0}
+            max={86400}
+            unit={t('secondsShort')}
+            manualLabel={t('customRest')}
+            onStep={(direction) => {
+              try {
+                setRest(
+                  stepInteger(rest, direction, {
+                    min: 0,
+                    max: 86400,
+                    step: 30,
+                    initial: 60,
+                  }),
+                );
+                setInvalid(false);
+              } catch {
+                setInvalid(true);
+              }
+            }}
+            presets={[
+              { value: '', label: t('unspecified') },
+              ...[30, 60, 90, 120, 180].map((seconds) => ({
+                value: String(seconds),
+                label:
+                  seconds < 120
+                    ? `${seconds} ${t('secondsShort')}`
+                    : `${seconds / 60}:00`,
+              })),
+            ]}
+          />
+          {decimalControl(t('rpe'), rpeValue, setRpe, 1)}
+          <Field
+            label={t('notes')}
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            maxLength={2000}
+            placeholder={t('notesPlaceholder')}
+          />
+        </>
+      ) : (
+        <>
+          <FormHeader
+            title={exercise.displayName}
+            subtitle={t('exerciseSubtitle')}
+          />
+          {mappingAction}
+          <FormSection>
+            <Text variant="label">{t('mode')}</Text>
             <View style={choiceStyles.row}>
-              <Choice
-                label={t('fixed')}
-                selected={kind === 'fixed'}
-                onPress={() => setKind('fixed')}
-              />
-              <Choice
-                label={t('range')}
-                selected={kind === 'range'}
-                onPress={() => setKind('range')}
-              />
+              {loadModes.map((value) => (
+                <Choice
+                  key={value}
+                  label={t(`loadModes.${value}`)}
+                  selected={mode === value}
+                  onPress={() => {
+                    if (value !== mode) {
+                      setMode(value);
+                      setWeight('');
+                    }
+                  }}
+                />
+              ))}
             </View>
-            {kind === 'fixed' ? (
-              integerControl(t('reps'), reps, setReps)
+            {mode === 'weighted' ? (
+              <Text variant="caption" color={colors.secondary}>
+                {t('weightedHint')}
+              </Text>
+            ) : null}
+            {mode === 'assisted' ? (
+              <Text variant="caption" color={colors.secondary}>
+                {t('assistedHint')}
+              </Text>
+            ) : null}
+            {mode && mode !== 'bodyweight'
+              ? decimalControl(
+                  t(
+                    mode === 'weighted'
+                      ? 'addedLoad'
+                      : mode === 'assisted'
+                        ? 'assistance'
+                        : 'load',
+                  ),
+                  weight,
+                  setWeight,
+                  2,
+                )
+              : null}
+          </FormSection>
+          <FormSection>
+            <Text variant="label" color={colors.secondary}>
+              {t('volume')}
+            </Text>
+            {integerControl(t('sets'), sets, setSets, {
+              min: 1,
+              max: 100,
+              step: 1,
+              initial: 3,
+            })}
+            {exercise.trackingMode === 'duration' ? (
+              integerControl(t('duration'), duration, setDuration, {
+                min: 1,
+                max: 86400,
+                step: 15,
+                initial: 60,
+              })
             ) : (
               <>
-                {integerControl(t('repMin'), min, setMin)}
-                {integerControl(t('repMax'), max, setMax)}
+                <Text variant="label">{t('repsType')}</Text>
+                <View style={choiceStyles.row}>
+                  <Choice
+                    label={t('fixed')}
+                    selected={kind === 'fixed'}
+                    onPress={() => setKind('fixed')}
+                  />
+                  <Choice
+                    label={t('range')}
+                    selected={kind === 'range'}
+                    onPress={() => setKind('range')}
+                  />
+                </View>
+                {kind === 'fixed' ? (
+                  integerControl(t('reps'), reps, setReps)
+                ) : (
+                  <>
+                    {integerControl(t('repMin'), min, setMin)}
+                    {integerControl(t('repMax'), max, setMax)}
+                  </>
+                )}
               </>
             )}
-          </>
-        )}
-      </FormSection>
-      <FormSection>
-        <Text variant="label" color={colors.secondary}>
-          {t('intensity')}
-        </Text>
-        {decimalControl(t('rpe'), rpeValue, setRpe, 1)}
-      </FormSection>
-      <FormSection>
-        <Text variant="label" color={colors.secondary}>
-          {t('recovery')}
-        </Text>
-        <NumberControl
-          label={t('rest')}
-          value={rest}
-          onChange={setRest}
-          min={0}
-          max={86400}
-          hint={t('restHint')}
-          presetsFirst
-          unit={t('secondsShort')}
-          manualLabel={t('customRest')}
-          onStep={(direction) => {
-            try {
-              setRest(
-                stepInteger(rest, direction, {
-                  min: 0,
-                  max: 86400,
-                  step: 30,
-                  initial: 60,
-                }),
-              );
-              setInvalid(false);
-            } catch {
-              setInvalid(true);
-            }
-          }}
-          presets={[
-            { value: '', label: t('unspecified') },
-            ...[30, 60, 90, 120, 180].map((seconds) => ({
-              value: String(seconds),
-              label:
-                seconds < 120
-                  ? `${seconds} ${t('secondsShort')}`
-                  : `${seconds / 60}:00`,
-            })),
-          ]}
-        />
-        <Field
-          label={t('notes')}
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          maxLength={2000}
-          placeholder={t('notesPlaceholder')}
-        />
-      </FormSection>
+          </FormSection>
+          <FormSection>
+            <Text variant="label" color={colors.secondary}>
+              {t('intensity')}
+            </Text>
+            {decimalControl(t('rpe'), rpeValue, setRpe, 1)}
+          </FormSection>
+          <FormSection>
+            <Text variant="label" color={colors.secondary}>
+              {t('recovery')}
+            </Text>
+            <NumberControl
+              label={t('rest')}
+              value={rest}
+              onChange={setRest}
+              min={0}
+              max={86400}
+              hint={t('restHint')}
+              presetsFirst
+              unit={t('secondsShort')}
+              manualLabel={t('customRest')}
+              onStep={(direction) => {
+                try {
+                  setRest(
+                    stepInteger(rest, direction, {
+                      min: 0,
+                      max: 86400,
+                      step: 30,
+                      initial: 60,
+                    }),
+                  );
+                  setInvalid(false);
+                } catch {
+                  setInvalid(true);
+                }
+              }}
+              presets={[
+                { value: '', label: t('unspecified') },
+                ...[30, 60, 90, 120, 180].map((seconds) => ({
+                  value: String(seconds),
+                  label:
+                    seconds < 120
+                      ? `${seconds} ${t('secondsShort')}`
+                      : `${seconds / 60}:00`,
+                })),
+              ]}
+            />
+            <Field
+              label={t('notes')}
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+              maxLength={2000}
+              placeholder={t('notesPlaceholder')}
+            />
+          </FormSection>
+        </>
+      )}
       {error ? <ErrorNotice error={error} /> : null}
     </FormScreen>
   );

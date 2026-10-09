@@ -1,3 +1,8 @@
+import {
+  useProgramPresentation,
+  programInk,
+  ProgramButton,
+} from './presentation';
 import { useState } from 'react';
 import { Keyboard, Modal, Platform, Pressable, View } from 'react-native';
 import DateTimePicker, {
@@ -21,6 +26,18 @@ export function DateField({
   onChange: (value: string) => void;
 }) {
   const { t, i18n } = useTranslation('programs');
+  const visual = useProgramPresentation(),
+    palette = visual
+      ? {
+          ...colors,
+          text: programInk.charcoal,
+          secondary: programInk.secondary,
+          primary: programInk.green,
+          border: programInk.border,
+          elevated: 'rgba(250,242,223,0.55)',
+        }
+      : colors,
+    ActionButton = visual ? ProgramButton : Button;
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(new Date());
   const choose = () => {
@@ -42,7 +59,9 @@ export function DateField({
   };
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text variant="label">{t('startsOn')}</Text>
+      <Text variant="label" color={palette.text}>
+        {t('startsOn')}
+      </Text>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${t('startsOn')}: ${value ? calendarDateLabel(value, i18n.language) : t('chooseDate')}`}
@@ -54,25 +73,26 @@ export function DateField({
             flexDirection: 'row',
             alignItems: 'center',
             gap: spacing.md,
-            borderColor: pressed ? colors.primary : colors.border,
+            borderColor: pressed ? palette.primary : palette.border,
+            backgroundColor: palette.elevated,
           },
         ]}
       >
         <CalendarDays
           size={22}
-          color={colors.secondary}
+          color={palette.secondary}
           accessibilityElementsHidden
           importantForAccessibility="no"
         />
         <Text
           style={{ flex: 1 }}
-          color={value ? colors.text : colors.secondary}
+          color={value ? palette.text : palette.secondary}
         >
           {value ? calendarDateLabel(value, i18n.language) : t('chooseDate')}
         </Text>
       </Pressable>
       {value ? (
-        <Button
+        <ActionButton
           variant="secondary"
           label={t('clearDate')}
           onPress={() => onChange('')}
@@ -85,28 +105,40 @@ export function DateField({
         onRequestClose={() => setOpen(false)}
       >
         <View style={styles.overlay}>
-          <Card accessibilityViewIsModal>
-            <Text variant="h3">{t('startsOn')}</Text>
+          <Card
+            accessibilityViewIsModal
+            style={
+              visual
+                ? {
+                    backgroundColor: programInk.paper,
+                    borderColor: programInk.border,
+                  }
+                : {}
+            }
+          >
+            <Text variant="h3" color={palette.text}>
+              {t('startsOn')}
+            </Text>
             <DateTimePicker
               value={draft}
               mode="date"
               accessibilityLabel={t('startsOn')}
               display="inline"
-              themeVariant="dark"
-              accentColor={colors.primary}
+              themeVariant={visual ? 'light' : 'dark'}
+              accentColor={palette.primary}
               locale={i18n.language}
               onChange={(_event, selected) => {
                 if (selected) setDraft(selected);
               }}
             />
-            <Button
+            <ActionButton
               label={t('confirm')}
               onPress={() => {
                 onChange(calendarDateValue(draft));
                 setOpen(false);
               }}
             />
-            <Button
+            <ActionButton
               variant="secondary"
               label={t('cancel')}
               onPress={() => setOpen(false)}

@@ -12,7 +12,26 @@ async function setManual(page: Page, label: string, value: string) {
     page.getByRole('textbox', { name: label, exact: true }),
   ).toHaveCount(0);
 }
+async function structure(page: Page) {
+  if (page.url().includes('/day-detail'))
+    await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+}
+async function openDay(page: Page, name: string) {
+  if (page.url().includes('/day-detail')) {
+    if (
+      (await page.getByRole('heading').allTextContents()).some((text) =>
+        text.endsWith(name),
+      )
+    )
+      return;
+    await structure(page);
+  }
+  await page
+    .getByRole('button', { name: `Apri giornata ${name}`, exact: true })
+    .click();
+}
 async function addDay(page: Page, name: string, weekday: string) {
+  await structure(page);
   await page
     .getByRole('button', { name: '+ Aggiungi giorno', exact: true })
     .click();
@@ -42,12 +61,8 @@ async function addExercise(
   weight: string,
   rest: string,
 ) {
-  const section = page
-    .getByRole('heading', { name: day, exact: true })
-    .locator('..')
-    .locator('..')
-    .locator('..');
-  await section
+  await openDay(page, day);
+  await page
     .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
     .click();
   await page
@@ -127,6 +142,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
     '70',
     '2:00',
   );
+  await structure(page);
   await page.reload();
   await expect(
     page.getByRole('heading', { name: 'FORZA', exact: true }),
@@ -144,14 +160,18 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
     '4 × 8 · +20 kg',
     '4 × 10 · 70 kg',
   ];
-  for (const text of summaries)
-    await expect(page.getByText(text, { exact: true })).toBeVisible();
-  await expect(
-    page.getByText('RPE 8 · Recupero 3:00', { exact: true }),
-  ).toHaveCount(2);
-  await expect(
-    page.getByText('RPE 8 · Recupero 2:00', { exact: true }),
-  ).toHaveCount(2);
+  for (const [index, day] of ['PUSH', 'PULL'].entries()) {
+    await openDay(page, day);
+    for (const text of summaries.slice(index * 2, index * 2 + 2))
+      await expect(page.getByText(text, { exact: true })).toBeVisible();
+    await expect(
+      page.getByText('RPE 8 · Recupero 3:00', { exact: true }),
+    ).toHaveCount(1);
+    await expect(
+      page.getByText('RPE 8 · Recupero 2:00', { exact: true }),
+    ).toHaveCount(1);
+    await structure(page);
+  }
   expect(fixture.program.days.map((day) => day.dayOfWeek)).toEqual([1, 5]);
   expect(
     fixture.program.days.map((day) =>
@@ -178,7 +198,8 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await expect(
     page.getByRole('button', { name: 'Archivia programma', exact: true }),
   ).toHaveCount(0);
-  for (const width of [320, 390, 430]) {
+  await openDay(page, 'PUSH');
+  for (const width of [320, 390, 393, 430]) {
     await page.setViewportSize({ width, height: 844 });
     expect(
       await page.evaluate(
@@ -191,11 +212,13 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
       expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(48);
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await structure(page);
   // Capture the content at the top of the builder rather than an administrative action stack.
   await page
     .getByRole('heading', { name: 'FORZA', exact: true })
     .scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('forza-builder.png') });
+  await openDay(page, 'PUSH');
   await page
     .getByRole('button', {
       name: 'Modifica esercizio Panca piana',
@@ -221,7 +244,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
     expect(field!.y).toBeGreaterThanOrEqual(0);
     expect(field!.y + field!.height).toBeLessThanOrEqual(footer!.y);
     expect(footer!.y + footer!.height).toBeLessThanOrEqual(430);
-  }).toPass();
+  }).toPass({ timeout: 10000 });
   await page
     .getByRole('button', { name: 'Conferma Carico (kg)', exact: true })
     .click();
@@ -246,6 +269,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
     targetRpe: '8.5',
     notes: 'Tempo 3-1-1',
   });
+  await structure(page);
   await page
     .getByRole('button', { name: 'Attiva programma', exact: true })
     .click();
@@ -268,10 +292,13 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await page.getByRole('button', { name: 'Conferma', exact: true }).click();
   await expect(page.getByText('ARCHIVIATO', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  if (page.url().includes('/manage'))
+    await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
+  await page.getByRole('button', { name: /Lingua/ }).click();
   await page.getByRole('radio', { name: 'English', exact: true }).click();
   await page.getByRole('tab', { name: 'Program', exact: true }).click();
-  await page.getByRole('button', { name: 'Open FORZA', exact: true }).click();
+  await page.getByRole('button', { name: /^Open FORZA, / }).click();
   await expect(
     page.getByText('8 weeks · October 6, 2026', { exact: true }),
   ).toBeVisible();

@@ -337,7 +337,13 @@ test('four content tabs stay on one screen, preserve query state and use real ex
               .progressScreenNode,
         ),
     ).toBe(true);
+    await expect(page.getByRole('heading', { name, exact: true })).toHaveCount(
+      0,
+    );
     if (name === 'Volume') {
+      await expect(
+        page.getByRole('heading', { name: 'Per esercizio', exact: true }),
+      ).toBeVisible();
       await expect(
         page.getByText('577,5 kg·reps', { exact: true }),
       ).toBeVisible();

@@ -1,65 +1,41 @@
 import { PendingReview } from '../../src/imports/PendingReview';
 import { useImportFeature } from '../../src/features/useImportFeature';
 import { useRouter } from 'expo-router';
-import ArrowLeft from 'lucide-react-native/icons/arrow-left';
-import FileInput from 'lucide-react-native/icons/file-input';
-import PenLine from 'lucide-react-native/icons/pen-line';
-import Sparkles from 'lucide-react-native/icons/sparkles';
 import { useTranslation } from 'react-i18next';
-import { startMethods } from '@jimo/schemas';
-import { Button, Card, colors, IconButton, Screen, Text } from '@jimo/ui';
+import { Text } from '@jimo/ui';
+import {
+  ProgramScreen,
+  ProgramButton,
+  programInk,
+} from '../../src/programs/presentation';
+import { FormHeader } from '../../src/programs/components';
 export default function CreateProgramScreen() {
-  const importEnabled = useImportFeature();
-  const { t } = useTranslation();
-  const router = useRouter();
-  const icons = { ai: Sparkles, import: FileInput, manual: PenLine };
+  const importEnabled = useImportFeature(),
+    { t } = useTranslation(),
+    router = useRouter();
   return (
-    <Screen>
-      <IconButton
-        label={t('back')}
-        icon={<ArrowLeft color={colors.text} />}
-        onPress={() =>
-          router.canGoBack() ? router.back() : router.replace('/')
-        }
-      />
-      <Text variant="h1" accessibilityRole="header">
-        {t('program.createTitle')}
-      </Text>
-      <Text color={colors.secondary}>{t('program.createDescription')}</Text>
+    <ProgramScreen>
+      <FormHeader title={t('program.createTitle')} />
+      <Text color={programInk.secondary}>{t('program.createDescription')}</Text>
       <PendingReview />
-      {[...startMethods].reverse().map((method) => {
-        const Icon = icons[method];
-        return (
-          <Card key={method}>
-            <Icon
-              color={
-                method === 'manual' || (method === 'import' && importEnabled)
-                  ? colors.primary
-                  : colors.secondary
-              }
-              size={28}
-            />
-            <Text variant="h3">{t(`methods.${method}`)}</Text>
-            <Text color={colors.secondary}>
-              {t(`methodDescriptions.${method}`)}
-            </Text>
-            {method === 'manual' || (method === 'import' && importEnabled) ? (
-              <Button
-                label={t(`methods.${method}`)}
-                onPress={() =>
-                  router.push(
-                    method === 'manual' ? '/program/manual' : '/import',
-                  )
-                }
-              />
-            ) : (
-              <Text variant="label" color={colors.primarySoft}>
-                {t('comingSoon')}
-              </Text>
-            )}
-          </Card>
-        );
-      })}
-    </Screen>
+      <ProgramButton
+        label={t('methods.manual')}
+        onPress={() => router.push('/program/manual')}
+      />
+      <Text color={programInk.secondary}>
+        {t('methods.ai')} · {t('comingSoon')}
+      </Text>
+      {importEnabled ? (
+        <ProgramButton
+          variant="outline"
+          label={t('methods.import')}
+          onPress={() => router.push('/import')}
+        />
+      ) : (
+        <Text color={programInk.secondary}>
+          {t('methods.import')} · {t('comingSoon')}
+        </Text>
+      )}
+    </ProgramScreen>
   );
 }

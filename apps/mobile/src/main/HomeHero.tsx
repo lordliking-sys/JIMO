@@ -1,5 +1,6 @@
 import { View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 import { MainText } from './Surface';
 import { mainInk } from './theme';
 import type { greetingPeriod } from '../home/greeting';
@@ -25,6 +26,7 @@ export function HomeHero({
       }}
     >
       <View testID="home-hero-copy" style={{ maxWidth: compact ? 180 : 210 }}>
+        <HeroReadabilityWash testID="home-readability-wash" />
         <MainText
           testID="home-brand"
           style={{

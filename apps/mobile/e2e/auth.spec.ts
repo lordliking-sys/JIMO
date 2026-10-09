@@ -99,5 +99,7 @@ test('test auth verification and password reset screens keep errors and keyboard
     .getByRole('textbox', { name: 'Codice', exact: true })
     .fill('123456');
   await page.getByRole('button', { name: 'Verifica', exact: true }).click();
-  await expect(page.getByText('Nuova password', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Nuova password', exact: true }),
+  ).toBeVisible();
 });

@@ -261,7 +261,7 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
     page.getByRole('button', { name: 'Diminuisci Ripetizioni', exact: true }),
   ).toBeDisabled();
   await reps.fill('9');
-  for (const width of [320, 390, 430]) {
+  for (const width of [320, 390, 393, 430]) {
     await page.setViewportSize({ width, height: 844 });
     expect(
       await page.evaluate(

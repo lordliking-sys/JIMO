@@ -1,27 +1,33 @@
 import { View } from 'react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, Button, colors, spacing } from '@jimo/ui';
+import { spacing } from '@jimo/ui';
 import {
   programInputSchema,
   type ProgramInput,
   type ProgramSummary,
 } from '@jimo/schemas';
-import { Field, Back, ErrorNotice, FormScreen } from './components';
+import { Field, FormHeader, ErrorNotice, FormScreen } from './components';
 import { integerInput, stepInteger } from './helpers';
 import { NumberControl } from './NumberControl';
 import { DateField } from './DateField';
-import { ScreenHeader } from '../components/ScreenHeader';
+import { ProgramButton } from './presentation';
+import type { ReactNode } from 'react';
+import type { Href } from 'expo-router';
 export function ProgramForm({
   initial,
   save,
   pending,
   error,
+  actions,
+  fallback,
 }: {
   initial?: ProgramSummary;
   save: (input: ProgramInput) => void;
   pending: boolean;
   error: unknown;
+  actions?: ReactNode;
+  fallback?: Href;
 }) {
   const { t } = useTranslation('programs');
   const [name, setName] = useState(initial?.name ?? ''),
@@ -45,43 +51,42 @@ export function ProgramForm({
   };
   return (
     <FormScreen
+      presentation
+      {...(fallback ? { fallback } : {})}
       invalid={invalid}
       footer={
-        <Button
+        <ProgramButton
           label={t(initial ? 'save' : 'continue')}
           busy={pending}
           onPress={submit}
         />
       }
     >
-      <Back />
-      <ScreenHeader
-        title={t(initial ? 'editProgram' : 'manualTitle')}
-        subtitle={t('manualSubtitle')}
-      />
+      <FormHeader title={t(initial ? 'editProgram' : 'create')} />
       <View
         style={{
           gap: spacing.lg,
-          borderTopWidth: 1,
-          borderColor: colors.border,
-          paddingTop: spacing.lg,
         }}
       >
-        <Text variant="label" color={colors.secondary}>
-          {t('programDetails')}
-        </Text>
         <Field
           label={t('name')}
           value={name}
-          onChangeText={setName}
+          onChangeText={(value) => {
+            setName(value);
+            setInvalid(false);
+          }}
           maxLength={160}
           placeholder={t('namePlaceholder')}
           autoCapitalize="sentences"
+          {...(invalid && !name.trim() ? { error: t('requiredName') } : {})}
         />
         <Field
           label={t('description')}
           value={description}
-          onChangeText={setDescription}
+          onChangeText={(value) => {
+            setDescription(value);
+            setInvalid(false);
+          }}
           multiline
           maxLength={2000}
           placeholder={t('descriptionPlaceholder')}
@@ -90,23 +95,22 @@ export function ProgramForm({
       <View
         style={{
           gap: spacing.lg,
-          borderTopWidth: 1,
-          borderColor: colors.border,
-          paddingTop: spacing.lg,
         }}
       >
-        <Text variant="label" color={colors.secondary}>
-          {t('schedule')}
-        </Text>
         <NumberControl
           label={t('weeks')}
+          displayLabel={t('durationShort')}
           value={weeks}
-          onChange={setWeeks}
+          onChange={(value) => {
+            setWeeks(value);
+            setInvalid(false);
+          }}
           min={1}
           max={520}
           hint={t('weeksHint')}
           onStep={(direction) => {
             try {
+              setInvalid(false);
               setWeeks(
                 stepInteger(weeks, direction, { min: 1, max: 520, initial: 4 }),
               );
@@ -122,8 +126,15 @@ export function ProgramForm({
             })),
           ]}
         />
-        <DateField value={starts} onChange={setStarts} />
+        <DateField
+          value={starts}
+          onChange={(value) => {
+            setStarts(value);
+            setInvalid(false);
+          }}
+        />
       </View>
+      {actions}
       {error ? <ErrorNotice error={error} /> : null}
     </FormScreen>
   );

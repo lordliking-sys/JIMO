@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { dayInputSchema, type DayDto, type DayInput } from '@jimo/schemas';
-import { Button, Text, colors } from '@jimo/ui';
+import { Text } from '@jimo/ui';
+import { ProgramButton, programInk } from '../../../src/programs/presentation';
 import {
   useProgram,
   useProgramMutation,
@@ -34,9 +35,11 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
   );
   return (
     <FormScreen
-      invalid={invalid}
+      presentation
+      background="structure"
+      fallback={{ pathname: '/program/[id]', params: { id } }}
       footer={
-        <Button
+        <ProgramButton
           label={t('saveDay')}
           busy={mutation.isPending}
           onPress={() => {
@@ -48,7 +51,15 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
                 notes: notes.trim() || null,
               });
               setInvalid(false);
-              mutation.mutate(input, { onSuccess: () => router.back() });
+              mutation.mutate(input, {
+                onSuccess: () =>
+                  router.canGoBack()
+                    ? router.back()
+                    : router.replace({
+                        pathname: '/program/[id]',
+                        params: { id },
+                      }),
+              });
             } catch {
               setInvalid(true);
             }
@@ -56,7 +67,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
         />
       }
     >
-      <FormHeader title={t(day ? 'editDay' : 'addDay')} />
+      <FormHeader title={t(day ? 'editDay' : 'newDay')} />
       <FormSection>
         <Field
           label={t('dayName')}
@@ -64,8 +75,11 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
           onChangeText={setName}
           maxLength={160}
           placeholder={t('dayPlaceholder')}
+          {...(invalid && !name.trim() ? { error: t('requiredName') } : {})}
         />
-        <Text variant="label">{t('weekday')}</Text>
+        <Text variant="label" color={programInk.charcoal}>
+          {t('weekday')}
+        </Text>
         <View style={choiceStyles.row}>
           {weekdayNumbers.map((number) => (
             <Choice
@@ -82,7 +96,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
             onPress={() => setWeekday('')}
           />
         </View>
-        <Text variant="caption" color={colors.secondary}>
+        <Text variant="caption" color={programInk.secondary}>
           {t('weekdayOptional')}
         </Text>
         <Field
@@ -103,6 +117,7 @@ export default function Day() {
   if (!query.data)
     return (
       <QueryState
+        presentation
         pending={query.isPending}
         error={query.error}
         retry={() => void query.refetch()}
@@ -112,6 +127,7 @@ export default function Day() {
   if (dayId && !day)
     return (
       <QueryState
+        presentation
         pending={false}
         error={new ApiClientError('NOT_FOUND', 404)}
         retry={() => void query.refetch()}

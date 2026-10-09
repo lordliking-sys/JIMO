@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import {
+  customExerciseInputSchema,
   programInputSchema,
   dayInputSchema,
   prescriptionFor,
@@ -66,6 +67,19 @@ export async function builderFixture(page: Page) {
       ? route.request().postDataJSON()
       : null;
     if (method !== 'GET') writes.push({ method, path, body });
+    if (path === '/exercises' && method === 'POST') {
+      const input = customExerciseInputSchema.parse(body);
+      const custom: ExerciseDto = {
+        id: randomUUID(),
+        displayName: input.name,
+        canonicalName: input.name,
+        trackingMode: input.trackingMode,
+        defaultLoadMode: input.defaultLoadMode ?? null,
+        isCustom: true,
+      };
+      catalog.push(custom);
+      return reply(custom);
+    }
     if (path === '/exercises' && method === 'GET') {
       const search = (url.searchParams.get('search') ?? '').toLowerCase();
       return reply({

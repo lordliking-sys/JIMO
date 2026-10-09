@@ -7,7 +7,7 @@ import {
   useProfileMenuAnchor,
 } from './Surface';
 import Settings from 'lucide-react-native/icons/settings';
-import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
+import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 import { artwork, ink } from './theme';
 import { ProfileAvatar } from './ProfileAvatar';
 
@@ -16,28 +16,7 @@ export function ProgressHero() {
     { width } = useWindowDimensions();
   return (
     <View style={{ paddingTop: 26, paddingLeft: 8, paddingBottom: 24 }}>
-      <Svg
-        pointerEvents="none"
-        accessible={false}
-        width={240}
-        height={90}
-        style={{ position: 'absolute', left: 0, top: 18 }}
-      >
-        <Defs>
-          <RadialGradient id="progress-title-paper" cx="50%" cy="50%" r="50%">
-            <Stop offset={0} stopColor={ink.paper} stopOpacity={0.95} />
-            <Stop offset={0.6} stopColor={ink.paper} stopOpacity={0.82} />
-            <Stop offset={1} stopColor={ink.paper} stopOpacity={0} />
-          </RadialGradient>
-        </Defs>
-        <Ellipse
-          cx={120}
-          cy={45}
-          rx={120}
-          ry={45}
-          fill="url(#progress-title-paper)"
-        />
-      </Svg>
+      <HeroReadabilityWash testID="progress-readability-wash" />
       <EditorialText
         accessibilityRole="header"
         style={{ fontSize: width < 360 ? 32 : 36, lineHeight: 44 }}

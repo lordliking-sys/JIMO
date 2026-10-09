@@ -24,6 +24,11 @@ import { hideAsync } from 'expo-splash-screen';
 import { StartupScreen } from '../components/StartupScreen';
 import { configureTokenProvider } from './tokens';
 import { isTestAuth } from './helpers';
+import {
+  basePasswordPolicy,
+  passwordPolicyFromClerk,
+  type PasswordPolicy,
+} from './password-policy';
 type Credentials = { email: string; password: string };
 export interface AuthSession {
   loaded: boolean;
@@ -42,6 +47,7 @@ export interface AuthSession {
   verifyReset(code: string): Promise<void>;
   resetPassword(password: string): Promise<void>;
   needsAuth: boolean;
+  passwordPolicy: PasswordPolicy;
 }
 const Context = createContext<AuthSession | null>(null);
 const subscribeHydration = () => () => {};
@@ -54,7 +60,8 @@ function check(result: { error: unknown }) {
 function ClerkSession({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
-  const { signOut } = useClerk();
+  const clerk = useClerk(),
+    { signOut } = clerk;
   const { signIn } = useSignIn();
   const { signUp } = useSignUp();
   const [needsAuth, setNeedsAuth] = useState(false);
@@ -78,6 +85,7 @@ function ClerkSession({ children }: { children: ReactNode }) {
     email: user?.primaryEmailAddress?.emailAddress ?? null,
     test: false,
     needsAuth,
+    passwordPolicy: passwordPolicyFromClerk(clerk),
     signOut: async () => {
       await signOut();
       setNeedsAuth(false);
@@ -164,6 +172,7 @@ function TestSession({ children }: { children: ReactNode }) {
       email: null,
       test: true,
       needsAuth: false,
+      passwordPolicy: basePasswordPolicy,
       signOut: async () => {
         sessionStorage.setItem('jimo.test.signedOut', 'true');
         setSignedIn(false);
