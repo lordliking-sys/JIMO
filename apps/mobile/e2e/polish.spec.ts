@@ -126,6 +126,7 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
   ).toBeVisible();
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
+  await page.getByRole('button', { name: 'Lingua', exact: true }).click();
   for (const name of ['Sistema', 'Italiano', 'English']) {
     const row = page.getByRole('radio', { name, exact: true });
     expect((await row.boundingBox())?.height).toBeGreaterThanOrEqual(48);

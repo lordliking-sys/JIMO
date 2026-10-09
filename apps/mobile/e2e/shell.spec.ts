@@ -162,12 +162,14 @@ test('complete onboarding, reload, change language and open program placeholders
   ).toBeVisible();
   await checkWidths(page);
   await page.getByText('Profile', { exact: true }).last().click();
+  await page.getByRole('button', { name: 'Language', exact: true }).click();
   await page.getByRole('radio', { name: 'Italiano', exact: true }).click();
   await expect(page.getByText('Lingua', { exact: true })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'it');
   await page.reload();
   await expect(page.getByText('Lingua', { exact: true })).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'it');
+  await page.getByRole('button', { name: 'Lingua', exact: true }).click();
   await page.getByRole('radio', { name: 'English', exact: true }).click();
   await expect(page.getByText('Language', { exact: true })).toBeVisible();
   await page.getByRole('radio', { name: 'System', exact: true }).click();

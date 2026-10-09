@@ -1,4 +1,6 @@
 import mainIt from './locales/it/main.json';
+import progressProfileIt from './locales/it/progress-profile.json';
+import progressProfileEn from './locales/en/progress-profile.json';
 import mainEn from './locales/en/main.json';
 import importsIt from './locales/it/imports.json';
 import importsEn from './locales/en/imports.json';
@@ -18,6 +20,7 @@ import enPrograms from './locales/en/programs.json';
 import itPrograms from './locales/it/programs.json';
 export const resources = {
   en: {
+    progressProfile: progressProfileEn,
     main: mainEn,
     imports: importsEn,
     auth: authEn,
@@ -29,6 +32,7 @@ export const resources = {
     navigation: enNavigation,
   },
   it: {
+    progressProfile: progressProfileIt,
     main: mainIt,
     imports: importsIt,
     auth: authIt,

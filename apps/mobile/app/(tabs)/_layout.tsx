@@ -14,8 +14,14 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { width, fontScale } = useWindowDimensions();
   const availableWidth = width - insets.left - insets.right;
-  const label = (text: string) =>
-    function TabLabel({ color }: { color: ColorValue }) {
+  const label = (text: string, emphasize = false) =>
+    function TabLabel({
+      color,
+      focused,
+    }: {
+      color: ColorValue;
+      focused: boolean;
+    }) {
       return (
         // Match the navigator's 5 px button padding without a fixed pixel width,
         // so captions resize with the tab immediately during rotation/layout.
@@ -32,6 +38,9 @@ export default function TabsLayout() {
               color,
               fontSize: availableWidth < 360 ? 12 : 13,
               textAlign: 'center',
+              ...(emphasize && focused
+                ? { fontFamily: 'Inter_600SemiBold' }
+                : {}),
               paddingHorizontal: spacing.xs / 2,
             }}
           >
@@ -44,11 +53,12 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={({ route }) => {
         const home = route.name === 'index',
-          styled = home || route.name === 'program';
+          light = home || route.name === 'progress' || route.name === 'profile',
+          styled = light || route.name === 'program';
         return {
           headerShown: false,
           tabBarActiveTintColor: styled
-            ? home
+            ? light
               ? mainInk.green
               : mainInk.sage
             : colors.primary,
@@ -56,14 +66,14 @@ export default function TabsLayout() {
           tabBarLabelPosition: 'below-icon',
           tabBarAllowFontScaling: true,
           tabBarInactiveTintColor: styled
-            ? home
+            ? light
               ? mainInk.charcoal
               : mainInk.muted
             : colors.secondary,
           tabBarActiveBackgroundColor: styled ? 'transparent' : colors.elevated,
           tabBarStyle: {
             backgroundColor: styled
-              ? home
+              ? light
                 ? mainInk.ivory
                 : mainInk.charcoal
               : colors.surface,
@@ -73,7 +83,7 @@ export default function TabsLayout() {
               insets.bottom,
             paddingBottom: Math.max(insets.bottom, spacing.sm),
             borderTopColor: styled
-              ? home
+              ? light
                 ? mainInk.paperBorder
                 : mainInk.border
               : colors.border,
@@ -83,7 +93,7 @@ export default function TabsLayout() {
             paddingVertical: spacing.xs,
           },
           sceneStyle: {
-            backgroundColor: home
+            backgroundColor: light
               ? mainInk.ivory
               : route.name === 'program'
                 ? mainInk.charcoal
@@ -126,7 +136,7 @@ export default function TabsLayout() {
         options={{
           title: t('progress'),
           tabBarAccessibilityLabel: t('progress'),
-          tabBarLabel: label(t('progress')),
+          tabBarLabel: label(t('progress'), true),
           tabBarIcon: ({ color }) => (
             <ChartNoAxesCombined size={sizes.tabIcon} color={color} />
           ),
@@ -137,7 +147,7 @@ export default function TabsLayout() {
         options={{
           title: t('profile'),
           tabBarAccessibilityLabel: t('profile'),
-          tabBarLabel: label(t('profile')),
+          tabBarLabel: label(t('profile'), true),
           tabBarIcon: ({ color }) => (
             <CircleUserRound size={sizes.tabIcon} color={color} />
           ),

@@ -200,6 +200,23 @@ for (const device of devices)
     ).toBeVisible();
     await noOverflow(page);
     await page.screenshot({ path: info.outputPath('home-reference.png') });
+    const homeScreen = page.getByTestId('home-main-screen'),
+      homeScroll = homeScreen.getByTestId('main-scroll');
+    await homeScroll.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    const upcomingRow = page.getByRole('button', {
+      name: 'Apri Panca piana',
+      exact: true,
+    });
+    await expect(upcomingRow).toBeInViewport({ ratio: 1 });
+    const lastRow = (await upcomingRow.boundingBox())!,
+      scrollFrame = (await homeScroll.boundingBox())!,
+      homeFrame = (await homeScreen.boundingBox())!;
+    expect(lastRow.y).toBeGreaterThanOrEqual(scrollFrame.y);
+    expect(
+      scrollFrame.y + scrollFrame.height - lastRow.y - lastRow.height,
+    ).toBeGreaterThanOrEqual(device.height - homeFrame.height + 23);
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
     await expect(
       page.getByTestId(`program-day-${fixture.program.days[3]!.id}`),
@@ -520,6 +537,78 @@ test('the initial current week is visible and stays visible after viewport chang
       })
       .toBe(true);
     await noOverflow(page);
+  }
+  expect(fixture.writes).toHaveLength(0);
+});
+
+test('week selection keeps adjacent context, avoids unnecessary movement and scrolls smoothly', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.clock.setFixedTime(new Date('2026-10-08T10:00:00Z'));
+  const fixture = await visualFixture(page);
+  fixture.program.durationWeeks = 12;
+  await page.goto('/program');
+  await expect(
+    page.getByRole('radio', { name: 'Settimana 1', exact: true }),
+  ).toBeChecked();
+  await expect(page.getByTestId('brand-transition')).toHaveCount(0);
+  const scroll = page.getByTestId('program-week-scroll');
+  const originalOffset = await scroll.evaluate((element) => element.scrollLeft);
+  await page.getByRole('radio', { name: 'Settimana 2', exact: true }).click();
+  await expect(
+    page.getByRole('radio', { name: 'Settimana 2', exact: true }),
+  ).toBeChecked();
+  expect(
+    await scroll.evaluate(async (element) => {
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+      return element.scrollLeft;
+    }),
+  ).toBe(originalOffset);
+  const positions = await scroll.evaluate(async (element) => {
+    const positions = [element.scrollLeft];
+    (
+      element.querySelector(
+        '[role="radio"][aria-label="Settimana 9"]',
+      ) as HTMLElement
+    ).click();
+    await new Promise<void>((resolve) => {
+      let frames = 0;
+      const sample = () => {
+        positions.push(element.scrollLeft);
+        if (++frames === 45) resolve();
+        else requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+    });
+    return positions;
+  });
+  expect(new Set(positions.map(Math.round)).size).toBeGreaterThan(3);
+  await expect(
+    page.getByRole('radio', { name: 'Settimana 9', exact: true }),
+  ).toBeChecked();
+  await expect
+    .poll(async () => {
+      const viewport = (await scroll.boundingBox())!,
+        selected = (await page
+          .getByRole('radio', { name: 'Settimana 9', exact: true })
+          .boundingBox())!;
+      return (
+        selected.x >= viewport.x &&
+        selected.x + selected.width <= viewport.x + viewport.width
+      );
+    })
+    .toBe(true);
+  const viewport = (await scroll.boundingBox())!;
+  for (const week of [8, 10]) {
+    const chip = (await page
+      .getByRole('radio', { name: `Settimana ${week}`, exact: true })
+      .boundingBox())!;
+    const visibleWidth =
+      Math.min(chip.x + chip.width, viewport.x + viewport.width) -
+      Math.max(chip.x, viewport.x);
+    expect(visibleWidth).toBeGreaterThanOrEqual(16);
   }
   expect(fixture.writes).toHaveLength(0);
 });

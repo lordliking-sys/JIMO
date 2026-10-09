@@ -194,7 +194,9 @@ test('Progress ranges, actual/PR mode detail, accessible charts, SQLite cached r
     return route.fallback();
   });
   await page.goto('/progress');
-  await expect(page.getByText('PANORAMICA', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('tab', { name: 'Panoramica', exact: true }),
+  ).toBeVisible();
   const periodControl = page.getByRole('radiogroup', {
     name: 'Periodo',
     exact: true,
@@ -215,6 +217,7 @@ test('Progress ranges, actual/PR mode detail, accessible charts, SQLite cached r
     );
   }
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('tab', { name: 'Frequenza', exact: true }).click();
   const historyControl = page.getByRole('radiogroup', {
     name: 'STORICO ALLENAMENTI',
     exact: true,
@@ -233,6 +236,7 @@ test('Progress ranges, actual/PR mode detail, accessible charts, SQLite cached r
   await expect(
     page.getByRole('radio', { name: '4 settimane', exact: true }),
   ).toHaveAttribute('aria-checked', 'true');
+  await page.getByRole('tab', { name: 'Forza', exact: true }).click();
   await page
     .getByRole('textbox', { name: 'Cerca esercizi allenati', exact: true })
     .fill('missing');
@@ -284,7 +288,9 @@ test('Progress ranges, actual/PR mode detail, accessible charts, SQLite cached r
       .first(),
   ).toBeVisible();
   await page.goto('/progress');
-  await expect(page.getByText('PANORAMICA', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('tab', { name: 'Panoramica', exact: true }),
+  ).toBeVisible();
   await expect(page.getByText(/Ultimo aggiornamento/).first()).toBeVisible();
   // Pending actual data must never be added to server analytics locally.
   await page.route('http://localhost:4301/sync/workout-operations', (route) =>

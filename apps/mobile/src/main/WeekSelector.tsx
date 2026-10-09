@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useReducedMotion } from 'react-native-reanimated';
 import { MainText } from './Surface';
 import { mainInk } from './theme';
 
@@ -16,18 +17,40 @@ export function WeekSelector({
   const { t } = useTranslation('main'),
     scroll = useRef<ScrollView>(null),
     chips = useRef(new Map<number, { x: number; width: number }>()),
+    offset = useRef(0),
+    requestedOffset = useRef<number | null>(null),
+    contentWidth = useRef(0),
+    previousSelection = useRef(selected),
+    reducedMotion = useReducedMotion(),
     [viewport, setViewport] = useState(0);
-  const revealSelected = useCallback(() => {
-    const chip = chips.current.get(selected);
-    if (!chip || !viewport) return;
-    scroll.current?.scrollTo({
-      x: Math.max(0, chip.x - (viewport - chip.width) / 2),
-      animated: false,
-    });
-  }, [selected, viewport]);
+  const revealSelected = useCallback(
+    (animated = false) => {
+      const chip = chips.current.get(selected);
+      if (!chip || !viewport || !contentWidth.current) return;
+      const position = requestedOffset.current ?? offset.current;
+      const start = Math.max(0, chip.x - 16),
+        end = Math.min(contentWidth.current, chip.x + chip.width + 16);
+      if (start >= position && end <= position + viewport) return;
+      const destination = Math.max(
+        0,
+        Math.min(
+          contentWidth.current - viewport,
+          chip.x - (viewport - chip.width) / 2,
+        ),
+      );
+      requestedOffset.current = destination;
+      scroll.current?.scrollTo({
+        x: destination,
+        animated,
+      });
+    },
+    [selected, viewport],
+  );
   useEffect(() => {
-    revealSelected();
-  }, [revealSelected]);
+    const changed = previousSelection.current !== selected;
+    previousSelection.current = selected;
+    revealSelected(changed && !reducedMotion);
+  }, [selected, reducedMotion, revealSelected]);
   return (
     <View
       testID="program-week-selector"
@@ -42,7 +65,25 @@ export function WeekSelector({
         nestedScrollEnabled
         showsHorizontalScrollIndicator={false}
         onLayout={(event) => setViewport(event.nativeEvent.layout.width)}
-        onContentSizeChange={revealSelected}
+        onContentSizeChange={(width) => {
+          contentWidth.current = width;
+          revealSelected();
+        }}
+        onScroll={(event) => {
+          offset.current = event.nativeEvent.contentOffset.x;
+          if (
+            requestedOffset.current !== null &&
+            Math.abs(offset.current - requestedOffset.current) < 1
+          )
+            requestedOffset.current = null;
+        }}
+        onScrollBeginDrag={() => {
+          requestedOffset.current = null;
+        }}
+        onMomentumScrollEnd={() => {
+          requestedOffset.current = null;
+        }}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           gap: 10,
           paddingHorizontal: 1,

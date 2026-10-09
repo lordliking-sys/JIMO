@@ -53,7 +53,7 @@ test('test auth: sign in, app guard, workout and progress; logout warning preser
   await page.getByRole('button', { name: 'Annulla', exact: true }).click();
   await page.getByRole('tab', { name: 'Progressi', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: /panoramica/i }),
+    page.getByRole('heading', { name: 'PROGRESSI', exact: true }),
   ).toBeVisible();
   await page.screenshot({
     path: info.outputPath('authenticated-progress.png'),

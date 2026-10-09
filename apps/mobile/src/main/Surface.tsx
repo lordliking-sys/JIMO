@@ -11,6 +11,7 @@ import {
   type TextProps,
 } from 'react-native';
 import { useIsFocused } from 'expo-router';
+import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -55,7 +56,8 @@ export function MainScreen({
   });
   const { width } = useWindowDimensions(),
     insets = useSafeAreaInsets(),
-    focused = useIsFocused();
+    focused = useIsFocused(),
+    tabBarHeight = useBottomTabBarHeight();
   return (
     <Typeface.Provider value={ready}>
       <LightSurface.Provider value={light}>
@@ -84,7 +86,8 @@ export function MainScreen({
             contentContainerStyle={{
               width: '100%',
               paddingTop: insets.top,
-              paddingBottom: 24,
+              // Navigator height already includes the bottom safe area.
+              paddingBottom: light ? tabBarHeight + 24 : 24,
             }}
           >
             {light ? (
