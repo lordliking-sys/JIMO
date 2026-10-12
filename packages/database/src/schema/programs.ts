@@ -3,6 +3,8 @@ import {
   uuid,
   text,
   integer,
+  jsonb,
+  varchar,
   date,
   index,
   uniqueIndex,
@@ -14,6 +16,7 @@ import { exercises } from './exercises';
 import { auditColumns, targetColumns } from './columns';
 import { loadModeEnum, programStatusEnum } from './enums';
 import { targetChecks } from './target-checks';
+import type { WorkoutMode, PerSetTarget } from '@jimo/types';
 export const programs = pgTable(
   'programs',
   {
@@ -82,6 +85,12 @@ export const programExercises = pgTable(
     position: integer('position').notNull(),
     loadMode: loadModeEnum('load_mode').notNull(),
     targetSets: integer('target_sets').notNull(),
+    workoutMode: varchar('workout_mode', { length: 16 })
+      .$type<WorkoutMode>()
+      .notNull()
+      .default('standard'),
+    emomIntervalSeconds: integer('emom_interval_seconds'),
+    setTargets: jsonb('set_targets').$type<PerSetTarget[]>(),
     ...targetColumns(),
     restSeconds: integer('rest_seconds'),
     notes: text('notes'),
@@ -102,6 +111,18 @@ export const programExercises = pgTable(
     check(
       'program_exercises_load_mode_valid',
       sql`(${t.loadMode} = 'bodyweight' AND ${t.targetLoadKg} IS NULL AND ${t.targetAssistanceKg} IS NULL) OR (${t.loadMode} IN ('weighted', 'external') AND ${t.targetAssistanceKg} IS NULL) OR (${t.loadMode} = 'assisted' AND ${t.targetLoadKg} IS NULL)`,
+    ),
+    check(
+      'program_exercises_mode_valid',
+      sql`${t.workoutMode} IN ('standard','pyramid','emom')`,
+    ),
+    check(
+      'program_exercises_interval_valid',
+      sql`(${t.workoutMode} = 'emom' AND (${t.emomIntervalSeconds} IS NULL OR ${t.emomIntervalSeconds} BETWEEN 5 AND 3600)) OR (${t.workoutMode} <> 'emom' AND ${t.emomIntervalSeconds} IS NULL)`,
+    ),
+    check(
+      'program_exercises_set_targets_valid',
+      sql`(${t.workoutMode} = 'pyramid' AND ${t.setTargets} IS NOT NULL AND jsonb_typeof(${t.setTargets}) = 'array' AND jsonb_array_length(${t.setTargets}) = ${t.targetSets}) OR (${t.workoutMode} <> 'pyramid' AND ${t.setTargets} IS NULL)`,
     ),
     ...targetChecks('program_exercises', t),
   ],

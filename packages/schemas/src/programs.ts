@@ -8,6 +8,17 @@ export const loadModes = [
   'external',
   'assisted',
 ] as const;
+export const workoutModes = ['standard', 'pyramid', 'emom'] as const;
+export const perSetTargetSchema = z
+  .object({
+    targetReps: z.number().int().min(0).max(1_000_000).nullable(),
+    targetDurationSeconds: z.number().int().min(1).max(86400).nullable(),
+    targetLoadKg: kilogramsSchema.nullable(),
+    targetAssistanceKg: kilogramsSchema.nullable(),
+    targetRpe: rpeSchema.refine((v) => /\.[05]$/.test(v)).nullable(),
+    restSeconds: z.number().int().min(0).max(86400).nullable(),
+  })
+  .strict();
 const count = z.number().int().min(0).max(1_000_000);
 const optionalCount = count.nullable().optional();
 const notes = z.string().trim().max(2000).nullable().optional();
@@ -42,6 +53,20 @@ export const customExerciseInputSchema = z
 export const prescriptionFieldsSchema = z
   .object({
     exerciseId: z.uuid(),
+    workoutMode: z.enum(workoutModes).optional(),
+    emomIntervalSeconds: z
+      .number()
+      .int()
+      .min(5)
+      .max(3600)
+      .nullable()
+      .optional(),
+    setTargets: z
+      .array(perSetTargetSchema)
+      .min(1)
+      .max(100)
+      .nullable()
+      .optional(),
     loadMode: z.enum(loadModes),
     targetSets: z.number().int().min(1).max(100),
     targetReps: optionalCount,
@@ -72,6 +97,50 @@ export const prescriptionPatchSchema = prescriptionFieldsSchema
   .refine((v) => Object.keys(v).length > 0);
 export const prescriptionSchema = prescriptionFieldsSchema.superRefine(
   (v, ctx) => {
+    const workoutMode = v.workoutMode ?? 'standard';
+    if (workoutMode === 'pyramid') {
+      if (!v.setTargets || v.setTargets.length !== v.targetSets)
+        ctx.addIssue({
+          code: 'custom',
+          path: ['setTargets'],
+          message: 'Provide one target per set',
+        });
+      for (const [index, target] of (v.setTargets ?? []).entries()) {
+        const valid = prescriptionSchema.safeParse({
+          ...v,
+          ...target,
+          workoutMode: 'standard',
+          setTargets: null,
+          emomIntervalSeconds: null,
+          targetRepMin: null,
+          targetRepMax: null,
+        });
+        if (!valid.success)
+          ctx.addIssue({
+            code: 'custom',
+            path: ['setTargets', index],
+            message: 'Invalid per-set target',
+          });
+      }
+    } else if (v.setTargets != null)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['setTargets'],
+        message: 'Per-set targets require pyramid',
+      });
+    if (workoutMode === 'emom') {
+      if (
+        v.targetReps == null ||
+        v.targetRepMin != null ||
+        v.targetRepMax != null ||
+        v.targetDurationSeconds != null
+      )
+        ctx.addIssue({
+          code: 'custom',
+          message: 'EMOM requires a fixed repetition target',
+        });
+    } else if (v.emomIntervalSeconds != null)
+      ctx.addIssue({ code: 'custom', message: 'Interval requires EMOM' });
     const fixed = v.targetReps != null,
       range = v.targetRepMin != null || v.targetRepMax != null,
       duration = v.targetDurationSeconds != null;
@@ -106,7 +175,13 @@ export const prescriptionSchema = prescriptionFieldsSchema.superRefine(
 );
 export function prescriptionFor(trackingMode: (typeof trackingModes)[number]) {
   return prescriptionSchema.superRefine((v, ctx) => {
-    if ((trackingMode === 'duration') !== (v.targetDurationSeconds != null))
+    if (
+      (trackingMode === 'duration') !== (v.targetDurationSeconds != null) ||
+      (v.setTargets ?? []).some(
+        (s) =>
+          (trackingMode === 'duration') !== (s.targetDurationSeconds != null),
+      )
+    )
       ctx.addIssue({ code: 'custom', message: 'Tracking mode mismatch' });
   });
 }
@@ -185,3 +260,5 @@ export type ProgramSummary = z.infer<typeof programSummarySchema>;
 export type ProgramDetail = z.infer<typeof programDetailSchema>;
 export type ProgramExerciseDto = z.infer<typeof programExerciseDtoSchema>;
 export type DayDto = z.infer<typeof dayDtoSchema>;
+
+export type PerSetTarget = z.infer<typeof perSetTargetSchema>;

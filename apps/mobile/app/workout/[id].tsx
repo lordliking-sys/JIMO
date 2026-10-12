@@ -1,3 +1,12 @@
+import {
+  WorkoutVisualPreview,
+  type PreviewMode,
+} from '../../src/workouts/visual/WorkoutVisualPreview';
+import {
+  EmomWorkout,
+  PyramidSetTimeline,
+} from '../../src/workouts/visual/RealModes';
+import { emomClock } from '../../src/workouts/modes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
@@ -31,6 +40,7 @@ import {
   prefillDraft,
   recoverRest,
   restRemaining,
+  setRestSeconds,
 } from '../../src/workouts/helpers';
 import { useClock } from '../../src/workouts/useClock';
 import { workoutHaptic } from '../../src/workouts/haptics';
@@ -52,10 +62,6 @@ import {
   CompletedSet,
   Arrow,
 } from '../../src/workouts/visual/components';
-import {
-  WorkoutVisualPreview,
-  type PreviewMode,
-} from '../../src/workouts/visual/WorkoutVisualPreview';
 import { ink } from '../../src/workouts/visual/theme';
 import { SetCorrectionModal } from '../../src/workouts/visual/SetCorrectionModal';
 import { SafeBack, useSafeBack } from '../../src/navigation/SafeBack';
@@ -102,6 +108,9 @@ function SetEditor({
   };
   return (
     <WorkoutSurface
+      variant={
+        exercise.workoutModeSnapshot === 'pyramid' ? 'pyramid' : 'standard'
+      }
       footer={
         <View style={{ gap: 0 }}>
           {!actual ? (
@@ -157,6 +166,13 @@ function SetEditor({
       {save.error ? <ErrorNotice error={save.error} retry={submit} /> : null}
       {skip.error ? (
         <ErrorNotice error={skip.error} retry={() => skip.mutate(undefined)} />
+      ) : null}
+      {exercise.workoutModeSnapshot === 'pyramid' ? (
+        <PyramidSetTimeline
+          exercise={exercise}
+          currentId={set.id}
+          onEdit={onEdit}
+        />
       ) : null}
       {exercise.notes ? (
         <InkText style={{ color: ink.secondary, fontSize: 17 }}>
@@ -237,7 +253,7 @@ export default function WorkoutScreen() {
             ...editing.rest,
             remaining: restRemaining(
               editing.rest.set.completedAt,
-              editing.rest.exercise.restSecondsSnapshot,
+              setRestSeconds(editing.rest.exercise, editing.rest.set),
               now,
             ),
           }
@@ -356,6 +372,29 @@ export default function WorkoutScreen() {
           <Text>{t('loading')}</Text>
         </Screen>
       );
+    const emom =
+      workout.exercises.find(
+        (e) =>
+          e.workoutModeSnapshot === 'emom' &&
+          e.emomStartedAt &&
+          !emomClock(e, now).finished,
+      ) ??
+      (next?.exercise.workoutModeSnapshot === 'emom' ? next.exercise : null);
+    if (emom)
+      return (
+        <EmomWorkout
+          workout={workout}
+          exercise={emom}
+          now={now}
+          header={
+            <>
+              {header}
+              {errors}
+            </>
+          }
+          onEdit={(s) => openCorrection(emom.id, s.id)}
+        />
+      );
     if (rest && next)
       return (
         <WorkoutSurface
@@ -412,7 +451,7 @@ export default function WorkoutScreen() {
           />
           <EnsoTimer
             remaining={rest.remaining}
-            total={rest.exercise.restSecondsSnapshot ?? 0}
+            total={setRestSeconds(rest.exercise, rest.set) ?? 0}
             label={t('rest')}
           />
           <BrushDivider />

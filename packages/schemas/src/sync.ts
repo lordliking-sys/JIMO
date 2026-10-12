@@ -12,6 +12,7 @@ const target = workoutSetSchema
   .pick({
     id: true,
     setNumber: true,
+    targetRestSeconds: true,
     targetReps: true,
     targetRepMin: true,
     targetRepMax: true,
@@ -22,7 +23,7 @@ const target = workoutSetSchema
   })
   .strict();
 const snapshotExercise = workoutExerciseSchema
-  .omit({ sets: true, createdAt: true, updatedAt: true })
+  .omit({ sets: true, createdAt: true, updatedAt: true, emomStartedAt: true })
   .extend({
     exerciseNameSnapshot: z.string().trim().min(1).max(160),
     restSecondsSnapshot: z.number().int().min(0).max(86400).nullable(),
@@ -32,6 +33,17 @@ const snapshotExercise = workoutExerciseSchema
   })
   .strict()
   .superRefine((e, ctx) => {
+    if (
+      e.workoutModeSnapshot === 'emom' &&
+      (e.trackingModeSnapshot !== 'reps' ||
+        e.sets.some((s) => s.targetReps == null || s.targetRepMin != null))
+    )
+      ctx.addIssue({ code: 'custom', message: 'Invalid EMOM snapshot' });
+    if (
+      e.workoutModeSnapshot !== 'emom' &&
+      e.emomIntervalSecondsSnapshot != null
+    )
+      ctx.addIssue({ code: 'custom', message: 'Unexpected interval' });
     for (const [i, s] of e.sets.entries()) {
       const valid = prescriptionFor(e.trackingModeSnapshot).safeParse({
         exerciseId: e.exerciseId,
@@ -81,6 +93,13 @@ const envelope = {
   createdAt: clientTimestampSchema,
 };
 export const workoutOperationSchema = z.discriminatedUnion('operationType', [
+  z
+    .object({
+      ...envelope,
+      operationType: z.literal('START_EMOM'),
+      payload: z.object({}).strict(),
+    })
+    .strict(),
   z
     .object({
       ...envelope,

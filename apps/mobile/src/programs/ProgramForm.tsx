@@ -100,6 +100,7 @@ export function ProgramForm({
         <NumberControl
           label={t('weeks')}
           displayLabel={t('durationShort')}
+          hideEmptyControl
           value={weeks}
           onChange={(value) => {
             setWeeks(value);

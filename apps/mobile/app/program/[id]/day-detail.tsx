@@ -87,19 +87,12 @@ export default function DayDetail() {
             accessibilityRole="header"
             style={{ color: programInk.paper, fontSize: 32, lineHeight: 34 }}
           >
-            {t('dayNumber', { count: query.data.days.indexOf(day) + 1 })}
+            {query.data.name}
             {'\n'}
-            {day.name}
+            {day.dayOfWeek
+              ? t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`)
+              : day.name}
           </ProgramText>
-          {day.dayOfWeek ? (
-            <Text
-              variant="caption"
-              color={programInk.paper}
-              style={{ marginTop: 8 }}
-            >
-              {t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`)}
-            </Text>
-          ) : null}
         </View>
       }
       background="day"
@@ -133,7 +126,13 @@ export default function DayDetail() {
             <ProgramRow
               key={exercise.id}
               title={exercise.exercise.displayName}
-              leading={<ExerciseThumbnail exercise={exercise.exercise} />}
+              cardTone="dark"
+              leading={
+                <ExerciseThumbnail
+                  exercise={exercise.exercise}
+                  cardBackground={false}
+                />
+              }
               label={`${t('editExercise')} ${exercise.exercise.displayName}`}
               subtitle={`${summary.primary}${summary.details ? `\n${summary.details}` : ''}${exercise.notes ? `\n${exercise.notes}` : ''}`}
               onPress={() =>

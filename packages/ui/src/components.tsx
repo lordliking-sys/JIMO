@@ -49,6 +49,8 @@ export function Text({
 export function Screen({
   children,
   bottomInset = true,
+  edgeToEdge = false,
+  onScroll,
   keyboardAware = false,
   footer,
   dismissKeyboardLabel,
@@ -58,6 +60,8 @@ export function Screen({
 }: {
   children: ReactNode;
   bottomInset?: boolean;
+  edgeToEdge?: boolean;
+  onScroll?: React.ComponentProps<typeof ScrollView>['onScroll'];
   keyboardAware?: boolean;
   footer?: ReactNode;
   dismissKeyboardLabel?: string;
@@ -131,9 +135,13 @@ export function Screen({
     <SafeAreaView
       style={[styles.screen, surfaceStyle]}
       edges={
-        bottomInset
-          ? ['top', 'bottom', 'left', 'right']
-          : ['top', 'left', 'right']
+        edgeToEdge
+          ? bottomInset
+            ? ['bottom']
+            : []
+          : bottomInset
+            ? ['top', 'bottom', 'left', 'right']
+            : ['top', 'left', 'right']
       }
     >
       <FormFocusContext.Provider value={focus}>
@@ -162,6 +170,7 @@ export function Screen({
               onContentSizeChange={() => requestAnimationFrame(reveal)}
               onScroll={(event) => {
                 offset.current = event.nativeEvent.contentOffset.y;
+                onScroll?.(event);
               }}
               scrollEventThrottle={16}
             >

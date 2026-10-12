@@ -1,6 +1,7 @@
 import {
   SectionHeroScope,
-  SectionHeroArtwork,
+  SectionHeroCanvas,
+  useSectionStatusBar,
   useSectionHeroGeometry,
 } from '../components/SectionHero';
 import {
@@ -8,7 +9,6 @@ import {
   useContext,
   useMemo,
   useRef,
-  useState,
   type ReactNode,
 } from 'react';
 import {
@@ -103,7 +103,11 @@ function EditorialSurface({
     tabHeight = useBottomTabBarHeight(),
     focused = useIsFocused();
   const geometry = useSectionHeroGeometry();
-  const [heroUnderBar, setHeroUnderBar] = useState(true);
+  const status = useSectionStatusBar(
+    profile,
+    geometry.height + insets.top,
+    insets.top,
+  );
   const scroll = useRef<ScrollView>(null),
     menuOffset = useRef(0);
   const anchor = useMemo(
@@ -119,7 +123,6 @@ function EditorialSurface({
     }),
     [insets.top],
   );
-  const heroHeight = geometry.height + insets.top;
   return (
     <Typeface.Provider value={ready}>
       <KeyboardAvoidingView
@@ -130,12 +133,7 @@ function EditorialSurface({
         }
         style={{ flex: 1, backgroundColor: ink.paper }}
       >
-        {focused ? (
-          <StatusBar
-            hidden={false}
-            style={profile && heroUnderBar ? 'light' : 'dark'}
-          />
-        ) : null}
+        {focused ? <StatusBar hidden={false} style={status.style} /> : null}
         <ScrollView
           ref={scroll}
           testID="editorial-scroll"
@@ -146,14 +144,7 @@ function EditorialSurface({
           automaticallyAdjustsScrollIndicatorInsets={false}
           bounces={false}
           overScrollMode="never"
-          onScroll={
-            profile
-              ? (e) =>
-                  setHeroUnderBar(
-                    e.nativeEvent.contentOffset.y < heroHeight - insets.top / 2,
-                  )
-              : undefined
-          }
+          onScroll={status.onScroll}
           scrollEventThrottle={32}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -175,13 +166,6 @@ function EditorialSurface({
               ]}
             />
           </View>
-          <SectionHeroArtwork
-            source={profile ? artwork.profile : artwork.progress}
-            width={width}
-            height={heroHeight}
-            dark={profile}
-            bodyColor={ink.paper}
-          />
           <View
             style={{
               paddingTop: insets.top,
@@ -193,7 +177,18 @@ function EditorialSurface({
               gap: 10,
             }}
           >
-            <MenuAnchor.Provider value={anchor}>{children}</MenuAnchor.Provider>
+            <SectionHeroCanvas
+              source={profile ? artwork.profile : artwork.progress}
+              width={width}
+              topInset={insets.top}
+              sideInset={insets.left + (width < 360 ? 16 : 22)}
+              dark={profile}
+              bodyColor={ink.paper}
+            >
+              <MenuAnchor.Provider value={anchor}>
+                {children}
+              </MenuAnchor.Provider>
+            </SectionHeroCanvas>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

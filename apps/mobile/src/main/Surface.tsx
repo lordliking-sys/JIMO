@@ -1,8 +1,4 @@
-import {
-  SectionHeroScope,
-  SectionHeroArtwork,
-  useSectionHeroGeometry,
-} from '../components/SectionHero';
+import { SectionHeroScope, SectionHeroCanvas } from '../components/SectionHero';
 import { createContext, useContext, type ReactNode } from 'react';
 import {
   Image,
@@ -142,7 +138,6 @@ function ProgramTabSurface({ children }: { children: ReactNode }) {
   const { width } = useWindowDimensions(),
     insets = useSafeAreaInsets(),
     focused = useIsFocused();
-  const geometry = useSectionHeroGeometry();
   return (
     <Typeface.Provider value={ready}>
       <LightSurface.Provider value={false}>
@@ -160,13 +155,6 @@ function ProgramTabSurface({ children }: { children: ReactNode }) {
               paddingBottom: 24,
             }}
           >
-            <SectionHeroArtwork
-              source={mainArtwork.program}
-              width={width}
-              height={geometry.height + insets.top}
-              dark
-              bodyColor={mainInk.charcoal}
-            />
             <View
               style={{
                 width: '100%',
@@ -176,7 +164,16 @@ function ProgramTabSurface({ children }: { children: ReactNode }) {
                 paddingRight: insets.right + (width < 360 ? 16 : 20),
               }}
             >
-              {children}
+              <SectionHeroCanvas
+                source={mainArtwork.program}
+                width={width}
+                topInset={insets.top}
+                sideInset={insets.left + (width < 360 ? 16 : 20)}
+                dark
+                bodyColor={mainInk.charcoal}
+              >
+                {children}
+              </SectionHeroCanvas>
             </View>
           </ScrollView>
         </View>

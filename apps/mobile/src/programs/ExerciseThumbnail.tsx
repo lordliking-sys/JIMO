@@ -1,3 +1,4 @@
+import { thumbnailGeometry } from './thumbnail-geometry';
 import { useState } from 'react';
 import {
   Image,
@@ -24,11 +25,13 @@ export function ExerciseThumbnail({
   tone = 'dark',
   variant = 'male',
   size = 56,
+  cardBackground = true,
 }: {
   exercise: Pick<ExerciseDto, 'canonicalName' | 'isCustom'>;
   tone?: 'light' | 'dark';
   variant?: ExerciseArtworkVariant;
   size?: number;
+  cardBackground?: boolean;
 }) {
   const key = exerciseArtworkKey(exercise);
   const sources: Partial<Record<ExerciseArtworkKey, ImageSourcePropType>> =
@@ -36,29 +39,36 @@ export function ExerciseThumbnail({
   const source = key ? sources[key] : undefined;
   const [failedSource, setFailedSource] = useState<ImageSourcePropType>();
   const failed = !!source && failedSource === source;
-  const height = Math.round(size * 1.3);
+  const geometry = thumbnailGeometry(key, variant, size);
   return (
     <View
       testID="exercise-thumbnail"
       pointerEvents="none"
       accessible={false}
       style={{
-        width: size,
-        height,
+        width: geometry.width,
+        height: geometry.height,
+        flexShrink: 0,
         borderRadius: 14,
         overflow: 'hidden',
-        backgroundColor: tone === 'dark' ? ink.charcoal : ink.paper,
+        backgroundColor: cardBackground
+          ? tone === 'dark'
+            ? ink.charcoal
+            : ink.paper
+          : 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Image
-        testID={`exercise-card-${tone}`}
-        source={exerciseCardBackgrounds[tone]}
-        resizeMode="cover"
-        accessible={false}
-        style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
-      />
+      {cardBackground ? (
+        <Image
+          testID={`exercise-card-${tone}`}
+          source={exerciseCardBackgrounds[tone]}
+          resizeMode="cover"
+          accessible={false}
+          style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
+        />
+      ) : null}
       {source && !failed ? (
         <Image
           testID={`exercise-art-${variant}-${key}`}
@@ -67,7 +77,7 @@ export function ExerciseThumbnail({
           resizeMode="contain"
           resizeMethod="resize"
           accessible={false}
-          style={{ width: size - 8, height: height - 8, zIndex: 1 }}
+          style={{ ...geometry.image, zIndex: 1 }}
         />
       ) : (
         <View style={{ zIndex: 1 }}>

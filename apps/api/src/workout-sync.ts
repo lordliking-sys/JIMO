@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import {
   actualFor,
+  canRecordEmomRound,
   type WorkoutOperation,
   type SyncResponse,
 } from '@jimo/schemas';
@@ -114,13 +115,13 @@ export class WorkoutSyncService {
      AND NOT EXISTS(SELECT 1 FROM workout_sessions WHERE user_id=$1::uuid AND status='in_progress')),
     session AS (INSERT INTO workout_sessions(id,user_id,program_id,program_day_id,name,notes,started_at)
      SELECT ${session}::uuid,$1::uuid,(j->>'programId')::uuid,(j->>'programDayId')::uuid,j->>'name',j->>'notes',${at}::timestamptz FROM source RETURNING id),
-    snapshots AS (INSERT INTO workout_exercises(id,workout_session_id,program_exercise_id,exercise_id,position,exercise_name_snapshot,tracking_mode_snapshot,load_mode_snapshot,rest_seconds_snapshot,notes)
+    snapshots AS (INSERT INTO workout_exercises(id,workout_session_id,program_exercise_id,exercise_id,position,exercise_name_snapshot,tracking_mode_snapshot,load_mode_snapshot,rest_seconds_snapshot,notes,workout_mode_snapshot,emom_interval_seconds_snapshot)
      SELECT (x->>'id')::uuid,session.id,(x->>'programExerciseId')::uuid,(x->>'exerciseId')::uuid,(x->>'position')::int,
-      x->>'exerciseNameSnapshot',(x->>'trackingModeSnapshot')::tracking_mode,(x->>'loadModeSnapshot')::load_mode,(x->>'restSecondsSnapshot')::int,x->>'notes'
+      x->>'exerciseNameSnapshot',(x->>'trackingModeSnapshot')::tracking_mode,(x->>'loadModeSnapshot')::load_mode,(x->>'restSecondsSnapshot')::int,x->>'notes',coalesce(x->>'workoutModeSnapshot','standard'),(x->>'emomIntervalSecondsSnapshot')::int
      FROM source CROSS JOIN session CROSS JOIN LATERAL jsonb_array_elements(j->'exercises') x RETURNING id),
-    sets AS (INSERT INTO workout_sets(id,workout_exercise_id,set_number,target_reps,target_rep_min,target_rep_max,target_duration_seconds,target_load_kg,target_assistance_kg,target_rpe)
+    sets AS (INSERT INTO workout_sets(id,workout_exercise_id,set_number,target_reps,target_rep_min,target_rep_max,target_duration_seconds,target_load_kg,target_assistance_kg,target_rpe,target_rest_seconds)
      SELECT (s->>'id')::uuid,snapshots.id,(s->>'setNumber')::int,(s->>'targetReps')::int,(s->>'targetRepMin')::int,(s->>'targetRepMax')::int,
-      (s->>'targetDurationSeconds')::int,(s->>'targetLoadKg')::numeric,(s->>'targetAssistanceKg')::numeric,(s->>'targetRpe')::numeric
+      (s->>'targetDurationSeconds')::int,(s->>'targetLoadKg')::numeric,(s->>'targetAssistanceKg')::numeric,(s->>'targetRpe')::numeric,(s->>'targetRestSeconds')::int
      FROM source CROSS JOIN LATERAL jsonb_array_elements(j->'exercises') x JOIN snapshots ON snapshots.id=(x->>'id')::uuid
       CROSS JOIN LATERAL jsonb_array_elements(x->'sets') s RETURNING id)
     SELECT session.id FROM session WHERE (SELECT count(*) FROM sets)>0`;
@@ -129,7 +130,12 @@ export class WorkoutSyncService {
       if (Date.parse(o.createdAt) < Date.parse(detail.startedAt))
         throw new ApiError(400, 'INVALID_EVENT_TIME', 'Event precedes workout');
       const sessionGate = `(${gate}) AND w.id=${session}::uuid`;
-      if (
+      if (o.operationType === 'START_EMOM') {
+        changed = `UPDATE workout_exercises e SET emom_started_at=${at}::timestamptz,updated_at=now()
+          FROM workout_sessions w WHERE e.id=${entity}::uuid AND e.workout_session_id=w.id
+          AND w.id=${session}::uuid AND w.user_id=$1::uuid AND w.status='in_progress'
+          AND e.workout_mode_snapshot='emom' AND e.emom_started_at IS NULL AND (${gate}) RETURNING e.id`;
+      } else if (
         o.operationType === 'COMPLETE_SET' ||
         o.operationType === 'UPDATE_SET'
       ) {
@@ -140,6 +146,11 @@ export class WorkoutSyncService {
           throw new ApiError(404, 'WORKOUT_NOT_FOUND', 'Workout not found');
         const actual = actualFor(ex).parse(o.payload);
         const set = ex.sets.find((s) => s.id === o.entityId)!;
+        if (
+          o.operationType === 'COMPLETE_SET' &&
+          !canRecordEmomRound(ex, set, o.createdAt)
+        )
+          throw stateConflict();
         if (
           set.completedAt &&
           Date.parse(o.createdAt) < Date.parse(set.completedAt)

@@ -12,6 +12,11 @@ import {
   loadModeEnum,
   trackingModeEnum,
 } from '@jimo/database/schema';
+import {
+  workoutModes,
+  perSetTargetSchema,
+  prescriptionSchema,
+} from './programs';
 import { localePreferenceSchema } from './onboarding';
 
 import { kilogramsSchema, rpeSchema } from './fitness';
@@ -62,6 +67,20 @@ export const programExerciseCreateSchema = createInsertSchema(
     exerciseId: z.uuid(),
     position: z.number().int().nonnegative(),
     targetSets: z.number().int().positive(),
+    workoutMode: z.enum(workoutModes).optional(),
+    emomIntervalSeconds: z
+      .number()
+      .int()
+      .min(5)
+      .max(3600)
+      .nullable()
+      .optional(),
+    setTargets: z
+      .array(perSetTargetSchema)
+      .min(1)
+      .max(100)
+      .nullable()
+      .optional(),
     targetReps: optionalCount,
     targetRepMin: optionalCount,
     targetRepMax: optionalCount,
@@ -74,6 +93,19 @@ export const programExerciseCreateSchema = createInsertSchema(
 )
   .omit({ id: true, createdAt: true, updatedAt: true })
   .superRefine((value, ctx) => {
+    if ((value.workoutMode ?? 'standard') !== 'standard') {
+      const { programDayId: _day, position: _position, ...input } = value;
+      if (!prescriptionSchema.safeParse(input).success)
+        ctx.addIssue({
+          code: 'custom',
+          path: ['workoutMode'],
+          message: 'Invalid workout mode configuration',
+        });
+    } else if (value.setTargets != null || value.emomIntervalSeconds != null)
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Unexpected mode configuration',
+      });
     const min = value.targetRepMin,
       max = value.targetRepMax;
     if (

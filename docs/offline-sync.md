@@ -1,3 +1,5 @@
+> EMOM and Pyramid use the same session/SQLite/outbox/sync engine. See [android-workout-modes.md](android-workout-modes.md) for mode snapshots, `START_EMOM`, per-set targets, actual recording and verified compatibility.
+
 # Task 6 — Offline workout e sincronizzazione
 
 SQLite è la sorgente operativa immediata dei workout. Neon è la persistenza server.

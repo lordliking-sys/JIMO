@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { kilogramsSchema, rpeSchema } from './fitness';
-import { loadModes, trackingModes } from './programs';
+import { loadModes, trackingModes, workoutModes } from './programs';
 export const workoutStatuses = [
   'in_progress',
   'completed',
@@ -67,6 +67,7 @@ export const workoutSetSchema = actualFieldsSchema
   .extend({
     id: z.uuid(),
     setNumber: z.number().int().positive(),
+    targetRestSeconds: z.number().int().min(0).max(86400).nullable().optional(),
     status: z.enum(setStatuses),
     ...targetFields,
     completedAt: z.iso.datetime().nullable(),
@@ -81,6 +82,15 @@ export const workoutExerciseSchema = z.object({
   exerciseNameSnapshot: z.string(),
   trackingModeSnapshot: z.enum(trackingModes),
   loadModeSnapshot: z.enum(loadModes),
+  workoutModeSnapshot: z.enum(workoutModes).optional(),
+  emomIntervalSecondsSnapshot: z
+    .number()
+    .int()
+    .min(5)
+    .max(3600)
+    .nullable()
+    .optional(),
+  emomStartedAt: z.iso.datetime().nullable().optional(),
   restSecondsSnapshot: z.number().int().nullable(),
   notes: z.string().nullable(),
   sets: z.array(workoutSetSchema),
@@ -133,3 +143,20 @@ export type WorkoutSummary = z.infer<typeof workoutSummarySchema>;
 export type WorkoutExercise = z.infer<typeof workoutExerciseSchema>;
 export type WorkoutSet = z.infer<typeof workoutSetSchema>;
 export type ActualInput = z.infer<typeof actualFieldsSchema>;
+
+/** A late round can be recorded; a future round cannot have an actual yet. */
+export function canRecordEmomRound(
+  exercise: WorkoutExercise,
+  set: WorkoutSet,
+  at: string,
+) {
+  if (exercise.workoutModeSnapshot !== 'emom') return true;
+  if (!exercise.emomStartedAt) return false;
+  const start = Date.parse(exercise.emomStartedAt),
+    now = Date.parse(at);
+  return (
+    now >=
+    start +
+      (set.setNumber - 1) * (exercise.emomIntervalSecondsSnapshot ?? 60) * 1000
+  );
+}

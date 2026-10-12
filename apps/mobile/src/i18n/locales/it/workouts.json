@@ -112,5 +112,15 @@
     "skip": "Salta",
     "previews": "Anteprime Workout",
     "previewBadge": "PREVIEW"
+  },
+  "emom": {
+    "confirmRound": "Conferma round {{round}}",
+    "start": "Avvia EMOM",
+    "round": "Round {{current}} / {{total}}",
+    "roundLabel": "Round",
+    "lastSeconds": "Ultimi 5 secondi",
+    "finished": "Intervalli terminati · registra i round mancanti",
+    "saved": "Salvato: {{reps}} reps",
+    "completed": "Round completati: {{count}}"
   }
 }

@@ -48,7 +48,7 @@ async function addDay(page: Page, name: string, weekday: string) {
   await expect(page.getByText(/1 = lunedì/)).toHaveCount(0);
   await page.getByRole('button', { name: 'Salva giorno', exact: true }).click();
   await expect(
-    page.getByText(name, { exact: true }).filter({ visible: true }),
+    page.getByRole('button', { name: `Apri giornata ${name}`, exact: true }),
   ).toBeVisible();
 }
 async function addExercise(

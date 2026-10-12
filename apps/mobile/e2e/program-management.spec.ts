@@ -122,7 +122,9 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
   await page
     .getByRole('button', { name: 'Apri giornata Prima giornata', exact: true })
     .click();
-  await expect(page.getByRole('heading', { name: /GIORNO 2/ })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Routine v2 Mercoledì', exact: true }),
+  ).toBeVisible();
   await page
     .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
     .click();

@@ -1,3 +1,4 @@
+import { ModePrescriptionEditor } from './ModePrescriptionEditor';
 import { RestControl } from './RestControl';
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
@@ -58,6 +59,9 @@ export function PrescriptionEditor({
 }) {
   const { t, i18n } = useTranslation('programs'),
     locale = i18n.resolvedLanguage === 'it' ? 'it' : 'en';
+  const [seriesMode, setSeriesMode] = useState<'standard' | 'emom' | 'pyramid'>(
+    initial?.workoutMode ?? 'standard',
+  );
   const initialNumber = (value: number | null | undefined, fallback: number) =>
     preserveMissing ? String(value ?? '') : String(value ?? fallback);
   const [mode, setMode] = useState<Prescription['loadMode'] | ''>(
@@ -172,6 +176,13 @@ export function PrescriptionEditor({
     try {
       const input = prescriptionFor(exercise.trackingMode).parse({
         exerciseId: exercise.id,
+        ...(presentation
+          ? {
+              workoutMode: 'standard',
+              setTargets: null,
+              emomIntervalSeconds: null,
+            }
+          : {}),
         loadMode: mode,
         targetSets: integerInput(sets),
         targetReps:
@@ -206,6 +217,20 @@ export function PrescriptionEditor({
       setInvalid(true);
     }
   };
+  if (presentation && seriesMode !== 'standard')
+    return (
+      <ModePrescriptionEditor
+        key={seriesMode}
+        seriesMode={seriesMode}
+        onMode={setSeriesMode}
+        exercise={exercise}
+        initial={initial as Partial<Prescription>}
+        save={save}
+        pending={pending}
+        error={error}
+        {...(fallback ? { fallback } : {})}
+      />
+    );
   const SaveButton = presentation ? ProgramButton : Button;
   return (
     <FormScreen
@@ -236,6 +261,19 @@ export function PrescriptionEditor({
             editable={false}
           />
           {mappingAction}
+          <Text color={programInk.text}>{t('seriesType')}</Text>
+          <View style={choiceStyles.row}>
+            {(['standard', 'pyramid', 'emom'] as const)
+              .filter((m) => m !== 'emom' || exercise.trackingMode === 'reps')
+              .map((m) => (
+                <Choice
+                  key={m}
+                  label={t(`seriesModes.${m}`)}
+                  selected={seriesMode === m}
+                  onPress={() => setSeriesMode(m)}
+                />
+              ))}
+          </View>
           {integerControl(t('sets'), sets, setSets, {
             min: 1,
             max: 100,

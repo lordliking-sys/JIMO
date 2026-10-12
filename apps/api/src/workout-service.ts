@@ -9,6 +9,7 @@ import {
 } from '@jimo/database';
 import {
   actualFor,
+  canRecordEmomRound,
   type ActualInput,
   type WorkoutDetail,
   type WorkoutSummary,
@@ -68,15 +69,22 @@ export class WorkoutService {
         ON CONFLICT (user_id) WHERE status='in_progress' DO NOTHING RETURNING id
       ), snapshot AS (
         INSERT INTO workout_exercises(workout_session_id,program_exercise_id,exercise_id,position,
-          exercise_name_snapshot,tracking_mode_snapshot,load_mode_snapshot,rest_seconds_snapshot,notes)
+          exercise_name_snapshot,tracking_mode_snapshot,load_mode_snapshot,rest_seconds_snapshot,notes,workout_mode_snapshot,emom_interval_seconds_snapshot)
         SELECT session.id,source.id,exercise_id,position,
-          CASE WHEN is_custom THEN canonical_name ELSE localized_name END, tracking_mode,load_mode,rest_seconds,notes
+          CASE WHEN is_custom THEN canonical_name ELSE localized_name END, tracking_mode,load_mode,rest_seconds,notes,workout_mode,CASE WHEN workout_mode='emom' THEN coalesce(emom_interval_seconds,60) END
         FROM source CROSS JOIN session RETURNING id,program_exercise_id
       ), sets AS (
         INSERT INTO workout_sets(workout_exercise_id,set_number,status,target_reps,target_rep_min,target_rep_max,
-          target_duration_seconds,target_load_kg,target_assistance_kg,target_rpe)
-        SELECT snapshot.id,n,'pending',target_reps,target_rep_min,target_rep_max,target_duration_seconds,
-          target_load_kg,target_assistance_kg,target_rpe
+          target_duration_seconds,target_load_kg,target_assistance_kg,target_rpe,target_rest_seconds)
+        SELECT snapshot.id,n,'pending',
+          CASE WHEN workout_mode='pyramid' THEN (set_targets->(n-1)->>'targetReps')::int ELSE target_reps END,
+          CASE WHEN workout_mode='pyramid' THEN NULL ELSE target_rep_min END,
+          CASE WHEN workout_mode='pyramid' THEN NULL ELSE target_rep_max END,
+          CASE WHEN workout_mode='pyramid' THEN (set_targets->(n-1)->>'targetDurationSeconds')::int ELSE target_duration_seconds END,
+          CASE WHEN workout_mode='pyramid' THEN (set_targets->(n-1)->>'targetLoadKg')::numeric ELSE target_load_kg END,
+          CASE WHEN workout_mode='pyramid' THEN (set_targets->(n-1)->>'targetAssistanceKg')::numeric ELSE target_assistance_kg END,
+          CASE WHEN workout_mode='pyramid' THEN (set_targets->(n-1)->>'targetRpe')::numeric ELSE target_rpe END,
+          CASE WHEN workout_mode='pyramid' THEN (set_targets->(n-1)->>'restSeconds')::int ELSE rest_seconds END
         FROM snapshot JOIN source ON source.id=snapshot.program_exercise_id
         CROSS JOIN LATERAL generate_series(1,source.target_sets) n RETURNING id
       ) SELECT session.id, (SELECT count(*) FROM sets) AS sets_count FROM session`,
@@ -225,6 +233,7 @@ export class WorkoutService {
       exercises: exercises.map((e) => ({
         ...e,
         ...stamp(e),
+        emomStartedAt: e.emomStartedAt?.toISOString() ?? null,
         sets: sets
           .filter((s) => s.workoutExerciseId === e.id)
           .map((s) => ({
@@ -260,8 +269,18 @@ export class WorkoutService {
     input: ActualInput,
     correction = false,
   ) {
-    const context = await this.set(userId, id),
-      actual = actualFor(context.exercise).parse(input),
+    const context = await this.set(userId, id);
+    const detail = await this.detail(userId, context.sessionId);
+    const snapshot = detail.exercises.find(
+      (e) => e.id === context.exercise.id,
+    )!;
+    const target = snapshot.sets.find((s) => s.id === id)!;
+    if (
+      !correction &&
+      !canRecordEmomRound(snapshot, target, new Date().toISOString())
+    )
+      return conflict();
+    const actual = actualFor(context.exercise).parse(input),
       q = this.client.sqlClient.query;
     const result = await this.client.sqlClient.transaction([
       this.lock(userId),

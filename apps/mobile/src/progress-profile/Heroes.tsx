@@ -1,14 +1,30 @@
 import { SectionHeroFrame } from '../components/SectionHero';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { EditorialText, Copy, useProfileMenuAnchor } from './Surface';
+import { EditorialText, useProfileMenuAnchor } from './Surface';
 import Settings from 'lucide-react-native/icons/settings';
 import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 import { ink } from './theme';
 import { ProfileAvatar } from './ProfileAvatar';
 
 export function ProgressHero() {
-  return <SectionHeroFrame testID="progress-tab-hero" />;
+  const { t } = useTranslation('progressProfile');
+  return (
+    <SectionHeroFrame testID="progress-tab-hero">
+      <EditorialText
+        testID="progress-hero-title"
+        accessibilityRole="header"
+        style={{
+          textAlign: 'center',
+          fontSize: 30,
+          letterSpacing: 2,
+          marginBottom: 0,
+        }}
+      >
+        {t('progressTitle')}
+      </EditorialText>
+    </SectionHeroFrame>
+  );
 }
 export function ProfileHero({ name }: { name: string | null }) {
   const { t } = useTranslation('progressProfile'),
@@ -57,9 +73,6 @@ export function ProfileHero({ name }: { name: string | null }) {
           >
             {name || t('identityFallback')}
           </EditorialText>
-          <Copy style={{ color: ink.paper, textAlign: 'center', fontSize: 12 }}>
-            {t('motto')}
-          </Copy>
         </View>
       </View>
     </SectionHeroFrame>

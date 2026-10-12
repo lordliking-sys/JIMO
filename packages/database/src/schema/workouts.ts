@@ -3,6 +3,7 @@ import {
   uuid,
   text,
   integer,
+  varchar,
   timestamp,
   index,
   uniqueIndex,
@@ -21,6 +22,7 @@ import {
 } from './enums';
 import { targetChecks } from './target-checks';
 import { kilogramsColumn, rpeColumn } from './decimal';
+import type { WorkoutMode } from '@jimo/types';
 export const workoutSessions = pgTable(
   'workout_sessions',
   {
@@ -80,6 +82,12 @@ export const workoutExercises = pgTable(
     trackingModeSnapshot: trackingModeEnum('tracking_mode_snapshot').notNull(),
     loadModeSnapshot: loadModeEnum('load_mode_snapshot').notNull(),
     restSecondsSnapshot: integer('rest_seconds_snapshot'),
+    workoutModeSnapshot: varchar('workout_mode_snapshot', { length: 16 })
+      .$type<WorkoutMode>()
+      .notNull()
+      .default('standard'),
+    emomIntervalSecondsSnapshot: integer('emom_interval_seconds_snapshot'),
+    emomStartedAt: timestamp('emom_started_at', { withTimezone: true }),
     notes: text('notes'),
     ...auditColumns(),
   },
@@ -90,6 +98,14 @@ export const workoutExercises = pgTable(
     ),
     index('workout_exercises_exercise_idx').on(t.exerciseId),
     index('workout_exercises_source_idx').on(t.programExerciseId),
+    check(
+      'workout_exercises_mode_valid',
+      sql`${t.workoutModeSnapshot} IN ('standard','pyramid','emom')`,
+    ),
+    check(
+      'workout_exercises_interval_valid',
+      sql`(${t.workoutModeSnapshot} = 'emom' AND (${t.emomIntervalSecondsSnapshot} IS NULL OR ${t.emomIntervalSecondsSnapshot} BETWEEN 5 AND 3600)) OR (${t.workoutModeSnapshot} <> 'emom' AND ${t.emomIntervalSecondsSnapshot} IS NULL AND ${t.emomStartedAt} IS NULL)`,
+    ),
     check('workout_exercises_position_valid', sql`${t.position} >= 0`),
     check(
       'workout_exercises_name_valid',
@@ -111,6 +127,7 @@ export const workoutSets = pgTable(
     setNumber: integer('set_number').notNull(),
     status: setStatusEnum('status').notNull().default('pending'),
     ...targetColumns(),
+    targetRestSeconds: integer('target_rest_seconds'),
     actualReps: integer('actual_reps'),
     actualDurationSeconds: integer('actual_duration_seconds'),
     actualLoadKg: kilogramsColumn('actual_load_kg'),
@@ -148,6 +165,10 @@ export const workoutSets = pgTable(
     check(
       'workout_sets_completion_valid',
       sql`${t.status} <> 'completed' OR ${t.completedAt} IS NOT NULL`,
+    ),
+    check(
+      'workout_sets_target_rest_valid',
+      sql`${t.targetRestSeconds} IS NULL OR ${t.targetRestSeconds} BETWEEN 0 AND 86400`,
     ),
     ...targetChecks('workout_sets', t),
   ],

@@ -233,11 +233,13 @@ for (const device of devices)
     await expect(legs).toHaveAccessibleName(/Pianificato/);
     await expect(legs).toBeEnabled();
     for (const day of fixture.program.days) {
-      const card = page.getByTestId(`program-day-${day.id}`),
-        artwork = (await card.locator('img').boundingBox())!,
-        frame = (await card.boundingBox())!;
-      expect(artwork.width).toBeLessThanOrEqual(frame.width);
-      expect(artwork.height).toBeLessThanOrEqual(frame.height);
+      const card = page.getByTestId(`program-day-${day.id}`);
+      await expect(card.locator('img')).toHaveCount(0);
+      await expect(card).toHaveCSS('background-color', 'rgb(16, 19, 15)');
+      await expect(card.locator('svg').last()).toHaveAttribute(
+        'stroke',
+        '#b7c69b',
+      );
     }
     await expect(
       page.getByRole('radio', { name: 'Settimana 1', exact: true }),
@@ -490,12 +492,12 @@ test('English, unknown artwork, long names and missing dates retain readable fal
     page
       .getByTestId(`program-day-${fixture.program.days[0]!.id}`)
       .locator('img'),
-  ).toHaveCount(1);
+  ).toHaveCount(0);
   await expect(
     page
       .getByTestId(`program-day-${fixture.program.days[0]!.id}`)
       .getByTestId('program-day-artwork'),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await noOverflow(page);
   expect(fixture.writes).toHaveLength(0);
 });
@@ -543,7 +545,7 @@ test('one-day overview and archived programs stay compact; program access uses t
     page
       .getByTestId(`program-day-${fixture.program.days[0]!.id}`)
       .getByTestId('program-day-artwork'),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await page.getByTestId('program-new-action').scrollIntoViewIfNeeded();
   const newAction = (await page
       .getByTestId('program-new-action')
@@ -678,7 +680,7 @@ test('week selection keeps adjacent context, avoids unnecessary movement and scr
 });
 
 for (const device of devices)
-  test(`shared folklore seam ${device.width}x${device.height}: title-free progress/profile and clean dark program body`, async ({
+  test(`shared folklore seam ${device.width}x${device.height}: low progress title, name-only profile and clean dark program body`, async ({
     page,
   }, info) => {
     await page.setViewportSize(device);
@@ -688,7 +690,7 @@ for (const device of devices)
     await expect(page.getByTestId('progress-tab-hero')).toBeVisible();
     await expect(
       page.getByRole('heading', { name: 'PROGRESSI', exact: true }),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
     const progress = (await page
       .getByTestId('progress-editorial-screen')
       .getByTestId('section-hero-art')

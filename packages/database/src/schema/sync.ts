@@ -43,7 +43,7 @@ export const syncOperations = pgTable(
     check('sync_operations_sequence_valid', sql`${t.sequence}>0`),
     check(
       'sync_operations_type_valid',
-      sql`${t.operationType} IN ('START_WORKOUT','COMPLETE_SET','UPDATE_SET','SKIP_SET','COMPLETE_WORKOUT','CANCEL_WORKOUT')`,
+      sql`${t.operationType} IN ('START_WORKOUT','START_EMOM','COMPLETE_SET','UPDATE_SET','SKIP_SET','COMPLETE_WORKOUT','CANCEL_WORKOUT')`,
     ),
   ],
 );

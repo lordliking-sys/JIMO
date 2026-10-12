@@ -1,5 +1,7 @@
 import {
   actualFor,
+  prescriptionFor,
+  canRecordEmomRound,
   workoutDetailSchema,
   offlineSnapshotSchema,
   type ActualInput,
@@ -38,6 +40,17 @@ export function makeLocalWorkout(
 ): WorkoutDetail {
   const day = p.days.find((d) => d.id === dayId);
   if (!day || !day.exercises.length) throw new Error('PROGRAM_NOT_CACHED');
+  for (const e of day.exercises) {
+    const {
+      id: _id,
+      position: _position,
+      exercise: _exercise,
+      createdAt: _c,
+      updatedAt: _u,
+      ...prescription
+    } = e;
+    prescriptionFor(e.exercise.trackingMode).parse(prescription);
+  }
   const audit = { createdAt: time, updatedAt: time };
   return workoutDetailSchema.parse(
     recount({
@@ -63,6 +76,10 @@ export function makeLocalWorkout(
         trackingModeSnapshot: e.exercise.trackingMode,
         loadModeSnapshot: e.loadMode,
         restSecondsSnapshot: e.restSeconds ?? null,
+        workoutModeSnapshot: e.workoutMode ?? 'standard',
+        emomIntervalSecondsSnapshot:
+          e.workoutMode === 'emom' ? (e.emomIntervalSeconds ?? 60) : null,
+        emomStartedAt: null,
         notes: e.notes ?? null,
         ...audit,
         sets: Array.from({ length: e.targetSets }, (_, i) => ({
@@ -78,6 +95,15 @@ export function makeLocalWorkout(
           targetLoadKg: e.targetLoadKg ?? null,
           targetAssistanceKg: e.targetAssistanceKg ?? null,
           targetRpe: e.targetRpe ?? null,
+          targetRestSeconds: e.restSeconds ?? null,
+          ...(e.workoutMode === 'pyramid' && e.setTargets?.[i]
+            ? {
+                ...e.setTargets[i],
+                targetRepMin: null,
+                targetRepMax: null,
+                targetRestSeconds: e.setTargets[i]!.restSeconds,
+              }
+            : {}),
           actualReps: null,
           actualDurationSeconds: null,
           actualLoadKg: null,
@@ -95,7 +121,7 @@ export function snapshotOf(w: WorkoutDetail) {
     name: w.name,
     notes: w.notes,
     exercises: w.exercises.map(
-      ({ createdAt: _c, updatedAt: _u, sets, ...e }) => ({
+      ({ createdAt: _c, updatedAt: _u, emomStartedAt: _a, sets, ...e }) => ({
         ...e,
         sets: sets.map(
           ({
@@ -108,6 +134,7 @@ export function snapshotOf(w: WorkoutDetail) {
             targetLoadKg,
             targetAssistanceKg,
             targetRpe,
+            targetRestSeconds,
           }) => ({
             id,
             setNumber,
@@ -118,6 +145,7 @@ export function snapshotOf(w: WorkoutDetail) {
             targetLoadKg,
             targetAssistanceKg,
             targetRpe,
+            targetRestSeconds,
           }),
         ),
       }),
@@ -288,6 +316,31 @@ export class WorkoutLocalRepository {
       return w;
     });
   }
+  startEmom(owner: string, sessionId: string, exerciseId: string) {
+    return this.write(async (sql) => {
+      const w = await read(sql, owner, sessionId);
+      if (!w || w.status !== 'in_progress')
+        throw new Error('WORKOUT_STATE_CONFLICT');
+      const e = w.exercises.find((e) => e.id === exerciseId);
+      if (!e || e.workoutModeSnapshot !== 'emom')
+        throw new Error('WORKOUT_STATE_CONFLICT');
+      if (e.emomStartedAt) return w;
+      const now = this.clock();
+      e.emomStartedAt = now;
+      e.updatedAt = now;
+      w.updatedAt = now;
+      await store(sql, owner, w);
+      await enqueue(sql, owner, {
+        operationId: this.uuid(),
+        sessionId,
+        entityId: exerciseId,
+        operationType: 'START_EMOM',
+        createdAt: now,
+        payload: {},
+      });
+      return w;
+    });
+  }
   save(owner: string, id: string, input: ActualInput, correction = false) {
     return this.changeSet(
       owner,
@@ -328,6 +381,8 @@ export class WorkoutLocalRepository {
       )
         throw new Error('WORKOUT_STATE_CONFLICT');
       const now = this.clock();
+      if (type === 'COMPLETE_SET' && !canRecordEmomRound(ex, s, now))
+        throw new Error('WORKOUT_STATE_CONFLICT');
       const actual =
         type === 'SKIP_SET' ? undefined : actualFor(ex).parse(input);
       if (actual) Object.assign(s, actual);

@@ -112,5 +112,15 @@
     "skip": "Skip",
     "previews": "Workout previews",
     "previewBadge": "PREVIEW"
+  },
+  "emom": {
+    "confirmRound": "Confirm round {{round}}",
+    "start": "Start EMOM",
+    "round": "Round {{current}} / {{total}}",
+    "roundLabel": "Round",
+    "lastSeconds": "Last 5 seconds",
+    "finished": "Intervals finished · record missing rounds",
+    "saved": "Saved: {{reps}} reps",
+    "completed": "Completed rounds: {{count}}"
   }
 }

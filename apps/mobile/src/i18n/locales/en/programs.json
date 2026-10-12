@@ -179,5 +179,19 @@
   "durationShort": "Duration",
   "restShort": "Rest",
   "confirmArchiveAny": "Archive this program? Workout history will be preserved.",
-  "legacyAssistance": "Existing assistance prescription. Keep it or choose one of the three modes."
+  "legacyAssistance": "Existing assistance prescription. Keep it or choose one of the three modes.",
+  "seriesType": "Set type",
+  "seriesModes": {
+    "standard": "Standard",
+    "pyramid": "Pyramid",
+    "emom": "EMOM"
+  },
+  "rounds": "Rounds / minutes",
+  "intervalSeconds": "Interval: {{seconds}} sec",
+  "setTarget": "Set target",
+  "addSet": "Add set",
+  "removeSet": "Remove set",
+  "pyramidSummary": "Pyramid · {{sets}} sets",
+  "emomSummary": "EMOM · {{rounds}} × {{reps}} reps · {{seconds}} sec",
+  "perSetTargets": "Per-set targets"
 }

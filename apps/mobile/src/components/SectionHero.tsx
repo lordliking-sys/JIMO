@@ -14,11 +14,46 @@ import {
   useWindowDimensions,
   type ImageSourcePropType,
   type ViewStyle,
+  type NativeSyntheticEvent,
+  type NativeScrollEvent,
 } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { ink } from '../progress-profile/theme';
 import { sectionHeroHeight, programHeroHeight } from './section-hero-geometry';
 
+type Canvas = {
+  source: ImageSourcePropType;
+  width: number;
+  topInset: number;
+  sideInset: number;
+  bodyColor: string;
+  dark: boolean;
+};
+const HeroCanvas = createContext<Canvas | null>(null);
+export function SectionHeroCanvas({
+  children,
+  ...value
+}: Canvas & { children: ReactNode }) {
+  return <HeroCanvas.Provider value={value}>{children}</HeroCanvas.Provider>;
+}
+/** Both pixels and status icon contrast follow the same scrolling frame. */
+export function useSectionStatusBar(
+  darkHero: boolean,
+  height: number,
+  topInset: number,
+) {
+  const [underHero, setUnderHero] = useState(true);
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      setUnderHero(e.nativeEvent.contentOffset.y < height - topInset / 2);
+    },
+    [height, topInset],
+  );
+  return {
+    style: darkHero && underHero ? ('light' as const) : ('dark' as const),
+    onScroll,
+  };
+}
 const Geometry = createContext<{
   height: number;
   report(height: number): void;
@@ -70,12 +105,15 @@ export function SectionHeroFrame({
   measured?: (height: number) => void;
   style?: ViewStyle;
 }) {
+  const canvas = useContext(HeroCanvas);
+  const [ownHeight, setOwnHeight] = useState(0);
   const geometry = useSectionHeroGeometry(),
     { width, fontScale } = useWindowDimensions();
   return (
     <View
       testID={testID}
       onLayout={(e) => {
+        setOwnHeight(e.nativeEvent.layout.height);
         if (!compact) geometry.report(e.nativeEvent.layout.height);
         measured?.(e.nativeEvent.layout.height);
       }}
@@ -89,6 +127,35 @@ export function SectionHeroFrame({
         ...style,
       }}
     >
+      {canvas ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: -canvas.topInset,
+            left: -canvas.sideInset,
+            width: canvas.width,
+            height:
+              (ownHeight ||
+                (compact
+                  ? programHeroHeight(width, fontScale)
+                  : geometry.height)) + canvas.topInset,
+          }}
+        >
+          <SectionHeroArtwork
+            source={canvas.source}
+            width={canvas.width}
+            height={
+              (ownHeight ||
+                (compact
+                  ? programHeroHeight(width, fontScale)
+                  : geometry.height)) + canvas.topInset
+            }
+            bodyColor={canvas.bodyColor}
+            dark={canvas.dark}
+          />
+        </View>
+      ) : null}
       {children}
     </View>
   );

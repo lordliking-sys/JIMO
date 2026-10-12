@@ -29,6 +29,9 @@ export function snapshotExercise(
     trackingModeSnapshot: exercise.trackingMode,
     loadModeSnapshot: source.loadMode,
     restSecondsSnapshot: source.restSeconds,
+    workoutModeSnapshot: source.workoutMode ?? 'standard',
+    emomIntervalSecondsSnapshot:
+      source.workoutMode === 'emom' ? (source.emomIntervalSeconds ?? 60) : null,
     notes: source.notes,
   };
 }
@@ -47,6 +50,15 @@ export function snapshotSets(
     targetLoadKg: source.targetLoadKg,
     targetAssistanceKg: source.targetAssistanceKg,
     targetRpe: source.targetRpe,
+    targetRestSeconds: source.restSeconds,
+    ...(source.workoutMode === 'pyramid' && source.setTargets?.[index]
+      ? {
+          ...source.setTargets[index],
+          targetRepMin: null,
+          targetRepMax: null,
+          targetRestSeconds: source.setTargets[index]!.restSeconds,
+        }
+      : {}),
     actualReps: null,
     actualDurationSeconds: null,
     actualLoadKg: null,

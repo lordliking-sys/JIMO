@@ -48,6 +48,10 @@ const stamp = (r: { createdAt: Date; updatedAt: Date }) => ({
 export function prescriptionPayload(r: Prescription): Prescription {
   return {
     exerciseId: r.exerciseId,
+    workoutMode: r.workoutMode ?? 'standard',
+    emomIntervalSeconds:
+      r.workoutMode === 'emom' ? (r.emomIntervalSeconds ?? 60) : null,
+    setTargets: r.setTargets ?? null,
     loadMode: r.loadMode,
     targetSets: r.targetSets,
     targetReps: r.targetReps ?? null,
@@ -427,7 +431,7 @@ export class ProgramService {
     const result = await this.db.batch([
       this.lockProgram(userId, day.programId),
       this.db.execute(
-        sql`INSERT INTO program_exercises (program_day_id, exercise_id, position, load_mode, target_sets, target_reps, target_rep_min, target_rep_max, target_duration_seconds, target_load_kg, target_assistance_kg, target_rpe, rest_seconds, notes) SELECT ${dayId}::uuid, ${p.exerciseId}::uuid, coalesce(max(e.position),-1)+1, ${p.loadMode}::load_mode, ${p.targetSets}::integer, ${p.targetReps ?? null}::integer, ${p.targetRepMin ?? null}::integer, ${p.targetRepMax ?? null}::integer, ${p.targetDurationSeconds ?? null}::integer, ${p.targetLoadKg ?? null}::numeric, ${p.targetAssistanceKg ?? null}::numeric, ${p.targetRpe ?? null}::numeric, ${p.restSeconds ?? null}::integer, ${p.notes ?? null} FROM program_exercises e WHERE e.program_day_id = ${dayId}::uuid HAVING count(*) < 1000 AND EXISTS (SELECT 1 FROM program_days d JOIN programs p ON p.id=d.program_id WHERE d.id=${dayId}::uuid AND p.user_id=${userId}::uuid) AND EXISTS (SELECT 1 FROM exercises x WHERE x.id=${p.exerciseId}::uuid AND (NOT x.is_custom OR x.created_by_user_id=${userId}::uuid)) RETURNING id`,
+        sql`INSERT INTO program_exercises (program_day_id, exercise_id, position, load_mode, target_sets, target_reps, target_rep_min, target_rep_max, target_duration_seconds, target_load_kg, target_assistance_kg, target_rpe, rest_seconds, notes, workout_mode, emom_interval_seconds, set_targets) SELECT ${dayId}::uuid, ${p.exerciseId}::uuid, coalesce(max(e.position),-1)+1, ${p.loadMode}::load_mode, ${p.targetSets}::integer, ${p.targetReps ?? null}::integer, ${p.targetRepMin ?? null}::integer, ${p.targetRepMax ?? null}::integer, ${p.targetDurationSeconds ?? null}::integer, ${p.targetLoadKg ?? null}::numeric, ${p.targetAssistanceKg ?? null}::numeric, ${p.targetRpe ?? null}::numeric, ${p.restSeconds ?? null}::integer, ${p.notes ?? null}, ${p.workoutMode ?? 'standard'}, ${p.emomIntervalSeconds ?? null}::integer, ${p.setTargets ? JSON.stringify(p.setTargets) : null}::jsonb FROM program_exercises e WHERE e.program_day_id = ${dayId}::uuid HAVING count(*) < 1000 AND EXISTS (SELECT 1 FROM program_days d JOIN programs p ON p.id=d.program_id WHERE d.id=${dayId}::uuid AND p.user_id=${userId}::uuid) AND EXISTS (SELECT 1 FROM exercises x WHERE x.id=${p.exerciseId}::uuid AND (NOT x.is_custom OR x.created_by_user_id=${userId}::uuid)) RETURNING id`,
       ),
     ]);
     if (!result[1].rows.length) return conflict();

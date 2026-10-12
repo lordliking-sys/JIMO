@@ -8,35 +8,45 @@ export function exerciseSummary(
   t: TFunction<'programs'>,
 ) {
   const target =
-    exercise.targetDurationSeconds != null
-      ? t('timedSummary', {
-          sets: exercise.targetSets,
-          seconds: exercise.targetDurationSeconds,
-        })
-      : exercise.targetRepMin != null
-        ? t('rangeSummary', {
-            sets: exercise.targetSets,
-            min: exercise.targetRepMin,
-            max: exercise.targetRepMax,
-          })
-        : t('fixedSummary', {
-            sets: exercise.targetSets,
+    exercise.workoutMode === 'pyramid'
+      ? t('pyramidSummary', { sets: exercise.targetSets })
+      : exercise.workoutMode === 'emom'
+        ? t('emomSummary', {
+            rounds: exercise.targetSets,
             reps: exercise.targetReps,
-          });
+            seconds: exercise.emomIntervalSeconds ?? 60,
+          })
+        : exercise.targetDurationSeconds != null
+          ? t('timedSummary', {
+              sets: exercise.targetSets,
+              seconds: exercise.targetDurationSeconds,
+            })
+          : exercise.targetRepMin != null
+            ? t('rangeSummary', {
+                sets: exercise.targetSets,
+                min: exercise.targetRepMin,
+                max: exercise.targetRepMax,
+              })
+            : t('fixedSummary', {
+                sets: exercise.targetSets,
+                reps: exercise.targetReps,
+              });
   const unit = t('kgUnit');
   const load =
-    exercise.loadMode === 'bodyweight'
-      ? t('loadModes.bodyweight')
-      : exercise.loadMode === 'assisted'
-        ? exercise.targetAssistanceKg != null
-          ? t('assistanceSummary', {
-              value: decimalDisplay(exercise.targetAssistanceKg, locale),
-              unit,
-            })
-          : t('loadModes.assisted')
-        : exercise.targetLoadKg != null
-          ? `${exercise.loadMode === 'weighted' ? '+' : ''}${decimalDisplay(exercise.targetLoadKg, locale)} ${unit}`
-          : t(`loadModes.${exercise.loadMode}`);
+    exercise.workoutMode === 'pyramid'
+      ? t('perSetTargets')
+      : exercise.loadMode === 'bodyweight'
+        ? t('loadModes.bodyweight')
+        : exercise.loadMode === 'assisted'
+          ? exercise.targetAssistanceKg != null
+            ? t('assistanceSummary', {
+                value: decimalDisplay(exercise.targetAssistanceKg, locale),
+                unit,
+              })
+            : t('loadModes.assisted')
+          : exercise.targetLoadKg != null
+            ? `${exercise.loadMode === 'weighted' ? '+' : ''}${decimalDisplay(exercise.targetLoadKg, locale)} ${unit}`
+            : t(`loadModes.${exercise.loadMode}`);
   const details = [
     exercise.targetRpe != null
       ? t('rpeSummary', { value: decimalDisplay(exercise.targetRpe, locale) })

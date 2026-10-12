@@ -94,6 +94,7 @@ export function NumberControl({
   displayLabel,
   displayValue,
   labelAccessory,
+  hideEmptyControl = false,
 }: {
   label: string;
   value: string;
@@ -111,6 +112,7 @@ export function NumberControl({
   displayLabel?: string;
   displayValue?: string;
   labelAccessory?: ReactNode;
+  hideEmptyControl?: boolean;
 }) {
   const { t } = useTranslation('programs');
   const [editing, setEditing] = useState(false);
@@ -213,101 +215,103 @@ export function NumberControl({
             {displayLabel ?? label}
           </Text>
         ) : null}
-        <View
-          style={[
-            styles.control,
-            visual && {
-              gap: 0,
-              borderWidth: 1,
-              borderColor: programInk.border,
-              borderRadius: 14,
-              backgroundColor: programInk.field,
-            },
-            compact && { width: 164 },
-          ]}
-        >
-          <IconButton
-            icon={<Minus size={sizes.icon} color={controlColor} />}
-            label={`${t('decrease')} ${label}`}
-            disabled={!value.trim() || (valid && current <= min)}
-            onPress={() => onStep(-1)}
-          />
-          {editing ? (
-            <FocusInput
-              accessibilityLabel={label}
-              accessibilityHint={t('numberHint')}
-              value={value}
-              onChangeText={onChange}
-              keyboardType={keyboardType}
-              placeholder="—"
-              style={styles.value}
-              autoFocus
-              onSubmitEditing={finish}
+        {hideEmptyControl && !value.trim() && !editing ? null : (
+          <View
+            style={[
+              styles.control,
+              visual && {
+                gap: 0,
+                borderWidth: 1,
+                borderColor: programInk.border,
+                borderRadius: 14,
+                backgroundColor: programInk.field,
+              },
+              compact && { width: 164 },
+            ]}
+          >
+            <IconButton
+              icon={<Minus size={sizes.icon} color={controlColor} />}
+              label={`${t('decrease')} ${label}`}
+              disabled={!value.trim() || (valid && current <= min)}
+              onPress={() => onStep(-1)}
             />
-          ) : (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={manualLabel ?? t('manualValue', { label })}
-              accessibilityHint={t('numberHint')}
-              accessibilityValue={{
-                text: value ? (displayValue ?? value) : t('unspecified'),
-              }}
-              onPress={() => setEditing(true)}
-              style={[
-                styles.display,
-                { flex: 1 },
-                visual && {
-                  backgroundColor: 'transparent',
-                  paddingHorizontal: 0,
-                },
-              ]}
-            >
-              <Text
-                variant="h3"
-                color={
-                  visual
-                    ? programInk.text
-                    : value
-                      ? colors.primarySoft
-                      : colors.secondary
-                }
-                style={{ textAlign: 'center' }}
+            {editing ? (
+              <FocusInput
+                accessibilityLabel={label}
+                accessibilityHint={t('numberHint')}
+                value={value}
+                onChangeText={onChange}
+                keyboardType={keyboardType}
+                placeholder="—"
+                style={styles.value}
+                autoFocus
+                onSubmitEditing={finish}
+              />
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={manualLabel ?? t('manualValue', { label })}
+                accessibilityHint={t('numberHint')}
+                accessibilityValue={{
+                  text: value ? (displayValue ?? value) : t('unspecified'),
+                }}
+                onPress={() => setEditing(true)}
+                style={[
+                  styles.display,
+                  { flex: 1 },
+                  visual && {
+                    backgroundColor: 'transparent',
+                    paddingHorizontal: 0,
+                  },
+                ]}
               >
-                {value
-                  ? (displayValue ??
-                    `${prefix}${value}${unit ? ` ${unit}` : ''}`)
-                  : '—'}
-              </Text>
-              {manualLabel ? (
                 <Text
-                  variant="caption"
-                  color={visual ? programInk.secondary : colors.secondary}
+                  variant="h3"
+                  color={
+                    visual
+                      ? programInk.text
+                      : value
+                        ? colors.primarySoft
+                        : colors.secondary
+                  }
                   style={{ textAlign: 'center' }}
                 >
-                  {manualLabel}
+                  {value
+                    ? (displayValue ??
+                      `${prefix}${value}${unit ? ` ${unit}` : ''}`)
+                    : '—'}
                 </Text>
-              ) : null}
-            </Pressable>
-          )}
-          <IconButton
-            icon={<Plus size={sizes.icon} color={controlColor} />}
-            label={`${t('increase')} ${label}`}
-            disabled={valid && max !== undefined && current >= max}
-            onPress={() => onStep(1)}
-          />
-          {editing ? (
+                {manualLabel ? (
+                  <Text
+                    variant="caption"
+                    color={visual ? programInk.secondary : colors.secondary}
+                    style={{ textAlign: 'center' }}
+                  >
+                    {manualLabel}
+                  </Text>
+                ) : null}
+              </Pressable>
+            )}
             <IconButton
-              label={t('confirmValue', { label })}
-              icon={
-                <Check
-                  color={visual ? programInk.sage : colors.primary}
-                  size={sizes.icon}
-                />
-              }
-              onPress={finish}
+              icon={<Plus size={sizes.icon} color={controlColor} />}
+              label={`${t('increase')} ${label}`}
+              disabled={valid && max !== undefined && current >= max}
+              onPress={() => onStep(1)}
             />
-          ) : null}
-        </View>
+            {editing ? (
+              <IconButton
+                label={t('confirmValue', { label })}
+                icon={
+                  <Check
+                    color={visual ? programInk.sage : colors.primary}
+                    size={sizes.icon}
+                  />
+                }
+                onPress={finish}
+              />
+            ) : null}
+          </View>
+        )}
       </View>
       {hint && !visual ? (
         <Text variant="caption" color={colors.secondary}>

@@ -1,3 +1,4 @@
+import { exerciseCardBackgrounds } from './exercise-artwork-sources';
 import {
   createContext,
   useContext,
@@ -6,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import {
+  Image,
   BackHandler,
   Keyboard,
   Pressable,
@@ -18,16 +20,20 @@ import {
   type StyleProp,
 } from 'react-native';
 import { useFonts } from 'expo-font';
-import { useFocusEffect, useRouter, type Href } from 'expo-router';
+import {
+  useFocusEffect,
+  useRouter,
+  useIsFocused,
+  type Href,
+} from 'expo-router';
 import { useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   SectionHeroScope,
-  SectionHeroArtwork,
+  SectionHeroCanvas,
   SectionHeroFrame,
 } from '../components/SectionHero';
-import { programHeroHeight } from '../components/section-hero-geometry';
 import { Screen, Text, sizes } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
@@ -136,6 +142,7 @@ export function ProgramRow({
   onPress,
   leading,
   trailing,
+  cardTone,
 }: {
   title: string;
   subtitle?: string;
@@ -144,9 +151,21 @@ export function ProgramRow({
   onPress: () => void;
   leading?: ReactNode;
   trailing?: ReactNode;
+  cardTone?: 'light' | 'dark';
 }) {
   return (
     <View style={presentationStyles.row}>
+      {cardTone ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <Image
+            testID={`exercise-row-background-${cardTone}`}
+            source={exerciseCardBackgrounds[cardTone]}
+            resizeMode="cover"
+            accessible={false}
+            style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
+          />
+        </View>
+      ) : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label ?? title}
@@ -205,13 +224,12 @@ function ProgramSurface({
   const [ready] = useFonts({
       JimoProgramSerif: require('../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
     }),
-    { width, fontScale } = useWindowDimensions(),
+    { width } = useWindowDimensions(),
     [keyboard, setKeyboard] = useState(false),
     router = useRouter(),
     { t } = useTranslation('programs');
   const insets = useSafeAreaInsets(),
-    key = `${width}:${fontScale}`;
-  const [measured, setMeasured] = useState({ key, height: 0 });
+    focused = useIsFocused();
   useEffect(() => {
     const a = Keyboard.addListener('keyboardDidShow', () => setKeyboard(true)),
       b = Keyboard.addListener('keyboardDidHide', () => setKeyboard(false));
@@ -230,11 +248,6 @@ function ProgramSurface({
       return () => sub.remove();
     }, [router, fallback]),
   );
-  const height =
-    Math.max(
-      programHeroHeight(width, fontScale),
-      measured.key === key ? measured.height : 0,
-    ) + insets.top;
   return (
     <Context.Provider value={true}>
       <BackTarget.Provider value={fallback}>
@@ -243,26 +256,22 @@ function ProgramSurface({
             testID="program-management-screen"
             style={{ flex: 1, backgroundColor: programInk.background }}
           >
-            <StatusBar style="light" />
-            <SectionHeroArtwork
-              source={programArtwork[background]}
-              width={width}
-              height={height}
-              dark
-              bodyColor={programInk.background}
-            />
+            {focused ? <StatusBar style="light" /> : null}
             <Screen
+              edgeToEdge
               keyboardAware
               surfaceStyle={{ backgroundColor: 'transparent' }}
               contentStyle={{
                 paddingHorizontal: 0,
-                paddingVertical: 0,
+                paddingTop: insets.top,
+                paddingBottom: 0,
                 gap: 0,
               }}
               footerStyle={{
                 backgroundColor: 'rgba(16,19,15,0.96)',
                 borderTopWidth: 0,
-                paddingHorizontal: width < 360 ? 16 : 20,
+                paddingLeft: insets.left + (width < 360 ? 16 : 20),
+                paddingRight: insets.right + (width < 360 ? 16 : 20),
               }}
               {...(footer || keyboard
                 ? {
@@ -298,26 +307,31 @@ function ProgramSurface({
                   }
                 : {})}
             >
-              <View style={{ paddingHorizontal: width < 360 ? 16 : 20 }}>
-                <SectionHeroFrame
-                  compact
-                  testID="program-management-hero"
-                  measured={(next) =>
-                    setMeasured((old) =>
-                      old.key === key && Math.abs(old.height - next) <= 1
-                        ? old
-                        : { key, height: next },
-                    )
-                  }
+              <SectionHeroCanvas
+                source={programArtwork[background]}
+                width={width}
+                topInset={insets.top}
+                sideInset={insets.left + (width < 360 ? 16 : 20)}
+                dark
+                bodyColor={programInk.background}
+              >
+                <View
+                  style={{
+                    paddingLeft: insets.left + (width < 360 ? 16 : 20),
+                    paddingRight: insets.right + (width < 360 ? 16 : 20),
+                  }}
                 >
-                  {header}
-                </SectionHeroFrame>
-              </View>
+                  <SectionHeroFrame compact testID="program-management-hero">
+                    {header}
+                  </SectionHeroFrame>
+                </View>
+              </SectionHeroCanvas>
               <View
                 testID="program-management-body"
                 style={{
                   backgroundColor: programInk.background,
-                  paddingHorizontal: width < 360 ? 16 : 20,
+                  paddingLeft: insets.left + (width < 360 ? 16 : 20),
+                  paddingRight: insets.right + (width < 360 ? 16 : 20),
                   paddingTop: 16,
                   paddingBottom: 16,
                   gap: 16,

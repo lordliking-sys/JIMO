@@ -179,5 +179,19 @@
   "durationShort": "Durata",
   "restShort": "Recupero",
   "confirmArchiveAny": "Archiviare il programma? Lo storico sarà conservato.",
-  "legacyAssistance": "Prescrizione esistente con assistenza. Puoi mantenerla oppure scegliere una delle tre modalità."
+  "legacyAssistance": "Prescrizione esistente con assistenza. Puoi mantenerla oppure scegliere una delle tre modalità.",
+  "seriesType": "Tipo serie",
+  "seriesModes": {
+    "standard": "Standard",
+    "pyramid": "Piramidale",
+    "emom": "EMOM"
+  },
+  "rounds": "Round / minuti",
+  "intervalSeconds": "Intervallo: {{seconds}} sec",
+  "setTarget": "Target serie",
+  "addSet": "Aggiungi serie",
+  "removeSet": "Rimuovi serie",
+  "pyramidSummary": "Piramidale · {{sets}} serie",
+  "emomSummary": "EMOM · {{rounds}} × {{reps}} reps · {{seconds}} sec",
+  "perSetTargets": "Target per serie"
 }

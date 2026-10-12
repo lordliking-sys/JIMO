@@ -195,6 +195,11 @@ export class OfflineRuntime {
       return this.workouts.start(owner, program, dayId);
     });
   }
+  startEmom(sessionId: string, exerciseId: string) {
+    return this.mutate((owner) =>
+      this.workouts.startEmom(owner, sessionId, exerciseId),
+    );
+  }
   save(id: string, input: ActualInput, correction = false) {
     return this.mutate((owner) =>
       this.workouts.save(owner, id, input, correction),

@@ -1,3 +1,5 @@
+> EMOM and Pyramid use the same session/SQLite/outbox/sync engine. See [android-workout-modes.md](android-workout-modes.md) for mode snapshots, `START_EMOM`, per-set targets, actual recording and verified compatibility.
+
 # Task 5 — Workout Engine
 
 > Questo documento descrive la consegna storica del Task 5. Dal Task 6 il mobile usa SQLite come sorgente operativa e sync in background; i flussi di salvataggio server descritti qui restano disponibili tramite le route online. Vedi [offline-sync.md](offline-sync.md).

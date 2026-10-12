@@ -217,7 +217,7 @@ for (const device of devices)
       ).toBe(true);
     await expect(
       page.getByRole('heading', { name: 'PROGRESSI', exact: true }),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
     expect(
       (await page
         .getByTestId('progress-editorial-screen')

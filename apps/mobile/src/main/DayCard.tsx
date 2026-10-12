@@ -1,22 +1,14 @@
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import Svg, {
-  Defs,
-  Ellipse,
-  LinearGradient,
-  RadialGradient,
-  Rect,
-  Stop,
-} from 'react-native-svg';
 import Check from 'lucide-react-native/icons/check';
 import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { Text } from '@jimo/ui';
 import type { DayDto, ProgramDetail, WorkoutSummary } from '@jimo/schemas';
 import { MainText } from './Surface';
-import { mainArtwork, mainInk } from './theme';
-import { dayArtworkKey, type DayState } from './helpers';
+import { mainInk } from './theme';
+import { type DayState } from './helpers';
 import { useDayStart } from './useDayStart';
 
 export function DayCard({
@@ -35,8 +27,7 @@ export function DayCard({
   const { t } = useTranslation(['main', 'programs', 'workouts']),
     router = useRouter(),
     action = useDayStart(day.id);
-  const artwork = dayArtworkKey(day.name),
-    startable = program.status === 'active' && day.exercises.length > 0;
+  const startable = program.status === 'active' && day.exercises.length > 0;
   const label = completed
     ? t('openSession', { name: day.name })
     : action.conflict
@@ -78,57 +69,6 @@ export function DayCard({
           opacity: pressed ? 0.8 : 1,
         })}
       >
-        <Image
-          testID="program-day-artwork"
-          source={artwork ? mainArtwork[artwork] : mainArtwork.program}
-          accessible={false}
-          resizeMode="cover"
-          style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
-        />
-        <Svg
-          pointerEvents="none"
-          accessible={false}
-          width="100%"
-          height="100%"
-          style={StyleSheet.absoluteFill}
-        >
-          <Defs>
-            <LinearGradient id={`shade-${day.id}`} x1="0" y1="0" x2="1" y2="0">
-              <Stop
-                offset={0}
-                stopColor={mainInk.charcoal}
-                stopOpacity={0.86}
-              />
-              <Stop
-                offset={0.55}
-                stopColor={mainInk.charcoal}
-                stopOpacity={0.48}
-              />
-              <Stop
-                offset={1}
-                stopColor={mainInk.charcoal}
-                stopOpacity={0.08}
-              />
-            </LinearGradient>
-            <RadialGradient id={`ink-${day.id}`}>
-              <Stop offset={0} stopColor={mainInk.charcoal} stopOpacity={0.6} />
-              <Stop
-                offset={0.6}
-                stopColor={mainInk.charcoal}
-                stopOpacity={0.35}
-              />
-              <Stop offset={1} stopColor={mainInk.charcoal} stopOpacity={0} />
-            </RadialGradient>
-          </Defs>
-          <Rect width="100%" height="100%" fill={`url(#shade-${day.id})`} />
-          <Ellipse
-            cx="28%"
-            cy="50%"
-            rx="70%"
-            ry="85%"
-            fill={`url(#ink-${day.id})`}
-          />
-        </Svg>
         <View
           style={{
             flexDirection: 'row',
@@ -159,24 +99,19 @@ export function DayCard({
               width: 40,
               height: 40,
               borderRadius: 20,
-              borderWidth: state === 'current' ? 0 : 1,
-              borderColor: mainInk.parchment,
-              backgroundColor:
-                state === 'current' ? mainInk.sage : 'rgba(9, 15, 10, 0.8)',
+              borderWidth: 1,
+              borderColor: mainInk.sage,
+              backgroundColor: 'rgba(9, 15, 10, 0.8)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             {state === 'completed' ? (
-              <Check size={23} strokeWidth={1.8} color={mainInk.parchment} />
+              <Check size={23} strokeWidth={1.8} color={mainInk.sage} />
             ) : state === 'current' ? (
-              <ArrowRight
-                size={24}
-                strokeWidth={1.8}
-                color={mainInk.charcoal}
-              />
+              <ArrowRight size={24} strokeWidth={1.8} color={mainInk.sage} />
             ) : (
-              <ChevronRight size={21} color={mainInk.parchment} />
+              <ChevronRight size={21} color={mainInk.sage} />
             )}
           </View>
         </View>

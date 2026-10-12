@@ -97,7 +97,9 @@ export function latestCompleted(workout: WorkoutDetail) {
       )
       .sort(
         (a, b) =>
-          Date.parse(b.set.completedAt!) - Date.parse(a.set.completedAt!),
+          Date.parse(b.set.completedAt!) - Date.parse(a.set.completedAt!) ||
+          b.exercise.position - a.exercise.position ||
+          b.set.setNumber - a.set.setNumber,
       )[0] ?? null
   );
 }
@@ -112,6 +114,11 @@ export function restRemaining(
     Math.ceil((Date.parse(completedAt) + restSeconds * 1000 - now) / 1000),
   );
 }
+export function setRestSeconds(exercise: WorkoutExercise, set: WorkoutSet) {
+  return exercise.workoutModeSnapshot === 'pyramid'
+    ? (set.targetRestSeconds ?? null)
+    : (set.targetRestSeconds ?? exercise.restSecondsSnapshot);
+}
 export function recoverRest(
   workout: WorkoutDetail,
   now = Date.now(),
@@ -123,6 +130,7 @@ export function recoverRest(
   if (
     workout.status !== 'in_progress' ||
     !next ||
+    last?.exercise.workoutModeSnapshot === 'emom' ||
     !last ||
     last.exercise.id !== next.exercise.id ||
     last.set.id === skippedRestId
@@ -130,7 +138,7 @@ export function recoverRest(
     return null;
   const remaining = restRemaining(
     last.set.completedAt,
-    last.exercise.restSecondsSnapshot,
+    setRestSeconds(last.exercise, last.set),
     now,
   );
   return remaining > 0 ? { ...last, remaining } : null;

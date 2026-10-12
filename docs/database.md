@@ -1,3 +1,5 @@
+> Real EMOM/Pyramid extension: 12 tables, the same 6 stable enums and 9 versioned migrations. New version `0008_workout_modes.sql` was applied only to verified Neon development; see [android-workout-modes.md](android-workout-modes.md) for typed per-set targets, timestamp snapshots, draft verification and data preservation.
+
 > Current Task 9 schema has 12 tables, 6 stable enums and 8 versioned migrations. Import adds ai_usage and a minimal confirmation ledger; existing domain schema is unchanged. See [workout-plan-import.md](workout-plan-import.md) and [authentication.md](authentication.md). Older Task sections below record historical milestones.
 
 # Database JIMO — Task 3

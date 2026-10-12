@@ -137,12 +137,13 @@ test('manual form: quick weeks, localized calendar date, clear date and visible 
     name: 'Durata in settimane (opzionale)',
     exact: true,
   });
-  await page
-    .getByRole('button', {
+  await expect(
+    page.getByRole('button', {
       name: 'Aumenta Durata in settimane (opzionale)',
       exact: true,
-    })
-    .click();
+    }),
+  ).toHaveCount(0);
+  await page.getByRole('button', { name: '4 settimane', exact: true }).click();
   await expect(valueButton(page, 'Durata in settimane (opzionale)')).toHaveText(
     '4',
   );
@@ -311,6 +312,9 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
   ).toBeVisible();
   expect(saved).toEqual([
     {
+      workoutMode: 'standard',
+      emomIntervalSeconds: null,
+      setTargets: null,
       exerciseId,
       loadMode: 'external',
       targetSets: 4,

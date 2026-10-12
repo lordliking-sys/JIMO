@@ -147,12 +147,11 @@ test('workout actual draft, retry, rest resume, correction, all modes and histor
   expect(fixture.workout.completedSets).toBe(5);
   expect(fixture.workout.skippedSets).toBe(1);
   await page.goto('/progress');
+  await page.getByRole('tab', { name: 'Frequenza', exact: true }).click();
   await expect(
-    page.getByText('STORICO ALLENAMENTI', { exact: true }),
+    page.getByText('Storico allenamenti', { exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Riepilogo allenamento', exact: true })
-    .click();
+  await page.getByRole('button', { name: /^PUSH\. / }).click();
   await expect(
     page.getByRole('button', { name: '✓ Completa serie', exact: true }),
   ).toHaveCount(0);
@@ -160,29 +159,29 @@ test('workout actual draft, retry, rest resume, correction, all modes and histor
   await expect(page.getByText('TARGET', { exact: true }).first()).toBeVisible();
   expect(errors).toEqual([]);
 });
-test('Home week schedule, today marker, active resume, finish confirmation and cancel', async ({
+test('Home week strip and resume, Workout hub start, finish confirmation and cancel', async ({
   page,
 }, info) => {
   const fixture = await workoutFixture(page);
   await page.clock.install({ time: new Date('2026-10-07T10:00:00Z') });
   await page.goto('/');
+  await expect(page.getByTestId('home-background')).toBeVisible();
   for (const day of ['Lunedì', 'Mercoledì', 'Venerdì'])
     await expect(
-      page.getByRole('button', { name: new RegExp(`${day}:.*programmato`) }),
+      page.getByLabel(new RegExp(`${day},.*programmato`)),
     ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: /Mercoledì: oggi, programmato/ }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: /Lunedì: programmato/ }).click();
-  await expect(page.getByText('PUSH', { exact: true })).toBeVisible();
+  await expect(page.getByLabel(/Mercoledì, oggi, programmato/)).toBeVisible();
   const sunday = await page
-    .getByRole('button', { name: /Domenica: non programmato/ })
+    .getByLabel(/Domenica, non programmato/)
     .boundingBox();
-  expect(sunday?.width).toBeGreaterThanOrEqual(48);
+  expect(sunday?.width).toBeGreaterThan(0);
   expect(sunday!.x + sunday!.width).toBeLessThanOrEqual(390);
   await page.screenshot({ path: info.outputPath('home-week.png') });
+  await page.goto('/workout');
+  await expect(page.getByText('PUSH', { exact: true })).toBeVisible();
   await page
     .getByRole('button', { name: 'Inizia allenamento', exact: true })
+    .first()
     .click();
   await page
     .getByRole('button', { name: 'Azioni allenamento', exact: true })

@@ -148,9 +148,13 @@ export default function Builder() {
         {program.days.map((day, index) => (
           <ProgramRow
             key={day.id}
-            title={day.name}
-            eyebrow={t('dayNumber', { count: index + 1 })}
-            subtitle={`${day.dayOfWeek ? t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`) : t('noWeekday')} · ${t('exerciseCount', { count: day.exercises.length })}`}
+            title={
+              day.dayOfWeek
+                ? t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`)
+                : day.name
+            }
+            eyebrow={program.name}
+            subtitle={`${day.dayOfWeek ? `${day.name} · ` : ''}${t('exerciseCount', { count: day.exercises.length })}`}
             label={`${t('openDay')} ${day.name}`}
             onPress={() =>
               router.push({
