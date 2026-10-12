@@ -19,7 +19,7 @@ export function HeroReadabilityWash({
       testID={testID}
       pointerEvents="none"
       accessible={false}
-      style={[StyleSheet.absoluteFill, { top: -20, bottom: -24 }]}
+      style={[StyleSheet.absoluteFill, { left: -20, top: -20, bottom: -24 }]}
     >
       <Svg
         width="100%"

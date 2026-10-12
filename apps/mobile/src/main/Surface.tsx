@@ -80,6 +80,15 @@ export function MainScreen({
               ]}
             />
           ) : null}
+          {!light ? (
+            <View
+              pointerEvents="none"
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: 'rgba(16, 19, 15, 0.38)' },
+              ]}
+            />
+          ) : null}
           <ScrollView
             testID="main-scroll"
             showsVerticalScrollIndicator={false}

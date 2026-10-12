@@ -40,19 +40,19 @@ export function Choice({
         {
           borderColor: visual
             ? selected
-              ? programInk.green
+              ? programInk.sage
               : programInk.border
             : selected
               ? colors.activeBorder
               : colors.border,
           backgroundColor: visual
             ? selected
-              ? programInk.green
-              : 'rgba(250,242,223,0.5)'
+              ? programInk.sage
+              : programInk.field
             : selected
               ? colors.elevated
               : colors.surface,
-          ...(visual ? { paddingHorizontal: 12, borderRadius: 7 } : {}),
+          ...(visual ? { paddingHorizontal: 12, borderRadius: 24 } : {}),
           opacity: pressed ? 0.7 : 1,
         },
       ]}
@@ -62,7 +62,7 @@ export function Choice({
         color={
           visual
             ? selected
-              ? programInk.paper
+              ? programInk.primaryText
               : programInk.secondary
             : selected
               ? colors.primarySoft
@@ -110,7 +110,7 @@ export function NumberControl({
   const { t } = useTranslation('programs');
   const [editing, setEditing] = useState(false);
   const visual = useProgramPresentation(),
-    controlColor = visual ? programInk.charcoal : colors.text;
+    controlColor = visual ? programInk.text : colors.text;
   useEffect(() => {
     if (!editing || !visual) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -172,10 +172,7 @@ export function NumberControl({
   return (
     <View style={{ gap: spacing.sm }}>
       {!compact ? (
-        <Text
-          variant="label"
-          color={visual ? programInk.charcoal : colors.text}
-        >
+        <Text variant="label" color={visual ? programInk.text : colors.text}>
           {displayLabel ?? label}
         </Text>
       ) : null}
@@ -190,7 +187,7 @@ export function NumberControl({
         {compact ? (
           <Text
             variant="label"
-            color={programInk.charcoal}
+            color={programInk.text}
             style={{ flex: 1, minWidth: 0, fontSize: 13 }}
           >
             {displayLabel ?? label}
@@ -204,7 +201,7 @@ export function NumberControl({
               borderWidth: 1,
               borderColor: programInk.border,
               borderRadius: 7,
-              backgroundColor: 'rgba(250,242,223,0.65)',
+              backgroundColor: programInk.field,
             },
             compact && { width: 164 },
           ]}
@@ -247,7 +244,7 @@ export function NumberControl({
                 variant="h3"
                 color={
                   visual
-                    ? programInk.charcoal
+                    ? programInk.text
                     : value
                       ? colors.primarySoft
                       : colors.secondary
@@ -278,7 +275,7 @@ export function NumberControl({
               label={t('confirmValue', { label })}
               icon={
                 <Check
-                  color={visual ? programInk.green : colors.primary}
+                  color={visual ? programInk.sage : colors.primary}
                   size={sizes.icon}
                 />
               }

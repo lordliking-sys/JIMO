@@ -86,7 +86,7 @@ export default function CustomExercise() {
           maxLength={160}
           {...(invalid && !name.trim() ? { error: t('requiredName') } : {})}
         />
-        <Text variant="label" color={programInk.charcoal}>
+        <Text variant="label" color={programInk.text}>
           {t('tracking')}
         </Text>
         <View style={choiceStyles.row}>
@@ -99,7 +99,7 @@ export default function CustomExercise() {
             />
           ))}
         </View>
-        <Text variant="label" color={programInk.charcoal}>
+        <Text variant="label" color={programInk.text}>
           {t('defaultLoad')}
         </Text>
         <View style={choiceStyles.row}>

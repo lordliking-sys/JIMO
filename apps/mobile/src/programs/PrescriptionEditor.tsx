@@ -232,7 +232,7 @@ export function PrescriptionEditor({
             })
           ) : (
             <>
-              <Text variant="label" color={programInk.charcoal}>
+              <Text variant="label" color={programInk.text}>
                 {t('repsType')}
               </Text>
               <View style={choiceStyles.row}>
@@ -257,7 +257,7 @@ export function PrescriptionEditor({
               )}
             </>
           )}
-          <Text variant="label" color={programInk.charcoal}>
+          <Text variant="label" color={programInk.text}>
             {t('mode')}
           </Text>
           <View style={choiceStyles.row}>

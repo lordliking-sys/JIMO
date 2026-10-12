@@ -7,6 +7,14 @@ const sizes = [
   { width: 430, height: 860 },
 ];
 async function fit(page: Page) {
+  const screen = page
+    .getByTestId('program-management-screen')
+    .filter({ has: page.getByRole('heading') });
+  await expect(screen).toBeVisible();
+  expect(
+    await screen.evaluate((node) => getComputedStyle(node).backgroundColor),
+  ).toBe('rgb(16, 19, 15)');
+
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

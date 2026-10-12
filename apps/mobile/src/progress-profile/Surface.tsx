@@ -1,4 +1,9 @@
 import {
+  MainTabHeroScope,
+  MainTabHeroArtwork,
+  useMainTabHeroGeometry,
+} from '../components/MainTabHero';
+import {
   createContext,
   useContext,
   useMemo,
@@ -27,8 +32,6 @@ import { Text as InterText } from '@jimo/ui';
 import { artwork, ink } from './theme';
 
 const Typeface = createContext(false);
-const HeroSize = createContext<(height: number) => void>(() => {});
-export const useProfileHeroSize = () => useContext(HeroSize);
 const MenuAnchor = createContext({
   jumpToMenu: () => {},
   rememberMenu: (_y: number) => {},
@@ -85,7 +88,7 @@ export function PaperCard({ style, ...props }: ViewProps) {
   );
 }
 /** The navigator reports its complete height, including the bottom safe area. */
-export function EditorialScreen({
+function EditorialSurface({
   children,
   profile = false,
 }: {
@@ -99,7 +102,7 @@ export function EditorialScreen({
     { width } = useWindowDimensions(),
     tabHeight = useBottomTabBarHeight(),
     focused = useIsFocused();
-  const [measuredHero, setMeasuredHero] = useState(0);
+  const geometry = useMainTabHeroGeometry();
   const [heroBehindStatusBar, setHeroBehindStatusBar] = useState(true);
   const scroll = useRef<ScrollView>(null),
     menuOffset = useRef(0);
@@ -116,9 +119,7 @@ export function EditorialScreen({
     }),
     [insets.top],
   );
-  const heroHeight = profile
-    ? (measuredHero || Math.min(width, 560) * 0.7) + insets.top
-    : Math.min(width, 560) * 0.48 + insets.top;
+  const heroHeight = geometry.height + insets.top;
   return (
     <Typeface.Provider value={ready}>
       <KeyboardAvoidingView
@@ -175,41 +176,12 @@ export function EditorialScreen({
               ]}
             />
           </View>
-          <View
-            pointerEvents="none"
-            testID="editorial-hero-art"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: heroHeight,
-              overflow: 'hidden',
-              backgroundColor: profile ? ink.charcoal : ink.paper,
-            }}
-          >
-            <Image
-              source={profile ? artwork.profile : artwork.progress}
-              accessible={false}
-              resizeMode="cover"
-              style={{
-                width: '100%',
-                height: profile
-                  ? Math.max(heroHeight, (width * 1672) / 941)
-                  : heroHeight,
-                position: 'absolute',
-                top: 0,
-              }}
-            />
-            {profile ? (
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(8, 13, 9, .32)' },
-                ]}
-              />
-            ) : null}
-          </View>
+          <MainTabHeroArtwork
+            source={profile ? artwork.profile : artwork.progress}
+            width={width}
+            height={heroHeight}
+            dark={profile}
+          />
           <View
             style={{
               paddingTop: insets.top,
@@ -221,14 +193,21 @@ export function EditorialScreen({
               gap: 10,
             }}
           >
-            <MenuAnchor.Provider value={anchor}>
-              <HeroSize.Provider value={setMeasuredHero}>
-                {children}
-              </HeroSize.Provider>
-            </MenuAnchor.Provider>
+            <MenuAnchor.Provider value={anchor}>{children}</MenuAnchor.Provider>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </Typeface.Provider>
+  );
+}
+
+export function EditorialScreen(props: {
+  children: ReactNode;
+  profile?: boolean;
+}) {
+  return (
+    <MainTabHeroScope>
+      <EditorialSurface {...props} />
+    </MainTabHeroScope>
   );
 }

@@ -7,6 +7,7 @@ import EyeOff from 'lucide-react-native/icons/eye-off';
 import Check from 'lucide-react-native/icons/check';
 import Circle from 'lucide-react-native/icons/circle';
 import { Field } from '../programs/components';
+import { mainInk } from '../main/theme';
 import {
   passwordConfirmation,
   passwordRequirements,
@@ -83,10 +84,10 @@ export function PasswordRequirements({
       </Text>
       {passwordRequirements(value, policy).map((rule) => {
         const color = rule.satisfied
-          ? colors.activeBorder
+          ? mainInk.sage
           : submittedError
             ? colors.danger
-            : colors.secondary;
+            : mainInk.muted;
         return (
           <View
             key={rule.id}
@@ -146,7 +147,7 @@ export function PasswordConfirmation({
           }}
         >
           {state === 'match' ? (
-            <Check size={15} color={colors.activeBorder} accessible={false} />
+            <Check size={15} color={mainInk.sage} accessible={false} />
           ) : null}
           <Text
             testID="password-confirmation-feedback"
@@ -154,7 +155,7 @@ export function PasswordConfirmation({
             accessibilityLiveRegion="polite"
             color={
               state === 'match'
-                ? colors.activeBorder
+                ? mainInk.sage
                 : submittedError
                   ? colors.danger
                   : colors.secondary

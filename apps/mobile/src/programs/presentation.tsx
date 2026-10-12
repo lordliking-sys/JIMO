@@ -23,19 +23,31 @@ import { useFonts } from 'expo-font';
 import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { ProgramBackgroundWash } from './ProgramBackgroundWash';
 import { Screen, Text, sizes } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import KeyboardIcon from 'lucide-react-native/icons/keyboard';
-import { ink, artwork } from '../progress-profile/theme';
-export { ink as programInk };
+import { ink } from '../progress-profile/theme';
+import { tabArtwork } from '../components/tab-artwork';
+export const programInk = {
+  ...ink,
+  background: ink.charcoal,
+  surface: 'rgba(16, 19, 15, 0.82)',
+  field: 'rgba(16, 19, 15, 0.72)',
+  text: ink.paper,
+  secondary: '#bcb8ab',
+  border: 'rgba(183, 198, 155, 0.28)',
+  primary: ink.sage,
+  primaryText: ink.charcoal,
+  danger: '#ffb4a8',
+};
 export const programArtwork = {
-  programs: require('../../assets/jimo/program-management/programs-hero-bg.png'),
-  day: require('../../assets/jimo/program-management/day-detail-bg.png'),
-  library: require('../../assets/jimo/program-management/exercise-library-bg.png'),
-  custom: require('../../assets/jimo/program-management/custom-exercise-bg.png'),
-  structure: require('../../assets/jimo/program-management/program-structure-bg.png'),
+  programs: tabArtwork.program,
+  day: tabArtwork.program,
+  library: tabArtwork.program,
+  custom: tabArtwork.program,
+  structure: tabArtwork.program,
 };
 const Context = createContext(false);
 const Font = createContext(false);
@@ -52,7 +64,7 @@ export function ProgramText({ style, ...props }: TextProps) {
           fontFamily: ready ? 'JimoProgramSerif' : 'serif',
           fontSize: 24,
           lineHeight: 28,
-          color: ink.charcoal,
+          color: programInk.text,
         },
         style,
       ]}
@@ -88,14 +100,14 @@ export function ProgramButton({
           paddingVertical: 12,
           justifyContent: 'center',
           alignItems: 'center',
-          borderRadius: 8,
+          borderRadius: 18,
           borderWidth: variant === 'outline' ? 1 : 0,
-          borderColor: ink.border,
+          borderColor: programInk.border,
           backgroundColor:
             variant === 'primary'
-              ? ink.green
+              ? programInk.primary
               : variant === 'outline'
-                ? 'rgba(250,242,223,0.5)'
+                ? programInk.surface
                 : 'transparent',
           opacity: disabled || busy ? 0.5 : pressed ? 0.75 : 1,
         },
@@ -104,7 +116,7 @@ export function ProgramButton({
     >
       <Text
         variant="bodyMedium"
-        color={variant === 'primary' ? ink.paper : ink.charcoal}
+        color={variant === 'primary' ? programInk.primaryText : programInk.text}
         style={{ textAlign: 'center', fontSize: 14 }}
       >
         {label}
@@ -149,20 +161,24 @@ export function ProgramRow({
       >
         <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
           {eyebrow ? (
-            <Text variant="caption" color={ink.charcoal}>
+            <Text variant="caption" color={programInk.text}>
               {eyebrow}
             </Text>
           ) : null}
           <ProgramText style={{ fontSize: 23 }}>{title}</ProgramText>
           {subtitle
             ? subtitle.split('\n').map((line, index) => (
-                <Text key={index} variant="caption" color={ink.secondary}>
+                <Text
+                  key={index}
+                  variant="caption"
+                  color={programInk.secondary}
+                >
                   {line}
                 </Text>
               ))
             : null}
         </View>
-        <ChevronRight size={18} color={ink.secondary} />
+        <ChevronRight size={18} color={programInk.secondary} />
       </Pressable>
       {trailing}
     </View>
@@ -182,7 +198,7 @@ export function ProgramScreen({
   const [ready] = useFonts({
       JimoProgramSerif: require('../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
     }),
-    { width } = useWindowDimensions(),
+    { width, height: viewportHeight } = useWindowDimensions(),
     [keyboard, setKeyboard] = useState(false),
     router = useRouter(),
     { t } = useTranslation('programs'),
@@ -205,17 +221,16 @@ export function ProgramScreen({
       return () => sub.remove();
     }, [router, fallback]),
   );
-  const height =
-    background === 'structure' ? 600 : background === 'day' ? 330 : 220;
+  const height = viewportHeight;
   return (
     <Context.Provider value={true}>
       <BackTarget.Provider value={fallback}>
         <Font.Provider value={ready}>
           <View
             testID="program-management-screen"
-            style={{ flex: 1, backgroundColor: ink.paper }}
+            style={{ flex: 1, backgroundColor: programInk.background }}
           >
-            <StatusBar style={background === 'day' ? 'light' : 'dark'} />
+            <StatusBar style="light" />
             <Image
               source={programArtwork[background]}
               accessible={false}
@@ -225,68 +240,14 @@ export function ProgramScreen({
                 top: 0,
                 width: '100%',
                 height,
-                opacity:
-                  background === 'structure'
-                    ? 0.22
-                    : background === 'day'
-                      ? 1
-                      : 0.72,
               }}
             />
-            <Svg
-              pointerEvents="none"
-              accessible={false}
-              width="100%"
+            <ProgramBackgroundWash
+              id={id}
               height={height}
-              style={{ position: 'absolute', top: 0 }}
-            >
-              <Defs>
-                <LinearGradient id={id} x1="0%" y1="0%" x2="0%" y2="100%">
-                  {background === 'day' ? (
-                    <>
-                      <Stop
-                        offset={0}
-                        stopColor={ink.charcoal}
-                        stopOpacity={0.82}
-                      />
-                      <Stop
-                        offset={0.45}
-                        stopColor={ink.charcoal}
-                        stopOpacity={0.68}
-                      />
-                      <Stop
-                        offset={0.8}
-                        stopColor={ink.paper}
-                        stopOpacity={0.88}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <Stop
-                        offset={0}
-                        stopColor={ink.paper}
-                        stopOpacity={0.24}
-                      />
-                      <Stop
-                        offset={0.6}
-                        stopColor={ink.paper}
-                        stopOpacity={0.78}
-                      />
-                    </>
-                  )}
-                  <Stop offset={1} stopColor={ink.paper} stopOpacity={1} />
-                </LinearGradient>
-              </Defs>
-              <Rect width="100%" height="100%" fill={`url(#${id})`} />
-            </Svg>
-            <Image
-              source={artwork.paper}
-              accessible={false}
-              style={[
-                StyleSheet.absoluteFill,
-                { width: '100%', height: '100%', opacity: 0.18 },
-              ]}
-              resizeMode="cover"
+              dark
+              palette={ink}
+              surface={programInk.background}
             />
             <Screen
               keyboardAware
@@ -297,7 +258,7 @@ export function ProgramScreen({
                 gap: 16,
               }}
               footerStyle={{
-                backgroundColor: 'rgba(246,237,217,0.96)',
+                backgroundColor: 'rgba(16,19,15,0.96)',
                 borderTopWidth: 0,
                 paddingHorizontal: width < 360 ? 16 : 20,
               }}
@@ -323,7 +284,10 @@ export function ProgramScreen({
                               justifyContent: 'center',
                             }}
                           >
-                            <KeyboardIcon color={ink.secondary} size={20} />
+                            <KeyboardIcon
+                              color={programInk.secondary}
+                              size={20}
+                            />
                           </Pressable>
                         ) : null}
                         <View style={{ flex: 1 }}>{footer}</View>
@@ -345,9 +309,9 @@ export const presentationStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: ink.border,
-    borderRadius: 8,
-    backgroundColor: 'rgba(250,242,223,0.65)',
+    borderColor: programInk.border,
+    borderRadius: 18,
+    backgroundColor: programInk.surface,
     overflow: 'hidden',
   },
 });

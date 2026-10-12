@@ -1,4 +1,5 @@
 import { NewRecords } from '../progress/NewRecords';
+import type { ComponentProps, ComponentType } from 'react';
 import { formatTrainingDuration } from '../progress/helpers';
 import { useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
@@ -15,10 +16,16 @@ export function StartWorkout({
   dayId,
   disabled = false,
   secondary = false,
+  buttonComponent: ActionButton = Button,
 }: {
   dayId: string;
   secondary?: boolean;
   disabled?: boolean;
+  buttonComponent?: ComponentType<
+    Pick<ComponentProps<typeof Button>, 'label' | 'disabled' | 'onPress'> & {
+      variant: 'primary' | 'text';
+    }
+  >;
 }) {
   const { t } = useTranslation('workouts'),
     workoutsApi = useWorkoutActions(),
@@ -33,7 +40,7 @@ export function StartWorkout({
       mutation.error.code === 'ACTIVE_WORKOUT_EXISTS');
   return (
     <View style={{ gap: spacing.sm }}>
-      <Button
+      <ActionButton
         label={conflict ? t('resume') : t('start')}
         variant={secondary ? 'text' : 'primary'}
         disabled={disabled || mutation.isPending}

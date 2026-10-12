@@ -47,7 +47,7 @@ export default function ProgramManager() {
           fontSize: 20,
           paddingBottom: 10,
           borderBottomWidth: 1,
-          borderColor: programInk.green,
+          borderColor: programInk.sage,
         }}
       >
         {t('myPrograms')}

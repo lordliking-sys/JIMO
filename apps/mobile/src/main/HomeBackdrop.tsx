@@ -18,7 +18,7 @@ export function HomeBackdrop({
         top: 0,
         left: 0,
         width: '100%',
-        height: Math.round(width * 1.55),
+        height: Math.round((width * 1672) / 941),
       }}
     >
       <Image

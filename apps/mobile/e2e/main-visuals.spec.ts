@@ -152,6 +152,10 @@ for (const device of devices)
       errors: string[] = [];
     fixture.program.durationWeeks = 12;
     page.on('pageerror', (error) => errors.push(error.message));
+    page.on('console', (message) => {
+      if (message.type() === 'warning' || message.type() === 'error')
+        errors.push(message.text());
+    });
     await page.goto('/');
     await expect(page.getByTestId('home-workout-card')).toContainText(
       'Push Pull Legs',
@@ -259,6 +263,22 @@ for (const device of devices)
     await expect
       .poll(() => weekScroll.evaluate((element) => element.scrollLeft))
       .toBeGreaterThan(100);
+    const fourth = page.getByRole('radio', {
+      name: 'Settimana 4',
+      exact: true,
+    });
+    await fourth.click();
+    await expect(fourth).toBeChecked();
+    await expect
+      .poll(async () => {
+        const frame = (await weekScroll.boundingBox())!,
+          chip = (await fourth.boundingBox())!;
+        return (
+          chip.x >= frame.x - 1 &&
+          chip.x + chip.width <= frame.x + frame.width + 1
+        );
+      })
+      .toBe(true);
     await page
       .getByRole('radio', { name: 'Settimana 12', exact: true })
       .evaluate((element: HTMLElement) => element.click());
@@ -315,6 +335,50 @@ test('Home starts the actual scheduled day and Workout remains fullscreen', asyn
     )
     .toBe(1);
   expect(fixture.workout.programDayId).toBe(fixture.program.days[1]!.id);
+});
+
+test('Scheda pencil, secondary creation and contextual back preserve the existing program routes', async ({
+  page,
+}) => {
+  await visualFixture(page);
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/program');
+  await page
+    .getByRole('button', { name: 'Gestisci programmi', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'PROGRAMMI', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Apri Push Pull Legs', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Push Pull Legs', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'PROGRAMMI', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await expect(page.getByTestId('program-main-screen')).toBeVisible();
+  await page.getByTestId('program-new-action').click();
+  await expect(page).toHaveURL(/\/program\/create$/);
+  await page
+    .getByRole('button', { name: 'Crea manualmente', exact: true })
+    .click();
+  await page
+    .getByLabel('Nome programma', { exact: true })
+    .fill('Prova refinement');
+  await page.locator('input[type="date"]').fill('2026-10-25');
+  await expect(
+    page.getByText('25 ottobre 2026', { exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await expect(page).toHaveURL(/\/program\/create$/);
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await expect(page.getByTestId('program-main-screen')).toBeVisible();
+  expect(errors).toEqual([]);
 });
 test('Home stays full bleed with lateral insets and its last row clears the navbar', async ({
   page,

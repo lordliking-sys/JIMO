@@ -113,11 +113,11 @@ export default function DayDetail() {
         ) : null}
       </View>
       {day.notes ? (
-        <Text variant="caption" color={programInk.charcoal}>
+        <Text variant="caption" color={programInk.text}>
           {day.notes}
         </Text>
       ) : null}
-      <Text variant="caption" color={programInk.charcoal}>
+      <Text variant="caption" color={programInk.text}>
         {t('exerciseCount', { count: day.exercises.length })}
       </Text>
       {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
@@ -193,8 +193,9 @@ export default function DayDetail() {
         <Text color={programInk.secondary}>{t('noDayExercises')}</Text>
       ) : null}
       {query.data.status === 'active' ? (
-        <View style={{ backgroundColor: programInk.green, borderRadius: 8 }}>
+        <View>
           <StartWorkout
+            buttonComponent={ProgramButton}
             dayId={day.id}
             secondary
             disabled={!day.exercises.length}

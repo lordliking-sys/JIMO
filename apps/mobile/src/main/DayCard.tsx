@@ -1,7 +1,14 @@
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import Svg, {
+  Defs,
+  Ellipse,
+  LinearGradient,
+  RadialGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 import Check from 'lucide-react-native/icons/check';
 import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
@@ -59,10 +66,13 @@ export function DayCard({
             });
         }}
         style={({ pressed }) => ({
-          minHeight: 100,
-          borderRadius: 17,
-          borderWidth: state === 'current' ? 2 : 1,
-          borderColor: state === 'current' ? mainInk.sage : mainInk.border,
+          minHeight: state === 'current' ? 132 : 116,
+          borderRadius: 28,
+          borderWidth: 1,
+          borderColor:
+            state === 'current'
+              ? 'rgba(183, 198, 155, 0.50)'
+              : 'rgba(183, 198, 155, 0.22)',
           overflow: 'hidden',
           backgroundColor: mainInk.charcoal,
           opacity: pressed ? 0.8 : 1,
@@ -76,6 +86,7 @@ export function DayCard({
           style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
         />
         <Svg
+          pointerEvents="none"
           accessible={false}
           width="100%"
           height="100%"
@@ -83,12 +94,40 @@ export function DayCard({
         >
           <Defs>
             <LinearGradient id={`shade-${day.id}`} x1="0" y1="0" x2="1" y2="0">
-              <Stop offset="0" stopColor="#07100a" stopOpacity={0.93} />
-              <Stop offset="0.48" stopColor="#07100a" stopOpacity={0.67} />
-              <Stop offset="1" stopColor="#07100a" stopOpacity={0.08} />
+              <Stop
+                offset={0}
+                stopColor={mainInk.charcoal}
+                stopOpacity={0.86}
+              />
+              <Stop
+                offset={0.55}
+                stopColor={mainInk.charcoal}
+                stopOpacity={0.48}
+              />
+              <Stop
+                offset={1}
+                stopColor={mainInk.charcoal}
+                stopOpacity={0.08}
+              />
             </LinearGradient>
+            <RadialGradient id={`ink-${day.id}`}>
+              <Stop offset={0} stopColor={mainInk.charcoal} stopOpacity={0.6} />
+              <Stop
+                offset={0.6}
+                stopColor={mainInk.charcoal}
+                stopOpacity={0.35}
+              />
+              <Stop offset={1} stopColor={mainInk.charcoal} stopOpacity={0} />
+            </RadialGradient>
           </Defs>
           <Rect width="100%" height="100%" fill={`url(#shade-${day.id})`} />
+          <Ellipse
+            cx="28%"
+            cy="50%"
+            rx="70%"
+            ry="85%"
+            fill={`url(#ink-${day.id})`}
+          />
         </Svg>
         <View
           style={{
@@ -96,7 +135,7 @@ export function DayCard({
             alignItems: 'center',
             gap: 16,
             paddingHorizontal: 18,
-            paddingVertical: 12,
+            paddingVertical: state === 'current' ? 22 : 18,
           }}
         >
           <View style={{ flex: 1, gap: 1 }}>
@@ -106,16 +145,20 @@ export function DayCard({
             <MainText style={{ fontSize: 30, lineHeight: 33 }}>
               {day.name}
             </MainText>
-            <MainText style={{ fontSize: 17 }}>
+            <Text
+              variant="caption"
+              color={mainInk.muted}
+              style={{ marginTop: 5 }}
+            >
               {t('programs:exerciseCount', { count: day.exercises.length })}
-            </MainText>
+            </Text>
           </View>
           <View
             accessible={false}
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
               borderWidth: state === 'current' ? 0 : 1,
               borderColor: mainInk.parchment,
               backgroundColor:
@@ -125,15 +168,15 @@ export function DayCard({
             }}
           >
             {state === 'completed' ? (
-              <Check size={27} strokeWidth={1.8} color={mainInk.parchment} />
+              <Check size={23} strokeWidth={1.8} color={mainInk.parchment} />
             ) : state === 'current' ? (
               <ArrowRight
-                size={28}
+                size={24}
                 strokeWidth={1.8}
                 color={mainInk.charcoal}
               />
             ) : (
-              <ChevronRight size={24} color={mainInk.parchment} />
+              <ChevronRight size={21} color={mainInk.parchment} />
             )}
           </View>
         </View>

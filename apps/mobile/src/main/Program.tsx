@@ -17,6 +17,7 @@ import { useTraining } from './useTraining';
 import { DayCard } from './DayCard';
 import { WeekOverview } from './WeekOverview';
 import { WeekSelector } from './WeekSelector';
+import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 
 export function MainProgram() {
   const { t } = useTranslation(['main', 'programs', 'common']),
@@ -82,6 +83,7 @@ export function MainProgram() {
           paddingHorizontal: 12,
         }}
       >
+        <HeroReadabilityWash variant="dark" />
         <MainText
           accessibilityRole="header"
           style={{
@@ -243,10 +245,8 @@ export function MainProgram() {
           testID="program-other-programs"
           style={{
             marginTop: 18,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            backgroundColor: mainInk.darkSurface,
-            borderRadius: 8,
+            paddingHorizontal: 6,
+            paddingVertical: 4,
           }}
         >
           <Text
@@ -256,7 +256,7 @@ export function MainProgram() {
           >
             {t('otherPrograms')}
           </Text>
-          {otherPrograms.map((p) => (
+          {otherPrograms.map((p, index) => (
             <Pressable
               key={p.id}
               testID={`other-program-${p.id}`}
@@ -266,11 +266,13 @@ export function MainProgram() {
                 router.push({ pathname: '/program/[id]', params: { id: p.id } })
               }
               style={({ pressed }) => ({
-                minHeight: 60,
+                minHeight: 56,
                 paddingVertical: 8,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 12,
+                borderBottomWidth: index < otherPrograms.length - 1 ? 0.5 : 0,
+                borderBottomColor: 'rgba(183, 198, 155, 0.28)',
                 opacity: pressed ? 0.8 : 1,
               })}
             >
@@ -281,7 +283,7 @@ export function MainProgram() {
                   {t('programs:dayCount', { count: p.daysCount })}
                 </Text>
               </View>
-              <ChevronRight size={20} color={mainInk.muted} />
+              <ChevronRight size={18} color={mainInk.muted} />
             </Pressable>
           ))}
         </View>
@@ -294,10 +296,9 @@ export function MainProgram() {
           onPress={() => router.push('/program/create')}
           style={({ pressed }) => ({
             minHeight: 48,
-            paddingHorizontal: 6,
+            paddingHorizontal: 8,
             paddingVertical: 10,
-            borderRadius: 8,
-            backgroundColor: mainInk.darkSurface,
+            borderRadius: 24,
             marginTop: 8,
             justifyContent: 'center',
             alignSelf: 'flex-start',

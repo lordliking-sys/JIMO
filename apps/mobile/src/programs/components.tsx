@@ -133,7 +133,7 @@ export function FocusInput(props: TextInputProps) {
       {...props}
       ref={input}
       placeholderTextColor={visual ? programInk.secondary : colors.secondary}
-      selectionColor={visual ? programInk.green : colors.primary}
+      selectionColor={visual ? programInk.sage : colors.primary}
       returnKeyType={
         props.returnKeyType ?? (props.multiline ? 'default' : 'done')
       }
@@ -150,16 +150,16 @@ export function FocusInput(props: TextInputProps) {
       style={[
         styles.input,
         visual && {
-          backgroundColor: 'rgba(250,242,223,0.55)',
+          backgroundColor: programInk.field,
           borderColor: programInk.border,
-          color: programInk.charcoal,
+          color: programInk.text,
           borderRadius: 8,
           fontSize: 14,
         },
         props.multiline && { minHeight: 96, textAlignVertical: 'top' },
         props.style,
         focused && {
-          borderColor: visual ? programInk.green : colors.primary,
+          borderColor: visual ? programInk.sage : colors.primary,
           borderWidth: 1,
         },
       ]}
@@ -177,9 +177,7 @@ export function Field({
     <View style={{ gap: spacing.sm }}>
       <Text
         variant="label"
-        {...(visual
-          ? { color: programInk.charcoal, style: { fontSize: 13 } }
-          : {})}
+        {...(visual ? { color: programInk.text, style: { fontSize: 13 } } : {})}
       >
         {label}
       </Text>
@@ -246,7 +244,7 @@ export function Back({
         icon={
           <ChevronLeft
             size={sizes.icon}
-            color={color ?? (visual ? programInk.charcoal : colors.secondary)}
+            color={color ?? (visual ? programInk.text : colors.secondary)}
           />
         }
         onPress={goBack}
@@ -267,7 +265,7 @@ export function FormHeader({
   if (visual)
     return (
       <View style={{ gap: 8, position: 'relative', paddingBottom: 8 }}>
-        <HeroReadabilityWash />
+        <HeroReadabilityWash variant="dark" />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Back compact />
           <ProgramText
@@ -353,16 +351,13 @@ export function ActionMenu({
             style={
               visual
                 ? {
-                    backgroundColor: programInk.paper,
+                    backgroundColor: programInk.surface,
                     borderColor: programInk.border,
                   }
                 : {}
             }
           >
-            <Text
-              variant="h3"
-              color={visual ? programInk.charcoal : colors.text}
-            >
+            <Text variant="h3" color={visual ? programInk.text : colors.text}>
               {title}
             </Text>
             {actions.map((item) => (
@@ -397,12 +392,16 @@ export function ErrorNotice({
   retry?: () => void;
 }) {
   const { t } = useTranslation('programs');
-  const visual = useProgramPresentation();
+  const visual = useProgramPresentation(),
+    RetryButton = visual ? ProgramButton : Button;
   return (
     <Card
       style={
         visual
-          ? { backgroundColor: programInk.card, borderColor: programInk.border }
+          ? {
+              backgroundColor: programInk.surface,
+              borderColor: programInk.border,
+            }
           : {}
       }
     >
@@ -420,7 +419,7 @@ export function ErrorNotice({
         )}
       </Text>
       {retry ? (
-        <Button label={t('retry')} variant="secondary" onPress={retry} />
+        <RetryButton label={t('retry')} variant="secondary" onPress={retry} />
       ) : null}
     </Card>
   );
@@ -481,13 +480,13 @@ export function Confirm({
           style={
             visual
               ? {
-                  backgroundColor: programInk.paper,
+                  backgroundColor: programInk.surface,
                   borderColor: programInk.border,
                 }
               : {}
           }
         >
-          <Text variant="h3" color={visual ? programInk.charcoal : colors.text}>
+          <Text variant="h3" color={visual ? programInk.text : colors.text}>
             {title}
           </Text>
           <ActionButton label={t('confirm')} onPress={onConfirm} />

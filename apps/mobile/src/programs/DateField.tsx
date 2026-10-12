@@ -30,11 +30,11 @@ export function DateField({
     palette = visual
       ? {
           ...colors,
-          text: programInk.charcoal,
+          text: programInk.text,
           secondary: programInk.secondary,
-          primary: programInk.green,
+          primary: programInk.sage,
           border: programInk.border,
-          elevated: 'rgba(250,242,223,0.55)',
+          elevated: programInk.field,
         }
       : colors,
     ActionButton = visual ? ProgramButton : Button;
@@ -47,10 +47,9 @@ export function DateField({
       DateTimePickerAndroid.open({
         value: date,
         mode: 'date',
-        onChange: (event, selected) => {
-          if (event.type === 'set' && selected)
-            onChange(calendarDateValue(selected));
-        },
+        onValueChange: (_event, selected) =>
+          onChange(calendarDateValue(selected)),
+        onDismiss: () => {},
       });
     } else {
       setDraft(date);
@@ -110,7 +109,7 @@ export function DateField({
             style={
               visual
                 ? {
-                    backgroundColor: programInk.paper,
+                    backgroundColor: programInk.surface,
                     borderColor: programInk.border,
                   }
                 : {}
@@ -124,12 +123,11 @@ export function DateField({
               mode="date"
               accessibilityLabel={t('startsOn')}
               display="inline"
-              themeVariant={visual ? 'light' : 'dark'}
+              themeVariant="dark"
               accentColor={palette.primary}
               locale={i18n.language}
-              onChange={(_event, selected) => {
-                if (selected) setDraft(selected);
-              }}
+              onValueChange={(_event, selected) => setDraft(selected)}
+              onDismiss={() => setOpen(false)}
             />
             <ActionButton
               label={t('confirm')}

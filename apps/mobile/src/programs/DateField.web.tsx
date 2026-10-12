@@ -20,11 +20,11 @@ export function DateField({
     palette = visual
       ? {
           ...colors,
-          text: programInk.charcoal,
+          text: programInk.text,
           secondary: programInk.secondary,
-          primary: programInk.green,
+          primary: programInk.sage,
           border: programInk.border,
-          elevated: 'rgba(250,242,223,0.55)',
+          elevated: programInk.field,
         }
       : colors,
     ActionButton = visual ? ProgramButton : Button;
@@ -39,7 +39,7 @@ export function DateField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         style={{
-          colorScheme: visual ? 'light' : 'dark',
+          colorScheme: 'dark',
           background: palette.elevated,
           color: palette.text,
           minHeight: sizes.touch,

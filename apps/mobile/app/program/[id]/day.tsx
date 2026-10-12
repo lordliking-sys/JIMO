@@ -77,7 +77,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
           placeholder={t('dayPlaceholder')}
           {...(invalid && !name.trim() ? { error: t('requiredName') } : {})}
         />
-        <Text variant="label" color={programInk.charcoal}>
+        <Text variant="label" color={programInk.text}>
           {t('weekday')}
         </Text>
         <View style={choiceStyles.row}>

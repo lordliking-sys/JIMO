@@ -1,3 +1,4 @@
+import { tabArtwork } from '../components/tab-artwork';
 /** Local presentation for Progress and Profile; shared application tokens stay intact. */
 export const ink = {
   charcoal: '#10130f',
@@ -10,8 +11,8 @@ export const ink = {
   danger: '#8b302b',
 } as const;
 export const artwork = {
-  progress: require('../../assets/jimo/progress-profile/progressi-hero-bg.png'),
-  profile: require('../../assets/jimo/progress-profile/profilo-hero-bg.png'),
+  progress: tabArtwork.progress,
+  profile: tabArtwork.profile,
   paper: require('../../assets/jimo/progress-profile/paper-texture.png'),
   dark: require('../../assets/jimo/progress-profile/dark-texture.png'),
   brush: require('../../assets/jimo/progress-profile/brush-divider.png'),

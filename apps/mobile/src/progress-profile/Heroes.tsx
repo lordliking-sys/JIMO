@@ -1,11 +1,7 @@
+import { MainTabHero } from '../components/MainTabHero';
 import { Image, Pressable, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import {
-  EditorialText,
-  Copy,
-  useProfileHeroSize,
-  useProfileMenuAnchor,
-} from './Surface';
+import { EditorialText, Copy, useProfileMenuAnchor } from './Surface';
 import Settings from 'lucide-react-native/icons/settings';
 import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 import { artwork, ink } from './theme';
@@ -15,38 +11,33 @@ export function ProgressHero() {
   const { t } = useTranslation('progressProfile'),
     { width } = useWindowDimensions();
   return (
-    <View style={{ paddingTop: 26, paddingLeft: 8, paddingBottom: 24 }}>
-      <HeroReadabilityWash testID="progress-readability-wash" />
-      <EditorialText
-        accessibilityRole="header"
-        style={{ fontSize: width < 360 ? 32 : 36, lineHeight: 44 }}
-      >
-        {t('progressTitle')}
-      </EditorialText>
-      <Image
-        source={artwork.brush}
-        tintColor={ink.charcoal}
-        accessible={false}
-        resizeMode="contain"
-        style={{ width: 126, height: 16, marginLeft: 8 }}
-      />
-    </View>
+    <MainTabHero testID="progress-tab-hero">
+      <View style={{ position: 'relative', paddingLeft: 8 }}>
+        <HeroReadabilityWash testID="progress-readability-wash" />
+        <EditorialText
+          accessibilityRole="header"
+          style={{ fontSize: width < 360 ? 32 : 36, lineHeight: 44 }}
+        >
+          {t('progressTitle')}
+        </EditorialText>
+        <Image
+          source={artwork.brush}
+          tintColor={ink.charcoal}
+          accessible={false}
+          resizeMode="contain"
+          style={{ width: 126, height: 16, marginLeft: 8 }}
+        />
+      </View>
+    </MainTabHero>
   );
 }
 export function ProfileHero({ name }: { name: string | null }) {
   const { t } = useTranslation('progressProfile'),
     { width } = useWindowDimensions();
-  const reportSize = useProfileHeroSize();
   const { jumpToMenu } = useProfileMenuAnchor();
   return (
-    <View
-      onLayout={(event) => reportSize(event.nativeEvent.layout.height)}
-      style={{
-        minHeight: Math.min(width, 560) * 0.7,
-        paddingTop: 22,
-        paddingBottom: 18,
-      }}
-    >
+    <MainTabHero testID="profile-tab-hero">
+      <HeroReadabilityWash variant="dark" testID="profile-readability-wash" />
       <EditorialText
         accessibilityRole="header"
         style={{
@@ -99,6 +90,6 @@ export function ProfileHero({ name }: { name: string | null }) {
           {t('motto')}
         </Copy>
       </View>
-    </View>
+    </MainTabHero>
   );
 }

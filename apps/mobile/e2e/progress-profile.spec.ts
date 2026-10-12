@@ -245,6 +245,10 @@ for (const device of devices)
         .getByTestId('progress-editorial-screen')
         .evaluate((el) => el.scrollWidth <= innerWidth),
     ).toBe(true);
+    const progressHeroHeight = (await page
+      .getByTestId('progress-editorial-screen')
+      .getByTestId('editorial-hero-art')
+      .boundingBox())!.height;
     await page.screenshot({ path: info.outputPath('progressi-clean.png') });
     await bottomInset(page, 'progress-editorial-screen', 'progress-content');
     await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
@@ -257,6 +261,22 @@ for (const device of devices)
         .getByTestId('editorial-hero-art')
         .boundingBox())!.y,
     ).toBe(0);
+    await expect
+      .poll(
+        async () =>
+          (await page
+            .getByTestId('profile-editorial-screen')
+            .getByTestId('editorial-hero-art')
+            .boundingBox())!.height,
+      )
+      .toBeCloseTo(progressHeroHeight, 0);
+    const profileHero = (await page
+        .getByTestId('profile-tab-hero')
+        .boundingBox())!,
+      profileStats = (await page.getByTestId('profile-stats').boundingBox())!;
+    expect(profileStats.y).toBeGreaterThanOrEqual(
+      profileHero.y + profileHero.height,
+    );
     const avatar = (await page.getByTestId('profile-avatar').boundingBox())!;
     expect(avatar.y).toBeGreaterThanOrEqual(24);
     expect(avatar.x).toBeGreaterThanOrEqual(0);

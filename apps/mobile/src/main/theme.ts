@@ -1,3 +1,4 @@
+import { tabArtwork } from '../components/tab-artwork';
 /** Home and program presentation only; existing application/workout tokens stay intact. */
 export const mainInk = {
   charcoal: '#10130f',
@@ -14,8 +15,8 @@ export const mainInk = {
 } as const;
 
 export const mainArtwork = {
-  home: require('../../assets/jimo/main/home-bg.png'),
-  program: require('../../assets/jimo/main/scheda-bg.png'),
+  home: tabArtwork.home,
+  program: tabArtwork.program,
   push: require('../../assets/jimo/main/program-days/push.png'),
   pull: require('../../assets/jimo/main/program-days/pull.png'),
   legs: require('../../assets/jimo/main/program-days/legs.png'),

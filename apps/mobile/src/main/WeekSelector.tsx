@@ -104,15 +104,16 @@ export function WeekSelector({
               if (week === selected) revealSelected();
             }}
             style={({ pressed }) => ({
-              minWidth: 140,
-              minHeight: 48,
-              paddingHorizontal: 16,
-              paddingVertical: 10,
-              borderRadius: 14,
+              minWidth: 130,
+              minHeight: 44,
+              paddingHorizontal: 18,
+              paddingVertical: 8,
+              borderRadius: 24,
               borderWidth: 1,
-              borderColor: selected === week ? mainInk.sage : mainInk.border,
+              borderColor:
+                selected === week ? mainInk.sage : 'rgba(183, 198, 155, 0.28)',
               backgroundColor:
-                selected === week ? mainInk.sage : mainInk.darkSurface,
+                selected === week ? mainInk.sage : 'rgba(16, 19, 15, 0.52)',
               justifyContent: 'center',
               alignItems: 'center',
               opacity: pressed ? 0.8 : 1,
