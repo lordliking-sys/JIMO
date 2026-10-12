@@ -4,11 +4,9 @@ import {
   useEffect,
   useState,
   type ReactNode,
-  useId,
 } from 'react';
 import {
   BackHandler,
-  Image,
   Keyboard,
   Pressable,
   StyleSheet,
@@ -23,7 +21,13 @@ import { useFonts } from 'expo-font';
 import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { ProgramBackgroundWash } from './ProgramBackgroundWash';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SectionHeroScope,
+  SectionHeroArtwork,
+  SectionHeroFrame,
+} from '../components/SectionHero';
+import { programHeroHeight } from '../components/section-hero-geometry';
 import { Screen, Text, sizes } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
@@ -143,7 +147,6 @@ export function ProgramRow({
 }) {
   return (
     <View style={presentationStyles.row}>
-      {leading}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label ?? title}
@@ -155,10 +158,12 @@ export function ProgramRow({
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
-          padding: 12,
+          paddingHorizontal: 12,
+          paddingVertical: leading ? 8 : 12,
           opacity: pressed ? 0.7 : 1,
         })}
       >
+        {leading}
         <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
           {eyebrow ? (
             <Text variant="caption" color={programInk.text}>
@@ -184,13 +189,15 @@ export function ProgramRow({
     </View>
   );
 }
-export function ProgramScreen({
+function ProgramSurface({
   children,
+  header,
   footer,
   background = 'programs',
   fallback = '/program/manage',
 }: {
   children: ReactNode;
+  header?: ReactNode;
   footer?: ReactNode;
   background?: keyof typeof programArtwork;
   fallback?: Href;
@@ -198,11 +205,13 @@ export function ProgramScreen({
   const [ready] = useFonts({
       JimoProgramSerif: require('../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
     }),
-    { width, height: viewportHeight } = useWindowDimensions(),
+    { width, fontScale } = useWindowDimensions(),
     [keyboard, setKeyboard] = useState(false),
     router = useRouter(),
-    { t } = useTranslation('programs'),
-    id = `program-bg-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+    { t } = useTranslation('programs');
+  const insets = useSafeAreaInsets(),
+    key = `${width}:${fontScale}`;
+  const [measured, setMeasured] = useState({ key, height: 0 });
   useEffect(() => {
     const a = Keyboard.addListener('keyboardDidShow', () => setKeyboard(true)),
       b = Keyboard.addListener('keyboardDidHide', () => setKeyboard(false));
@@ -221,7 +230,11 @@ export function ProgramScreen({
       return () => sub.remove();
     }, [router, fallback]),
   );
-  const height = viewportHeight;
+  const height =
+    Math.max(
+      programHeroHeight(width, fontScale),
+      measured.key === key ? measured.height : 0,
+    ) + insets.top;
   return (
     <Context.Provider value={true}>
       <BackTarget.Provider value={fallback}>
@@ -231,31 +244,20 @@ export function ProgramScreen({
             style={{ flex: 1, backgroundColor: programInk.background }}
           >
             <StatusBar style="light" />
-            <Image
+            <SectionHeroArtwork
               source={programArtwork[background]}
-              accessible={false}
-              resizeMode="cover"
-              style={{
-                position: 'absolute',
-                top: 0,
-                width: '100%',
-                height,
-              }}
-            />
-            <ProgramBackgroundWash
-              id={id}
+              width={width}
               height={height}
               dark
-              palette={ink}
-              surface={programInk.background}
+              bodyColor={programInk.background}
             />
             <Screen
               keyboardAware
               surfaceStyle={{ backgroundColor: 'transparent' }}
               contentStyle={{
-                paddingHorizontal: width < 360 ? 16 : 20,
-                paddingVertical: 12,
-                gap: 16,
+                paddingHorizontal: 0,
+                paddingVertical: 0,
+                gap: 0,
               }}
               footerStyle={{
                 backgroundColor: 'rgba(16,19,15,0.96)',
@@ -296,12 +298,51 @@ export function ProgramScreen({
                   }
                 : {})}
             >
-              {children}
+              <View style={{ paddingHorizontal: width < 360 ? 16 : 20 }}>
+                <SectionHeroFrame
+                  compact
+                  testID="program-management-hero"
+                  measured={(next) =>
+                    setMeasured((old) =>
+                      old.key === key && Math.abs(old.height - next) <= 1
+                        ? old
+                        : { key, height: next },
+                    )
+                  }
+                >
+                  {header}
+                </SectionHeroFrame>
+              </View>
+              <View
+                testID="program-management-body"
+                style={{
+                  backgroundColor: programInk.background,
+                  paddingHorizontal: width < 360 ? 16 : 20,
+                  paddingTop: 16,
+                  paddingBottom: 16,
+                  gap: 16,
+                }}
+              >
+                {children}
+              </View>
             </Screen>
           </View>
         </Font.Provider>
       </BackTarget.Provider>
     </Context.Provider>
+  );
+}
+export function ProgramScreen(props: {
+  children: ReactNode;
+  header?: ReactNode;
+  footer?: ReactNode;
+  background?: keyof typeof programArtwork;
+  fallback?: Href;
+}) {
+  return (
+    <SectionHeroScope>
+      <ProgramSurface {...props} />
+    </SectionHeroScope>
   );
 }
 export const presentationStyles = StyleSheet.create({

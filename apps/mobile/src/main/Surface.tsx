@@ -1,3 +1,8 @@
+import {
+  SectionHeroScope,
+  SectionHeroArtwork,
+  useSectionHeroGeometry,
+} from '../components/SectionHero';
 import { createContext, useContext, type ReactNode } from 'react';
 import {
   Image,
@@ -130,7 +135,62 @@ function MainSurface({
     </Typeface.Provider>
   );
 }
+function ProgramTabSurface({ children }: { children: ReactNode }) {
+  const [ready] = useFonts({
+    JimoMainSerif: require('../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
+  });
+  const { width } = useWindowDimensions(),
+    insets = useSafeAreaInsets(),
+    focused = useIsFocused();
+  const geometry = useSectionHeroGeometry();
+  return (
+    <Typeface.Provider value={ready}>
+      <LightSurface.Provider value={false}>
+        <View
+          testID="program-main-screen"
+          style={{ flex: 1, backgroundColor: mainInk.charcoal }}
+        >
+          {focused ? <StatusBar style="light" /> : null}
+          <ScrollView
+            testID="main-scroll"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              width: '100%',
+              paddingTop: insets.top,
+              paddingBottom: 24,
+            }}
+          >
+            <SectionHeroArtwork
+              source={mainArtwork.program}
+              width={width}
+              height={geometry.height + insets.top}
+              dark
+              bodyColor={mainInk.charcoal}
+            />
+            <View
+              style={{
+                width: '100%',
+                maxWidth: 560,
+                alignSelf: 'center',
+                paddingLeft: insets.left + (width < 360 ? 16 : 20),
+                paddingRight: insets.right + (width < 360 ? 16 : 20),
+              }}
+            >
+              {children}
+            </View>
+          </ScrollView>
+        </View>
+      </LightSurface.Provider>
+    </Typeface.Provider>
+  );
+}
 export function MainScreen(props: { children: ReactNode; light?: boolean }) {
+  if (!props.light)
+    return (
+      <SectionHeroScope>
+        <ProgramTabSurface>{props.children}</ProgramTabSurface>
+      </SectionHeroScope>
+    );
   return (
     <MainTabHeroScope>
       <MainSurface {...props} />

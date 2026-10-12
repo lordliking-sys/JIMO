@@ -35,7 +35,7 @@ export function ProfileAvatar({ name }: { name: string | null }) {
             height: 84,
             borderRadius: 42,
             borderWidth: 2,
-            borderColor: ink.green,
+            borderColor: ink.paper,
             backgroundColor: 'rgba(12, 20, 14, 0.65)',
             alignItems: 'center',
             justifyContent: 'center',
@@ -84,7 +84,7 @@ export function ProfileAvatar({ name }: { name: string | null }) {
       {avatar.error && !avatar.open ? (
         <Copy
           accessibilityRole="alert"
-          style={{ color: ink.danger, textAlign: 'center' }}
+          style={{ color: ink.paper, textAlign: 'center' }}
         >
           {t(`avatarActions.errors.${avatar.error}`)}
         </Copy>

@@ -1,3 +1,4 @@
+import { ExerciseThumbnail } from '../../../src/programs/ExerciseThumbnail';
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -39,10 +40,12 @@ export default function ChooseExercise() {
   );
   return (
     <ProgramScreen
+      header={
+        <FormHeader title={t(library ? 'libraryTitle' : 'addExercise')} />
+      }
       background="library"
       fallback={{ pathname: '/program/[id]/day-detail', params: { id, dayId } }}
     >
-      <FormHeader title={t(library ? 'libraryTitle' : 'addExercise')} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
         <View style={{ flex: 1 }}>
           <Field
@@ -102,6 +105,7 @@ export default function ChooseExercise() {
             <ProgramRow
               key={e.id}
               title={e.displayName}
+              leading={<ExerciseThumbnail exercise={e} />}
               label={e.displayName}
               subtitle={`${t(`trackingModes.${e.trackingMode}`)} · ${t(e.isCustom ? 'customExercises' : 'systemExercises')}`}
               onPress={() =>

@@ -1,54 +1,21 @@
-import { MainTabHero } from '../components/MainTabHero';
-import { Image, Pressable, View, useWindowDimensions } from 'react-native';
+import { SectionHeroFrame } from '../components/SectionHero';
+import { Pressable, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { EditorialText, Copy, useProfileMenuAnchor } from './Surface';
 import Settings from 'lucide-react-native/icons/settings';
 import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
-import { artwork, ink } from './theme';
+import { ink } from './theme';
 import { ProfileAvatar } from './ProfileAvatar';
 
 export function ProgressHero() {
-  const { t } = useTranslation('progressProfile'),
-    { width } = useWindowDimensions();
-  return (
-    <MainTabHero testID="progress-tab-hero">
-      <View style={{ position: 'relative', paddingLeft: 8 }}>
-        <HeroReadabilityWash testID="progress-readability-wash" />
-        <EditorialText
-          accessibilityRole="header"
-          style={{ fontSize: width < 360 ? 32 : 36, lineHeight: 44 }}
-        >
-          {t('progressTitle')}
-        </EditorialText>
-        <Image
-          source={artwork.brush}
-          tintColor={ink.charcoal}
-          accessible={false}
-          resizeMode="contain"
-          style={{ width: 126, height: 16, marginLeft: 8 }}
-        />
-      </View>
-    </MainTabHero>
-  );
+  return <SectionHeroFrame testID="progress-tab-hero" />;
 }
 export function ProfileHero({ name }: { name: string | null }) {
   const { t } = useTranslation('progressProfile'),
     { width } = useWindowDimensions();
   const { jumpToMenu } = useProfileMenuAnchor();
   return (
-    <MainTabHero testID="profile-tab-hero">
-      <HeroReadabilityWash testID="profile-readability-wash" />
-      <EditorialText
-        accessibilityRole="header"
-        style={{
-          color: ink.charcoal,
-          fontSize: width < 360 ? 35 : 40,
-          lineHeight: 48,
-          paddingLeft: 8,
-        }}
-      >
-        {t('profileTitle')}
-      </EditorialText>
+    <SectionHeroFrame testID="profile-tab-hero">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('settings')}
@@ -56,7 +23,7 @@ export function ProfileHero({ name }: { name: string | null }) {
         style={({ pressed }) => ({
           position: 'absolute',
           right: 0,
-          top: 22,
+          top: 8,
           width: 48,
           height: 48,
           alignItems: 'center',
@@ -64,34 +31,37 @@ export function ProfileHero({ name }: { name: string | null }) {
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Settings size={25} color={ink.charcoal} accessible={false} />
+        <Settings size={25} color={ink.paper} accessible={false} />
       </Pressable>
-      <Image
-        source={artwork.brush}
-        accessible={false}
-        resizeMode="contain"
-        tintColor={ink.charcoal}
-        style={{ width: 126, height: 16, marginLeft: 16 }}
-      />
-      <View style={{ alignItems: 'center', marginTop: 10, gap: 2 }}>
-        <ProfileAvatar name={name} />
-        <EditorialText
-          testID="profile-display-name"
-          style={{
-            color: ink.charcoal,
-            fontSize: 30,
-            lineHeight: 34,
-            textAlign: 'center',
-          }}
-        >
-          {name || t('identityFallback')}
-        </EditorialText>
-        <Copy
-          style={{ color: ink.secondary, textAlign: 'center', fontSize: 12 }}
-        >
-          {t('motto')}
-        </Copy>
+      <View
+        style={{
+          alignSelf: 'flex-end',
+          width: '56%',
+          paddingTop: Math.min(130, width * 0.3),
+        }}
+      >
+        <View style={{ alignItems: 'center', gap: 2 }}>
+          <HeroReadabilityWash
+            variant="dark"
+            testID="profile-readability-wash"
+          />
+          <ProfileAvatar name={name} />
+          <EditorialText
+            testID="profile-display-name"
+            style={{
+              color: ink.paper,
+              fontSize: 23,
+              lineHeight: 26,
+              textAlign: 'center',
+            }}
+          >
+            {name || t('identityFallback')}
+          </EditorialText>
+          <Copy style={{ color: ink.paper, textAlign: 'center', fontSize: 12 }}>
+            {t('motto')}
+          </Copy>
+        </View>
       </View>
-    </MainTabHero>
+    </SectionHeroFrame>
   );
 }

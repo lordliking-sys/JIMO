@@ -51,6 +51,7 @@ export default function CustomExercise() {
   });
   return (
     <FormScreen
+      header={<FormHeader title={t('customTitle')} />}
       presentation
       background="custom"
       invalid={invalid}
@@ -74,7 +75,6 @@ export default function CustomExercise() {
         />
       }
     >
-      <FormHeader title={t('customTitle')} />
       <FormSection>
         <Field
           label={t('exerciseName')}

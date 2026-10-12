@@ -676,3 +676,47 @@ test('week selection keeps adjacent context, avoids unnecessary movement and scr
   }
   expect(fixture.writes).toHaveLength(0);
 });
+
+for (const device of devices)
+  test(`shared folklore seam ${device.width}x${device.height}: title-free progress/profile and clean dark program body`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize(device);
+    await insets(page, device.top, device.bottom);
+    await visualFixture(page);
+    await page.goto('/progress');
+    await expect(page.getByTestId('progress-tab-hero')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'PROGRESSI', exact: true }),
+    ).toHaveCount(0);
+    const progress = (await page
+      .getByTestId('progress-editorial-screen')
+      .getByTestId('section-hero-art')
+      .boundingBox())!;
+    await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
+    await expect(
+      page.getByRole('heading', { name: 'PROFILO', exact: true }),
+    ).toHaveCount(0);
+    const profile = (await page
+      .getByTestId('profile-editorial-screen')
+      .getByTestId('section-hero-art')
+      .boundingBox())!;
+    expect(profile.height).toBeCloseTo(progress.height, 0);
+    await page.screenshot({ path: info.outputPath('profile-hero.png') });
+    await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
+    const scheme = (await page
+        .getByTestId('program-main-screen')
+        .getByTestId('section-hero-art')
+        .boundingBox())!,
+      body = page.getByTestId('program-tab-body');
+    expect(scheme.height).toBeCloseTo(progress.height, 0);
+    expect(scheme.y).toBe(0);
+    expect((await body.boundingBox())!.y).toBeCloseTo(
+      scheme.y + scheme.height,
+      0,
+    );
+    expect(
+      await body.evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).toBe('rgb(16, 19, 15)');
+    await page.screenshot({ path: info.outputPath('scheme-hero-body.png') });
+  });

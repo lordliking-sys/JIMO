@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import {
   BackHandler,
   Keyboard,
@@ -91,6 +92,8 @@ export function NumberControl({
   unit = '',
   manualLabel,
   displayLabel,
+  displayValue,
+  labelAccessory,
 }: {
   label: string;
   value: string;
@@ -106,6 +109,8 @@ export function NumberControl({
   unit?: string;
   manualLabel?: string;
   displayLabel?: string;
+  displayValue?: string;
+  labelAccessory?: ReactNode;
 }) {
   const { t } = useTranslation('programs');
   const [editing, setEditing] = useState(false);
@@ -180,11 +185,26 @@ export function NumberControl({
       <View
         style={{
           flexDirection: compact ? 'row' : 'column',
-          alignItems: compact ? 'center' : 'stretch',
+          alignItems: compact
+            ? labelAccessory
+              ? 'flex-start'
+              : 'center'
+            : 'stretch',
           gap: 8,
         }}
       >
-        {compact ? (
+        {compact && labelAccessory ? (
+          <View style={{ flex: 1, minWidth: 0, paddingTop: 15 }}>
+            <Text
+              variant="label"
+              color={programInk.text}
+              style={{ fontSize: 13 }}
+            >
+              {displayLabel ?? label}
+            </Text>
+            {labelAccessory}
+          </View>
+        ) : compact ? (
           <Text
             variant="label"
             color={programInk.text}
@@ -229,7 +249,9 @@ export function NumberControl({
               accessibilityRole="button"
               accessibilityLabel={manualLabel ?? t('manualValue', { label })}
               accessibilityHint={t('numberHint')}
-              accessibilityValue={{ text: value || t('unspecified') }}
+              accessibilityValue={{
+                text: value ? (displayValue ?? value) : t('unspecified'),
+              }}
               onPress={() => setEditing(true)}
               style={[
                 styles.display,
@@ -251,7 +273,10 @@ export function NumberControl({
                 }
                 style={{ textAlign: 'center' }}
               >
-                {value ? `${prefix}${value}${unit ? ` ${unit}` : ''}` : '—'}
+                {value
+                  ? (displayValue ??
+                    `${prefix}${value}${unit ? ` ${unit}` : ''}`)
+                  : '—'}
               </Text>
               {manualLabel ? (
                 <Text

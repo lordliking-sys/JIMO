@@ -1,3 +1,4 @@
+import { SectionHeroProvider } from '../../src/components/SectionHero';
 import { MainTabHeroProvider } from '../../src/components/MainTabHero';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -52,113 +53,115 @@ export default function TabsLayout() {
     };
   return (
     <MainTabHeroProvider>
-      <Tabs
-        screenOptions={({ route }) => {
-          const home = route.name === 'index',
-            light =
-              home || route.name === 'progress' || route.name === 'profile',
-            styled = light || route.name === 'program';
-          return {
-            headerShown: false,
-            tabBarActiveTintColor: styled
-              ? light
-                ? mainInk.green
-                : mainInk.sage
-              : colors.primary,
-            tabBarShowLabel: true,
-            tabBarLabelPosition: 'below-icon',
-            tabBarAllowFontScaling: true,
-            tabBarInactiveTintColor: styled
-              ? light
-                ? mainInk.charcoal
-                : mainInk.muted
-              : colors.secondary,
-            tabBarActiveBackgroundColor: styled
-              ? 'transparent'
-              : colors.elevated,
-            tabBarStyle: {
-              backgroundColor: styled
+      <SectionHeroProvider>
+        <Tabs
+          screenOptions={({ route }) => {
+            const home = route.name === 'index',
+              light =
+                home || route.name === 'progress' || route.name === 'profile',
+              styled = light || route.name === 'program';
+            return {
+              headerShown: false,
+              tabBarActiveTintColor: styled
                 ? light
-                  ? mainInk.ivory
-                  : mainInk.charcoal
-                : colors.surface,
-              height:
-                72 +
-                Math.max(0, Math.min(fontScale, 1.5) - 1) * 36 +
-                insets.bottom,
-              paddingBottom: Math.max(insets.bottom, spacing.sm),
-              borderTopColor: styled
+                  ? mainInk.green
+                  : mainInk.sage
+                : colors.primary,
+              tabBarShowLabel: true,
+              tabBarLabelPosition: 'below-icon',
+              tabBarAllowFontScaling: true,
+              tabBarInactiveTintColor: styled
                 ? light
-                  ? mainInk.paperBorder
-                  : mainInk.border
-                : colors.border,
-            },
-            tabBarItemStyle: {
-              minHeight: sizes.touch,
-              paddingVertical: spacing.xs,
-            },
-            sceneStyle: {
-              backgroundColor: light
-                ? mainInk.ivory
-                : route.name === 'program'
                   ? mainInk.charcoal
-                  : colors.background,
-            },
-          };
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: t('home'),
-            tabBarAccessibilityLabel: t('home'),
-            tabBarLabel: label(t('home')),
-            tabBarIcon: ({ color }) => (
-              <House size={sizes.tabIcon} color={color} />
-            ),
+                  : mainInk.muted
+                : colors.secondary,
+              tabBarActiveBackgroundColor: styled
+                ? 'transparent'
+                : colors.elevated,
+              tabBarStyle: {
+                backgroundColor: styled
+                  ? light
+                    ? mainInk.ivory
+                    : mainInk.charcoal
+                  : colors.surface,
+                height:
+                  72 +
+                  Math.max(0, Math.min(fontScale, 1.5) - 1) * 36 +
+                  insets.bottom,
+                paddingBottom: Math.max(insets.bottom, spacing.sm),
+                borderTopColor: styled
+                  ? light
+                    ? mainInk.paperBorder
+                    : mainInk.border
+                  : colors.border,
+              },
+              tabBarItemStyle: {
+                minHeight: sizes.touch,
+                paddingVertical: spacing.xs,
+              },
+              sceneStyle: {
+                backgroundColor: light
+                  ? mainInk.ivory
+                  : route.name === 'program'
+                    ? mainInk.charcoal
+                    : colors.background,
+              },
+            };
           }}
-        />
-        <Tabs.Screen
-          name="program"
-          options={{
-            title: t('compact.program'),
-            tabBarAccessibilityLabel: t('compact.program'),
-            tabBarLabel: label(t('compact.program')),
-            tabBarIcon: ({ color }) => (
-              <FileText size={sizes.tabIcon} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="workout"
-          options={{
-            href: null,
-            title: t('workout'),
-          }}
-        />
-        <Tabs.Screen
-          name="progress"
-          options={{
-            title: t('progress'),
-            tabBarAccessibilityLabel: t('progress'),
-            tabBarLabel: label(t('progress'), true),
-            tabBarIcon: ({ color }) => (
-              <ChartNoAxesCombined size={sizes.tabIcon} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: t('profile'),
-            tabBarAccessibilityLabel: t('profile'),
-            tabBarLabel: label(t('profile'), true),
-            tabBarIcon: ({ color }) => (
-              <CircleUserRound size={sizes.tabIcon} color={color} />
-            ),
-          }}
-        />
-      </Tabs>
+        >
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: t('home'),
+              tabBarAccessibilityLabel: t('home'),
+              tabBarLabel: label(t('home')),
+              tabBarIcon: ({ color }) => (
+                <House size={sizes.tabIcon} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="program"
+            options={{
+              title: t('compact.program'),
+              tabBarAccessibilityLabel: t('compact.program'),
+              tabBarLabel: label(t('compact.program')),
+              tabBarIcon: ({ color }) => (
+                <FileText size={sizes.tabIcon} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="workout"
+            options={{
+              href: null,
+              title: t('workout'),
+            }}
+          />
+          <Tabs.Screen
+            name="progress"
+            options={{
+              title: t('progress'),
+              tabBarAccessibilityLabel: t('progress'),
+              tabBarLabel: label(t('progress'), true),
+              tabBarIcon: ({ color }) => (
+                <ChartNoAxesCombined size={sizes.tabIcon} color={color} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="profile"
+            options={{
+              title: t('profile'),
+              tabBarAccessibilityLabel: t('profile'),
+              tabBarLabel: label(t('profile'), true),
+              tabBarIcon: ({ color }) => (
+                <CircleUserRound size={sizes.tabIcon} color={color} />
+              ),
+            }}
+          />
+        </Tabs>
+      </SectionHeroProvider>
     </MainTabHeroProvider>
   );
 }

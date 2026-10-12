@@ -51,6 +51,7 @@ export function ProgramForm({
   };
   return (
     <FormScreen
+      header={<FormHeader title={t(initial ? 'editProgram' : 'create')} />}
       presentation
       {...(fallback ? { fallback } : {})}
       invalid={invalid}
@@ -62,7 +63,6 @@ export function ProgramForm({
         />
       }
     >
-      <FormHeader title={t(initial ? 'editProgram' : 'create')} />
       <View
         style={{
           gap: spacing.lg,

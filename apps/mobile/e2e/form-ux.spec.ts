@@ -231,25 +231,32 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
     .getByRole('button', { name: 'Aumenta RPE (opzionale)', exact: true })
     .click();
   await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('8,5');
-  await page.getByRole('button', { name: '90 sec', exact: true }).click();
+  await expect(valueButton(page, 'Recupero (secondi, opzionale)')).toHaveText(
+    '—',
+  );
+  await page
+    .getByRole('button', {
+      name: 'Aumenta Recupero (secondi, opzionale)',
+      exact: true,
+    })
+    .click();
+  await expect(valueButton(page, 'Recupero (secondi, opzionale)')).toHaveText(
+    '15 sec',
+  );
+  await page
+    .getByRole('button', { name: 'Non impostato', exact: true })
+    .click();
+  await expect(valueButton(page, 'Recupero (secondi, opzionale)')).toHaveText(
+    '—',
+  );
+  await expect(
+    page.getByText('Recupero personalizzato', { exact: true }),
+  ).toHaveCount(0);
   const rest = page.getByRole('textbox', {
     name: 'Recupero (secondi, opzionale)',
     exact: true,
   });
-  await expect(
-    valueButton(
-      page,
-      'Recupero (secondi, opzionale)',
-      'it',
-      'Recupero personalizzato',
-    ),
-  ).toContainText('90 sec');
-  await manualField(
-    page,
-    'Recupero (secondi, opzionale)',
-    'it',
-    'Recupero personalizzato',
-  );
+  await manualField(page, 'Recupero (secondi, opzionale)');
   await rest.fill('75');
   await page
     .getByRole('button', {
@@ -257,7 +264,16 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
       exact: true,
     })
     .click();
-  await expect(rest).toHaveValue('105');
+  await expect(rest).toHaveValue('90');
+  await page
+    .getByRole('button', {
+      name: 'Conferma Recupero (secondi, opzionale)',
+      exact: true,
+    })
+    .click();
+  await expect(valueButton(page, 'Recupero (secondi, opzionale)')).toHaveText(
+    '1:30',
+  );
   const reps = await manualField(page, 'Ripetizioni');
   await reps.fill('0');
   await expect(
@@ -305,7 +321,7 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
       targetLoadKg: '3.75',
       targetAssistanceKg: null,
       targetRpe: '8.5',
-      restSeconds: 105,
+      restSeconds: 90,
       notes: 'Tempo 3-1-1',
     },
   ]);

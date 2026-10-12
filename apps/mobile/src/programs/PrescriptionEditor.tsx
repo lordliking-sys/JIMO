@@ -1,3 +1,4 @@
+import { RestControl } from './RestControl';
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -209,6 +210,13 @@ export function PrescriptionEditor({
   return (
     <FormScreen
       presentation={presentation}
+      {...(presentation
+        ? {
+            header: (
+              <FormHeader title={t(initial ? 'editExercise' : 'addExercise')} />
+            ),
+          }
+        : {})}
       {...(fallback ? { fallback } : {})}
       background="structure"
       invalid={invalid}
@@ -222,7 +230,6 @@ export function PrescriptionEditor({
     >
       {presentation ? (
         <>
-          <FormHeader title={t(initial ? 'editExercise' : 'addExercise')} />
           <Field
             label={t('exerciseName')}
             value={exercise.displayName}
@@ -311,40 +318,13 @@ export function PrescriptionEditor({
                 2,
               )
             : null}
-          <NumberControl
-            label={t('rest')}
-            displayLabel={t('restShort')}
+          <RestControl
             value={rest}
-            onChange={setRest}
-            min={0}
-            max={86400}
-            unit={t('secondsShort')}
-            manualLabel={t('customRest')}
-            onStep={(direction) => {
-              try {
-                setRest(
-                  stepInteger(rest, direction, {
-                    min: 0,
-                    max: 86400,
-                    step: 30,
-                    initial: 60,
-                  }),
-                );
-                setInvalid(false);
-              } catch {
-                setInvalid(true);
-              }
+            onChange={(value) => {
+              setRest(value);
+              setInvalid(false);
             }}
-            presets={[
-              { value: '', label: t('unspecified') },
-              ...[30, 60, 90, 120, 180].map((seconds) => ({
-                value: String(seconds),
-                label:
-                  seconds < 120
-                    ? `${seconds} ${t('secondsShort')}`
-                    : `${seconds / 60}:00`,
-              })),
-            ]}
+            invalid={() => setInvalid(true)}
           />
           {decimalControl(t('rpe'), rpeValue, setRpe, 1)}
           <Field

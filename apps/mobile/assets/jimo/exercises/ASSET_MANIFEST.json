@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "male": {
+    "status": "clean_transparent",
+    "exercises": {
+      "dip": "exercise-art/male/dip.png",
+      "pull_up": "exercise-art/male/pull_up.png",
+      "hollow_hold": "exercise-art/male/hollow_hold.png",
+      "plank": "exercise-art/male/plank.png",
+      "squat": "exercise-art/male/squat.png",
+      "glute_bridge": "exercise-art/male/glute_bridge.png",
+      "push_up": "exercise-art/male/push_up.png",
+      "lunge": "exercise-art/male/lunge.png",
+      "stretching": "exercise-art/male/stretching.png",
+      "leg_raise": "exercise-art/male/leg_raise.png"
+    }
+  },
+  "female": {
+    "status": "8_clean_transparent_2_reference_only",
+    "exercises": {
+      "dip": "exercise-art/female/dip.png",
+      "pull_up": "exercise-art/female/pull_up.png",
+      "hollow_hold": "exercise-art/female/hollow_hold.png",
+      "plank": "exercise-art/female/plank.png",
+      "squat": "exercise-art/female/squat.png",
+      "leg_raise": "exercise-art/female/leg_raise.png",
+      "lunge": "exercise-art/female/lunge.png",
+      "stretching": "exercise-art/female/stretching.png"
+    },
+    "missing_clean_transparent": [
+      "push_up",
+      "glute_bridge"
+    ],
+    "reference_only_not_transparent": {
+      "push_up": "exercise-art/female/reference_only_not_transparent/push_up_source.png",
+      "glute_bridge": "exercise-art/female/reference_only_not_transparent/glute_bridge_source.png"
+    }
+  },
+  "card_backgrounds": {
+    "light": "card-backgrounds/exercise-card-light.png",
+    "dark": "card-backgrounds/exercise-card-dark.png"
+  }
+}

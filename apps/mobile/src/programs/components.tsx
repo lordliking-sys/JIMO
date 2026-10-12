@@ -54,6 +54,7 @@ export function FormSection({ children }: { children: ReactNode }) {
 }
 export function FormScreen({
   children,
+  header,
   footer,
   invalid = false,
   presentation = false,
@@ -61,6 +62,7 @@ export function FormScreen({
   fallback,
 }: {
   children: ReactNode;
+  header?: ReactNode;
   footer?: ReactNode;
   invalid?: boolean;
   presentation?: boolean;
@@ -72,6 +74,7 @@ export function FormScreen({
     return (
       <ProgramScreen
         background={background}
+        {...(header ? { header } : {})}
         {...(fallback ? { fallback } : {})}
         {...(footer ? { footer } : {})}
       >

@@ -35,6 +35,7 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
   );
   return (
     <FormScreen
+      header={<FormHeader title={t(day ? 'editDay' : 'newDay')} />}
       presentation
       background="structure"
       fallback={{ pathname: '/program/[id]', params: { id } }}
@@ -67,7 +68,6 @@ function Form({ id, day }: { id: string; day?: DayDto }) {
         />
       }
     >
-      <FormHeader title={t(day ? 'editDay' : 'newDay')} />
       <FormSection>
         <Field
           label={t('dayName')}

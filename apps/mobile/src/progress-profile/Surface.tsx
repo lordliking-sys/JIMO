@@ -1,13 +1,14 @@
 import {
-  MainTabHeroScope,
-  MainTabHeroArtwork,
-  useMainTabHeroGeometry,
-} from '../components/MainTabHero';
+  SectionHeroScope,
+  SectionHeroArtwork,
+  useSectionHeroGeometry,
+} from '../components/SectionHero';
 import {
   createContext,
   useContext,
   useMemo,
   useRef,
+  useState,
   type ReactNode,
 } from 'react';
 import {
@@ -101,7 +102,8 @@ function EditorialSurface({
     { width } = useWindowDimensions(),
     tabHeight = useBottomTabBarHeight(),
     focused = useIsFocused();
-  const geometry = useMainTabHeroGeometry();
+  const geometry = useSectionHeroGeometry();
+  const [heroUnderBar, setHeroUnderBar] = useState(true);
   const scroll = useRef<ScrollView>(null),
     menuOffset = useRef(0);
   const anchor = useMemo(
@@ -128,7 +130,12 @@ function EditorialSurface({
         }
         style={{ flex: 1, backgroundColor: ink.paper }}
       >
-        {focused ? <StatusBar hidden={false} style="dark" /> : null}
+        {focused ? (
+          <StatusBar
+            hidden={false}
+            style={profile && heroUnderBar ? 'light' : 'dark'}
+          />
+        ) : null}
         <ScrollView
           ref={scroll}
           testID="editorial-scroll"
@@ -139,6 +146,14 @@ function EditorialSurface({
           automaticallyAdjustsScrollIndicatorInsets={false}
           bounces={false}
           overScrollMode="never"
+          onScroll={
+            profile
+              ? (e) =>
+                  setHeroUnderBar(
+                    e.nativeEvent.contentOffset.y < heroHeight - insets.top / 2,
+                  )
+              : undefined
+          }
           scrollEventThrottle={32}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -160,12 +175,12 @@ function EditorialSurface({
               ]}
             />
           </View>
-          <MainTabHeroArtwork
+          <SectionHeroArtwork
             source={profile ? artwork.profile : artwork.progress}
             width={width}
             height={heroHeight}
-            dark={false}
-            lighten={profile}
+            dark={profile}
+            bodyColor={ink.paper}
           />
           <View
             style={{
@@ -191,8 +206,8 @@ export function EditorialScreen(props: {
   profile?: boolean;
 }) {
   return (
-    <MainTabHeroScope>
+    <SectionHeroScope>
       <EditorialSurface {...props} />
-    </MainTabHeroScope>
+    </SectionHeroScope>
   );
 }

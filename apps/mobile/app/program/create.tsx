@@ -14,8 +14,7 @@ export default function CreateProgramScreen() {
     { t } = useTranslation(),
     router = useRouter();
   return (
-    <ProgramScreen>
-      <FormHeader title={t('program.createTitle')} />
+    <ProgramScreen header={<FormHeader title={t('program.createTitle')} />}>
       <Text color={programInk.secondary}>{t('program.createDescription')}</Text>
       <PendingReview />
       <ProgramButton

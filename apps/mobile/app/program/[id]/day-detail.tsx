@@ -1,3 +1,4 @@
+import { ExerciseThumbnail } from '../../../src/programs/ExerciseThumbnail';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -53,6 +54,54 @@ export default function DayDetail() {
     );
   return (
     <ProgramScreen
+      header={
+        <View
+          style={{ position: 'relative', paddingBottom: 22, minHeight: 155 }}
+        >
+          <HeroReadabilityWash variant="dark" />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Back compact color={programInk.paper} />
+            <ActionMenu
+              icon={<EllipsisVertical size={22} color={programInk.paper} />}
+              label={t('dayActions', { name: day.name })}
+              title={day.name}
+              actions={[
+                {
+                  label: t('editDay'),
+                  action: () =>
+                    router.push({
+                      pathname: '/program/[id]/day',
+                      params: { id, dayId },
+                    }),
+                },
+              ]}
+            />
+          </View>
+          <ProgramText
+            accessibilityRole="header"
+            style={{ color: programInk.paper, fontSize: 32, lineHeight: 34 }}
+          >
+            {t('dayNumber', { count: query.data.days.indexOf(day) + 1 })}
+            {'\n'}
+            {day.name}
+          </ProgramText>
+          {day.dayOfWeek ? (
+            <Text
+              variant="caption"
+              color={programInk.paper}
+              style={{ marginTop: 8 }}
+            >
+              {t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`)}
+            </Text>
+          ) : null}
+        </View>
+      }
       background="day"
       fallback={{ pathname: '/program/[id]', params: { id } }}
       footer={
@@ -68,50 +117,6 @@ export default function DayDetail() {
         />
       }
     >
-      <View style={{ position: 'relative', paddingBottom: 22, minHeight: 155 }}>
-        <HeroReadabilityWash variant="dark" />
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Back compact color={programInk.paper} />
-          <ActionMenu
-            icon={<EllipsisVertical size={22} color={programInk.paper} />}
-            label={t('dayActions', { name: day.name })}
-            title={day.name}
-            actions={[
-              {
-                label: t('editDay'),
-                action: () =>
-                  router.push({
-                    pathname: '/program/[id]/day',
-                    params: { id, dayId },
-                  }),
-              },
-            ]}
-          />
-        </View>
-        <ProgramText
-          accessibilityRole="header"
-          style={{ color: programInk.paper, fontSize: 32, lineHeight: 34 }}
-        >
-          {t('dayNumber', { count: query.data.days.indexOf(day) + 1 })}
-          {'\n'}
-          {day.name}
-        </ProgramText>
-        {day.dayOfWeek ? (
-          <Text
-            variant="caption"
-            color={programInk.paper}
-            style={{ marginTop: 8 }}
-          >
-            {t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`)}
-          </Text>
-        ) : null}
-      </View>
       {day.notes ? (
         <Text variant="caption" color={programInk.text}>
           {day.notes}
@@ -128,6 +133,7 @@ export default function DayDetail() {
             <ProgramRow
               key={exercise.id}
               title={exercise.exercise.displayName}
+              leading={<ExerciseThumbnail exercise={exercise.exercise} />}
               label={`${t('editExercise')} ${exercise.exercise.displayName}`}
               subtitle={`${summary.primary}${summary.details ? `\n${summary.details}` : ''}${exercise.notes ? `\n${exercise.notes}` : ''}`}
               onPress={() =>

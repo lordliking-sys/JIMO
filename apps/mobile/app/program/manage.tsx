@@ -33,6 +33,7 @@ export default function ProgramManager() {
   );
   return (
     <ProgramScreen
+      header={<FormHeader title={t('managerTitle')} />}
       fallback="/program"
       footer={
         <ProgramButton
@@ -41,7 +42,6 @@ export default function ProgramManager() {
         />
       }
     >
-      <FormHeader title={t('managerTitle')} />
       <ProgramText
         style={{
           fontSize: 20,

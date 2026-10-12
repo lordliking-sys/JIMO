@@ -6,3 +6,5 @@ dist
 
 test-results
 playwright-report
+# Original supplied manifest: keep byte-identical to the artwork pack.
+apps/mobile/assets/jimo/exercises/ASSET_MANIFEST.json

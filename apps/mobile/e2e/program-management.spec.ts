@@ -11,6 +11,13 @@ async function fit(page: Page) {
     .getByTestId('program-management-screen')
     .filter({ has: page.getByRole('heading') });
   await expect(screen).toBeVisible();
+
+  const hero = (await screen.getByTestId('section-hero-art').boundingBox())!;
+  const body = screen.getByTestId('program-management-body');
+  expect(hero.height).toBeLessThan(320);
+  expect(
+    await body.evaluate((el) => getComputedStyle(el).backgroundColor),
+  ).toBe('rgb(16, 19, 15)');
   expect(
     await screen.evaluate((node) => getComputedStyle(node).backgroundColor),
   ).toBe('rgb(16, 19, 15)');

@@ -54,6 +54,52 @@ export default function Builder() {
     );
   return (
     <ProgramScreen
+      header={
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flex: 1 }}>
+              <FormHeader
+                fontSize={22}
+                title={t(
+                  program.days.length ? 'structureTitle' : 'addDaysTitle',
+                )}
+              />
+            </View>
+            <ActionMenu
+              label={t('programActions')}
+              title={program.name}
+              disabled={mutation.isPending}
+              actions={[
+                {
+                  label: t('editProgram'),
+                  action: () =>
+                    router.push({
+                      pathname: '/program/[id]/settings',
+                      params: { id },
+                    }),
+                },
+                ...(program.status !== 'archived'
+                  ? [
+                      {
+                        label: t('archive'),
+                        action:
+                          program.status === 'active'
+                            ? () =>
+                                confirmation.ask(t('confirmArchive'), () =>
+                                  run(() => programsApi.archive(id, locale)),
+                                )
+                            : archive,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          </View>
+          <ProgramText accessibilityRole="header" style={{ fontSize: 28 }}>
+            {program.name}
+          </ProgramText>
+        </View>
+      }
       background="structure"
       footer={
         <View style={{ gap: 8 }}>
@@ -77,46 +123,6 @@ export default function Builder() {
         </View>
       }
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ flex: 1 }}>
-          <FormHeader
-            fontSize={22}
-            title={t(program.days.length ? 'structureTitle' : 'addDaysTitle')}
-          />
-        </View>
-        <ActionMenu
-          label={t('programActions')}
-          title={program.name}
-          disabled={mutation.isPending}
-          actions={[
-            {
-              label: t('editProgram'),
-              action: () =>
-                router.push({
-                  pathname: '/program/[id]/settings',
-                  params: { id },
-                }),
-            },
-            ...(program.status !== 'archived'
-              ? [
-                  {
-                    label: t('archive'),
-                    action:
-                      program.status === 'active'
-                        ? () =>
-                            confirmation.ask(t('confirmArchive'), () =>
-                              run(() => programsApi.archive(id, locale)),
-                            )
-                        : archive,
-                  },
-                ]
-              : []),
-          ]}
-        />
-      </View>
-      <ProgramText accessibilityRole="header" style={{ fontSize: 28 }}>
-        {program.name}
-      </ProgramText>
       <Text variant="caption" color={programInk.secondary}>
         {t(statusKey(program.status))}
       </Text>

@@ -92,7 +92,13 @@ async function addExercise(
     weight,
   );
   await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('8');
-  await page.getByRole('button', { name: rest, exact: true }).click();
+  const restSeconds = rest.includes(':')
+    ? rest
+        .split(':')
+        .map(Number)
+        .reduce((minutes, seconds) => minutes * 60 + seconds)
+    : Number.parseInt(rest);
+  await setManual(page, 'Recupero (secondi, opzionale)', String(restSeconds));
   await page
     .getByRole('button', { name: 'Salva esercizio', exact: true })
     .click();
@@ -385,7 +391,7 @@ test('three manual load choices, compact RPE and legacy assistance preserve exis
   await expect(valueButton(page, 'Serie')).toHaveText('3');
   await expect(valueButton(page, 'Ripetizioni')).toHaveText('10');
   await setManual(page, 'RPE (opzionale)', '8');
-  await page.getByRole('button', { name: '90 sec', exact: true }).click();
+  await setManual(page, 'Recupero (secondi, opzionale)', '90');
   await page
     .getByRole('button', { name: 'Salva modifiche', exact: true })
     .click();

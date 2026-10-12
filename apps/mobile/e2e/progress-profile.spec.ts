@@ -215,15 +215,13 @@ for (const device of devices)
       expect(
         await chart.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
       ).toBe(true);
-    expect(
-      await page
-        .getByRole('heading', { name: 'PROGRESSI', exact: true })
-        .evaluate((el) => el.getBoundingClientRect().top),
-    ).toBeGreaterThanOrEqual(24);
+    await expect(
+      page.getByRole('heading', { name: 'PROGRESSI', exact: true }),
+    ).toHaveCount(0);
     expect(
       (await page
         .getByTestId('progress-editorial-screen')
-        .getByTestId('editorial-hero-art')
+        .getByTestId('section-hero-art')
         .boundingBox())!.y,
     ).toBe(0);
     for (const name of ['Panoramica', 'Forza', 'Volume', 'Frequenza']) {
@@ -247,11 +245,11 @@ for (const device of devices)
     ).toBe(true);
     const progressHeroHeight = (await page
       .getByTestId('progress-editorial-screen')
-      .getByTestId('editorial-hero-art')
+      .getByTestId('section-hero-art')
       .boundingBox())!.height;
     const art = (await page
         .getByTestId('progress-editorial-screen')
-        .getByTestId('editorial-hero-art')
+        .getByTestId('section-hero-art')
         .boundingBox())!,
       seam = (await page.getByTestId('progress-hero-seam').boundingBox())!;
     expect(seam.y).toBeLessThan(art.y + art.height);
@@ -265,10 +263,13 @@ for (const device of devices)
     await expect(page.getByTestId('profile-display-name')).toHaveText(
       'Il tuo account',
     );
+    await expect(
+      page.getByRole('heading', { name: 'PROFILO', exact: true }),
+    ).toHaveCount(0);
     expect(
       (await page
         .getByTestId('profile-editorial-screen')
-        .getByTestId('editorial-hero-art')
+        .getByTestId('section-hero-art')
         .boundingBox())!.y,
     ).toBe(0);
     await expect
@@ -276,7 +277,7 @@ for (const device of devices)
         async () =>
           (await page
             .getByTestId('profile-editorial-screen')
-            .getByTestId('editorial-hero-art')
+            .getByTestId('section-hero-art')
             .boundingBox())!.height,
       )
       .toBeCloseTo(progressHeroHeight, 0);
@@ -583,9 +584,7 @@ test.describe('isolated Profile component with account data (no Clerk or databas
       ).toBe(true);
       await expect
         .poll(async () => {
-          const art = await page
-              .getByTestId('editorial-hero-art')
-              .boundingBox(),
+          const art = await page.getByTestId('section-hero-art').boundingBox(),
             identity = await page
               .getByTestId('profile-display-name')
               .boundingBox();
@@ -789,14 +788,14 @@ test.describe('isolated Profile component with account data (no Clerk or databas
       page.getByTestId('profile-avatar-photo').locator('img'),
     ).toHaveAttribute('src', original!);
   });
-  test('light profile keeps dark status icons over its full bleed hero and paper body after scrolling', async ({
+  test('profile keeps light icons over the folklore hero and dark icons over the paper body', async ({
     page,
   }) => {
     await openProfile(page);
-    await expect(page.getByTestId('fixture-status-bar-dark')).toHaveCount(1);
-    expect(
-      (await page.getByTestId('editorial-hero-art').boundingBox())!.y,
-    ).toBe(0);
+    await expect(page.getByTestId('fixture-status-bar-light')).toHaveCount(1);
+    expect((await page.getByTestId('section-hero-art').boundingBox())!.y).toBe(
+      0,
+    );
     // A short profile may clamp before the hero leaves the safe inset. Expand
     // existing content so the test actually scrolls the parchment under the bar.
     await page.getByRole('button', { name: 'Lingua', exact: true }).click();
