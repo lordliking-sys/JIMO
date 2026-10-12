@@ -18,7 +18,11 @@ import { useFonts } from 'expo-font';
 import { Text as UtilityText } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import { mainArtwork, mainInk } from './theme';
-import { HomeBackdrop } from './HomeBackdrop';
+import {
+  MainTabHeroArtwork,
+  MainTabHeroScope,
+  useMainTabHeroGeometry,
+} from '../components/MainTabHero';
 
 const Typeface = createContext(false);
 const LightSurface = createContext(false);
@@ -44,7 +48,7 @@ export function MainText({ style, ...props }: TextProps) {
     />
   );
 }
-export function MainScreen({
+function MainSurface({
   children,
   light = false,
 }: {
@@ -58,6 +62,7 @@ export function MainScreen({
     insets = useSafeAreaInsets(),
     focused = useIsFocused(),
     tabBarHeight = useBottomTabBarHeight();
+  const geometry = useMainTabHeroGeometry();
   return (
     <Typeface.Provider value={ready}>
       <LightSurface.Provider value={light}>
@@ -85,7 +90,7 @@ export function MainScreen({
               pointerEvents="none"
               style={[
                 StyleSheet.absoluteFill,
-                { backgroundColor: 'rgba(16, 19, 15, 0.38)' },
+                { backgroundColor: 'rgba(16, 19, 15, 0.48)' },
               ]}
             />
           ) : null}
@@ -100,7 +105,13 @@ export function MainScreen({
             }}
           >
             {light ? (
-              <HomeBackdrop width={width} topInset={insets.top} />
+              <MainTabHeroArtwork
+                source={mainArtwork.home}
+                width={width}
+                height={geometry.height + insets.top}
+                dark={false}
+                imageTestID="home-background"
+              />
             ) : null}
             <View
               style={{
@@ -117,6 +128,13 @@ export function MainScreen({
         </View>
       </LightSurface.Provider>
     </Typeface.Provider>
+  );
+}
+export function MainScreen(props: { children: ReactNode; light?: boolean }) {
+  return (
+    <MainTabHeroScope>
+      <MainSurface {...props} />
+    </MainTabHeroScope>
   );
 }
 export function MainButton({

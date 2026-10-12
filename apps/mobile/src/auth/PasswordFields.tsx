@@ -79,7 +79,7 @@ export function PasswordRequirements({
   const { t } = useTranslation('auth');
   return (
     <View testID="password-requirements" style={{ gap: spacing.xs }}>
-      <Text variant="caption" color={colors.secondary}>
+      <Text variant="label" color={colors.secondary} style={{ fontSize: 13 }}>
         {t('requirements.title')}
       </Text>
       {passwordRequirements(value, policy).map((rule) => {
@@ -101,11 +101,15 @@ export function PasswordRequirements({
             }}
           >
             {rule.satisfied ? (
-              <Check size={15} color={color} accessible={false} />
+              <Check size={17} color={color} accessible={false} />
             ) : (
               <Circle size={12} color={color} accessible={false} />
             )}
-            <Text variant="caption" color={color} style={{ flex: 1 }}>
+            <Text
+              variant="caption"
+              color={color}
+              style={{ flex: 1, fontSize: 13, lineHeight: 19 }}
+            >
               {t(`requirements.${rule.id}`, { count: rule.count })}
             </Text>
           </View>

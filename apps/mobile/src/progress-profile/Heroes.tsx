@@ -37,11 +37,11 @@ export function ProfileHero({ name }: { name: string | null }) {
   const { jumpToMenu } = useProfileMenuAnchor();
   return (
     <MainTabHero testID="profile-tab-hero">
-      <HeroReadabilityWash variant="dark" testID="profile-readability-wash" />
+      <HeroReadabilityWash testID="profile-readability-wash" />
       <EditorialText
         accessibilityRole="header"
         style={{
-          color: ink.paper,
+          color: ink.charcoal,
           fontSize: width < 360 ? 35 : 40,
           lineHeight: 48,
           paddingLeft: 8,
@@ -64,13 +64,13 @@ export function ProfileHero({ name }: { name: string | null }) {
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Settings size={25} color={ink.paper} accessible={false} />
+        <Settings size={25} color={ink.charcoal} accessible={false} />
       </Pressable>
       <Image
         source={artwork.brush}
         accessible={false}
         resizeMode="contain"
-        tintColor={ink.paper}
+        tintColor={ink.charcoal}
         style={{ width: 126, height: 16, marginLeft: 16 }}
       />
       <View style={{ alignItems: 'center', marginTop: 10, gap: 2 }}>
@@ -78,7 +78,7 @@ export function ProfileHero({ name }: { name: string | null }) {
         <EditorialText
           testID="profile-display-name"
           style={{
-            color: ink.paper,
+            color: ink.charcoal,
             fontSize: 30,
             lineHeight: 34,
             textAlign: 'center',
@@ -86,7 +86,9 @@ export function ProfileHero({ name }: { name: string | null }) {
         >
           {name || t('identityFallback')}
         </EditorialText>
-        <Copy style={{ color: ink.paper, textAlign: 'center', fontSize: 12 }}>
+        <Copy
+          style={{ color: ink.secondary, textAlign: 'center', fontSize: 12 }}
+        >
           {t('motto')}
         </Copy>
       </View>

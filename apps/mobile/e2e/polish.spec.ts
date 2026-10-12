@@ -11,7 +11,7 @@ test.beforeEach(async ({ page }) => {
   );
 });
 test.use({ timezoneId: 'Europe/Rome' });
-test('compact tabs, a single manual CTA, local greeting and accessible language rows', async ({
+test('compact tabs, a single manual CTA, artwork-only Home hero and accessible language rows', async ({
   page,
 }, testInfo) => {
   await page.clock.install({ time: new Date('2026-10-06T08:00:00Z') });
@@ -37,9 +37,7 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
     route.fulfill({ json: { programs: [] } }),
   );
   await page.goto('/');
-  await expect(
-    page.getByText('Buongiorno', { exact: true }).filter({ visible: true }),
-  ).toBeVisible();
+  await expect(page.getByTestId('home-greeting')).toHaveCount(0);
   for (const width of [320, 360, 390, 430]) {
     await page.setViewportSize({ width, height: 844 });
     const tabs = page.getByRole('tab');
@@ -140,17 +138,13 @@ test('compact tabs, a single manual CTA, local greeting and accessible language 
     page.getByRole('radio', { name: 'English', exact: true }),
   ).toBeChecked();
   await page.getByRole('tab', { name: 'Home', exact: true }).click();
+  await expect(page.getByTestId('home-greeting')).toHaveCount(0);
   await expect(
-    page.getByText('Good morning', { exact: true }).filter({ visible: true }),
+    page.getByRole('heading', { name: 'Next exercises', exact: true }),
   ).toBeVisible();
-  await page.clock.fastForward(2 * 60 * 60 * 1000);
-  await expect(
-    page.getByText('Good afternoon', { exact: true }).filter({ visible: true }),
-  ).toBeVisible();
-  await page.clock.fastForward(6 * 60 * 60 * 1000);
-  await expect(
-    page.getByText('Good evening', { exact: true }).filter({ visible: true }),
-  ).toBeVisible();
+  await expect(page.getByTestId('home-workout-card')).toContainText(
+    "Today's workout",
+  );
   await page.screenshot({
     path: testInfo.outputPath('home.png'),
     fullPage: true,

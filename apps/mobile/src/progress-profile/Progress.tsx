@@ -184,7 +184,12 @@ export default function ProgressScreen() {
   return (
     <EditorialScreen>
       <ProgressHero />
-      <ProgressTabs value={tab} onChange={setTab} />
+      <View
+        testID="progress-hero-seam"
+        style={{ marginTop: -34, marginBottom: 6, zIndex: 1 }}
+      >
+        <ProgressTabs value={tab} onChange={setTab} />
+      </View>
       <PeriodSelector value={range} onChange={setRange} />
       <CacheNote
         stale={summary.data?.stale ?? false}

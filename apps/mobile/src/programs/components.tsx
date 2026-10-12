@@ -153,7 +153,7 @@ export function FocusInput(props: TextInputProps) {
           backgroundColor: programInk.field,
           borderColor: programInk.border,
           color: programInk.text,
-          borderRadius: 8,
+          borderRadius: 16,
           fontSize: 14,
         },
         props.multiline && { minHeight: 96, textAlignVertical: 'top' },

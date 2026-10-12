@@ -223,7 +223,10 @@ test('inline prescription steps preserve precise loads, half-point RPE, custom r
     .getByRole('button', { name: 'Aumenta Carico (kg)', exact: true })
     .click();
   await expect(load).toHaveValue('3,75');
-  await page.getByRole('button', { name: 'RPE 8', exact: true }).click();
+  await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('8');
+  await expect(
+    page.getByRole('button', { name: 'Assistito', exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole('button', { name: 'Aumenta RPE (opzionale)', exact: true })
     .click();
@@ -375,6 +378,6 @@ test('English timed exercise keeps duration controls and omits all repetition fi
     targetRepMax: null,
     targetLoadKg: null,
     targetAssistanceKg: null,
-    targetRpe: null,
+    targetRpe: '8.0',
   });
 });

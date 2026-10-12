@@ -8,7 +8,6 @@ import {
   useContext,
   useMemo,
   useRef,
-  useState,
   type ReactNode,
 } from 'react';
 import {
@@ -103,7 +102,6 @@ function EditorialSurface({
     tabHeight = useBottomTabBarHeight(),
     focused = useIsFocused();
   const geometry = useMainTabHeroGeometry();
-  const [heroBehindStatusBar, setHeroBehindStatusBar] = useState(true);
   const scroll = useRef<ScrollView>(null),
     menuOffset = useRef(0);
   const anchor = useMemo(
@@ -130,12 +128,7 @@ function EditorialSurface({
         }
         style={{ flex: 1, backgroundColor: ink.paper }}
       >
-        {focused ? (
-          <StatusBar
-            hidden={false}
-            style={profile && heroBehindStatusBar ? 'light' : 'dark'}
-          />
-        ) : null}
+        {focused ? <StatusBar hidden={false} style="dark" /> : null}
         <ScrollView
           ref={scroll}
           testID="editorial-scroll"
@@ -147,15 +140,6 @@ function EditorialSurface({
           bounces={false}
           overScrollMode="never"
           scrollEventThrottle={32}
-          onScroll={
-            profile
-              ? (event) =>
-                  setHeroBehindStatusBar(
-                    event.nativeEvent.contentOffset.y <
-                      heroHeight - insets.top / 2,
-                  )
-              : undefined
-          }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingBottom: tabHeight + 24,
@@ -180,7 +164,8 @@ function EditorialSurface({
             source={profile ? artwork.profile : artwork.progress}
             width={width}
             height={heroHeight}
-            dark={profile}
+            dark={false}
+            lighten={profile}
           />
           <View
             style={{

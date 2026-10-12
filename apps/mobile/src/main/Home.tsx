@@ -8,9 +8,7 @@ import Flame from 'lucide-react-native/icons/flame';
 import ChartNoAxesColumnIncreasing from 'lucide-react-native/icons/chart-no-axes-column-increasing';
 import { Text } from '@jimo/ui';
 import { progressSummarySchema, zonedDateKey } from '@jimo/schemas';
-import { useAccount } from '../auth/AccountProvider';
 import { SyncStatus } from '../db/Status';
-import { useGreeting } from '../home/useGreeting';
 import { useHistory } from '../workouts/queries';
 import { setSummary, weekBounds, weekSchedule } from '../workouts/helpers';
 import { useProgressQuery, progressParams } from '../progress/queries';
@@ -31,10 +29,8 @@ export function MainHome() {
       'workouts',
       'navigation',
     ]),
-    router = useRouter(),
-    greeting = useGreeting();
-  const { profile } = useAccount(),
-    { width } = useWindowDimensions();
+    router = useRouter();
+  const { width } = useWindowDimensions();
   const { program: query, session, runtime, refresh, now } = useTraining(),
     program = query.data,
     active = session.data?.workout;
@@ -76,7 +72,6 @@ export function MainHome() {
           zonedDateKey(item.date, timeZone),
     ),
   }));
-  const name = profile?.displayName?.trim().split(/\s+/)[0];
   const canStart =
     !!program &&
     !!day?.exercises.length &&
@@ -136,7 +131,7 @@ export function MainHome() {
   const upcomingPrescription = prescription ?? activePrescription;
   return (
     <MainScreen light>
-      <HomeHero name={name} greeting={greeting} />
+      <HomeHero />
       {query.isPending || session.isPending ? (
         <MainNotice loading />
       ) : !program && (query.error || session.error) ? (
@@ -157,7 +152,7 @@ export function MainHome() {
               padding: 16,
               marginTop: 8,
               minHeight: 104,
-              borderRadius: 20,
+              borderRadius: 24,
               borderWidth: 1,
               borderColor: mainInk.paperBorder,
               backgroundColor: '#f8f0dd',

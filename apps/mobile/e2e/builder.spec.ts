@@ -91,7 +91,7 @@ async function addExercise(
     mode === 'Zavorra' ? 'Carico aggiunto (kg)' : 'Carico (kg)',
     weight,
   );
-  await page.getByRole('button', { name: 'RPE 8', exact: true }).click();
+  await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('8');
   await page.getByRole('button', { name: rest, exact: true }).click();
   await page
     .getByRole('button', { name: 'Salva esercizio', exact: true })
@@ -228,9 +228,8 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await expect(valueButton(page, 'Carico (kg)')).toHaveText('80 kg');
   await expect(valueButton(page, 'Serie')).toHaveText('4');
   await expect(valueButton(page, 'Ripetizioni')).toHaveText('8');
-  await expect(
-    page.getByRole('button', { name: 'RPE 8', exact: true }),
-  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('8');
+  await expect(page.getByRole('button', { name: /^RPE [0-9]/ })).toHaveCount(0);
   const manualLoad = await manualField(page, 'Carico (kg)');
   await manualLoad.fill('81,25');
   await page.setViewportSize({ width: 320, height: 430 });
@@ -254,7 +253,10 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
     .getByRole('button', { name: 'Aumenta Carico (kg)', exact: true })
     .click();
   await expect(valueButton(page, 'Carico (kg)')).toHaveText('83,75 kg');
-  await page.getByRole('button', { name: 'RPE 8,5', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Aumenta RPE (opzionale)', exact: true })
+    .click();
+  await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('8,5');
   await page
     .getByRole('textbox', { name: 'Note (opzionali)', exact: true })
     .fill('Tempo 3-1-1');
@@ -305,7 +307,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   expect(errors).toEqual([]);
 });
 
-test('day chips, weighted/assisted/bodyweight editing and contextual reorder/removal preserve existing contracts', async ({
+test('three manual load choices, compact RPE and legacy assistance preserve existing contracts', async ({
   page,
 }) => {
   test.setTimeout(60000);
@@ -321,13 +323,14 @@ test('day chips, weighted/assisted/bodyweight editing and contextual reorder/rem
     .getByRole('button', { name: 'Modifica esercizio Trazioni', exact: true })
     .click();
   await expect(valueButton(page, 'Carico aggiunto (kg)')).toHaveText('+20 kg');
-  await page.getByRole('button', { name: 'Assistito', exact: true }).click();
-  await expect(valueButton(page, 'Carico aggiunto (kg)')).toHaveCount(0);
-  await expect(valueButton(page, 'Carico (kg)')).toHaveCount(0);
   await expect(
-    page.getByText('Più kg significano maggiore assistenza.', { exact: true }),
-  ).toBeVisible();
-  await setManual(page, 'Assistenza (kg)', '15');
+    page.getByRole('button', { name: 'Assistito', exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole('button', { name: 'Carico esterno', exact: true })
+    .click();
+  await expect(valueButton(page, 'Carico aggiunto (kg)')).toHaveCount(0);
+  await setManual(page, 'Carico (kg)', '15');
   await page
     .getByRole('button', { name: 'Diminuisci Serie', exact: true })
     .click();
@@ -337,13 +340,35 @@ test('day chips, weighted/assisted/bodyweight editing and contextual reorder/rem
   await page
     .getByRole('button', { name: 'Aumenta Ripetizioni', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Nessun RPE', exact: true }).click();
+  await setManual(page, 'RPE (opzionale)', '');
   await page
     .getByRole('button', { name: 'Salva modifiche', exact: true })
     .click();
+  await expect(page.getByText('3 × 10 · 15 kg', { exact: true })).toBeVisible();
+  expect(fixture.program.days[0]!.exercises[0]).toMatchObject({
+    loadMode: 'external',
+    targetLoadKg: '15.00',
+    targetAssistanceKg: null,
+    targetRpe: null,
+  });
+  // Existing assistance stays editable and is never silently converted.
+  Object.assign(fixture.program.days[0]!.exercises[0]!, {
+    loadMode: 'assisted',
+    targetLoadKg: null,
+    targetAssistanceKg: '15.00',
+  });
+  await page.reload();
+  await page
+    .getByRole('button', { name: 'Modifica esercizio Trazioni', exact: true })
+    .click();
+  await expect(valueButton(page, 'Assistenza (kg)')).toHaveText('15 kg');
+  await expect(valueButton(page, 'RPE (opzionale)')).toHaveText('—');
   await expect(
-    page.getByText('3 × 10 · Assistenza 15 kg', { exact: true }),
-  ).toBeVisible();
+    page.getByRole('button', { name: 'Assistito', exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole('button', { name: 'Salva modifiche', exact: true })
+    .click();
   expect(fixture.program.days[0]!.exercises[0]).toMatchObject({
     loadMode: 'assisted',
     targetLoadKg: null,
@@ -359,7 +384,7 @@ test('day chips, weighted/assisted/bodyweight editing and contextual reorder/rem
   ).toHaveCount(0);
   await expect(valueButton(page, 'Serie')).toHaveText('3');
   await expect(valueButton(page, 'Ripetizioni')).toHaveText('10');
-  await page.getByRole('button', { name: 'RPE 8', exact: true }).click();
+  await setManual(page, 'RPE (opzionale)', '8');
   await page.getByRole('button', { name: '90 sec', exact: true }).click();
   await page
     .getByRole('button', { name: 'Salva modifiche', exact: true })

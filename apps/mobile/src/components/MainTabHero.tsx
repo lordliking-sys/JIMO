@@ -82,11 +82,15 @@ export function MainTabHeroArtwork({
   width,
   height,
   dark,
+  lighten = false,
+  imageTestID,
 }: {
   source: ImageSourcePropType;
   width: number;
   height: number;
   dark: boolean;
+  lighten?: boolean;
+  imageTestID?: string;
 }) {
   const id = `tab-hero-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
@@ -104,6 +108,7 @@ export function MainTabHeroArtwork({
       }}
     >
       <Image
+        testID={imageTestID}
         source={source}
         accessible={false}
         resizeMode="cover"
@@ -114,6 +119,14 @@ export function MainTabHeroArtwork({
           top: 0,
         }}
       />
+      {lighten ? (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: 'rgba(246, 237, 217, 0.58)' },
+          ]}
+        />
+      ) : null}
       {dark ? (
         <View
           style={[

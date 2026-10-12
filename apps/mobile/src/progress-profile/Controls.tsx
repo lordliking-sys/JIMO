@@ -42,7 +42,7 @@ export function ProgressTabs({
             style={{
               flexGrow: 1,
               flexShrink: 0,
-              minHeight: 44,
+              minHeight: 48,
               alignItems: 'center',
               justifyContent: 'center',
               paddingVertical: 5,

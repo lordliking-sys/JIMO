@@ -26,6 +26,11 @@ import {
 import { ProgramButton, programInk } from './presentation';
 import type { Href } from 'expo-router';
 import { NumberControl, Choice, choiceStyles } from './NumberControl';
+import {
+  manualLoadModes,
+  initialPrescriptionMode,
+  initialPrescriptionRpe,
+} from './prescription-ui';
 export function PrescriptionEditor({
   save,
   pending,
@@ -55,9 +60,7 @@ export function PrescriptionEditor({
   const initialNumber = (value: number | null | undefined, fallback: number) =>
     preserveMissing ? String(value ?? '') : String(value ?? fallback);
   const [mode, setMode] = useState<Prescription['loadMode'] | ''>(
-      initial
-        ? (initial.loadMode ?? '')
-        : (exercise.defaultLoadMode ?? 'bodyweight'),
+      initialPrescriptionMode(exercise.defaultLoadMode, initial),
     ),
     [sets, setSets] = useState(initialNumber(initial?.targetSets, 3)),
     [kind, setKind] = useState<'fixed' | 'range'>(
@@ -75,7 +78,9 @@ export function PrescriptionEditor({
         locale,
       ),
     ),
-    [rpeValue, setRpe] = useState(decimalDisplay(initial?.targetRpe, locale)),
+    [rpeValue, setRpe] = useState(
+      initialPrescriptionRpe(initial, preserveMissing, locale),
+    ),
     [rest, setRest] = useState(initial?.restSeconds?.toString() ?? ''),
     [notes, setNotes] = useState(initial?.notes ?? ''),
     [invalid, setInvalid] = useState(false);
@@ -113,13 +118,15 @@ export function PrescriptionEditor({
       onChange={update}
       prefix={scale === 2 && mode === 'weighted' ? '+' : ''}
       unit={scale === 2 ? t('kgUnit') : ''}
-      presetsFirst={scale === 1}
+      presetsFirst={scale === 1 && !presentation}
       keyboardType="decimal-pad"
       min={scale === 1 ? 1 : 0}
       max={scale === 1 ? 10 : 9999999.99}
-      hint={t(scale === 1 ? 'rpeHint' : 'weightHint')}
+      {...(!presentation || scale === 2
+        ? { hint: t(scale === 1 ? 'rpeHint' : 'weightHint') }
+        : {})}
       presets={
-        scale === 1
+        !presentation && scale === 1
           ? [
               {
                 value: '',
@@ -136,6 +143,11 @@ export function PrescriptionEditor({
       }
       onStep={(direction) => {
         try {
+          if (presentation && scale === 1 && !value.trim()) {
+            update(decimalDisplay('8.0', locale));
+            setInvalid(false);
+            return;
+          }
           const base = value.trim()
             ? decimalInput(value, scale)
             : scale === 1
@@ -261,7 +273,7 @@ export function PrescriptionEditor({
             {t('mode')}
           </Text>
           <View style={choiceStyles.row}>
-            {loadModes.map((value) => (
+            {manualLoadModes.map((value) => (
               <Choice
                 key={value}
                 label={t(`loadModes.${value}`)}
@@ -282,7 +294,7 @@ export function PrescriptionEditor({
           ) : null}
           {mode === 'assisted' ? (
             <Text variant="caption" color={programInk.secondary}>
-              {t('assistedHint')}
+              {t('legacyAssistance')}
             </Text>
           ) : null}
           {mode && mode !== 'bodyweight'

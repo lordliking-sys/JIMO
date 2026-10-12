@@ -2,11 +2,7 @@ import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import {
-  customExerciseInputSchema,
-  loadModes,
-  trackingModes,
-} from '@jimo/schemas';
+import { customExerciseInputSchema, trackingModes } from '@jimo/schemas';
 import { Text } from '@jimo/ui';
 import { ProgramButton, programInk } from '../../../src/programs/presentation';
 import { exercisesApi } from '../../../src/api/exercises';
@@ -19,6 +15,7 @@ import {
   FormSection,
 } from '../../../src/programs/components';
 import { Choice, choiceStyles } from '../../../src/programs/NumberControl';
+import { manualLoadModes } from '../../../src/programs/prescription-ui';
 import { View } from 'react-native';
 export default function CustomExercise() {
   const { id, dayId } = useLocalSearchParams<{ id: string; dayId: string }>(),
@@ -28,7 +25,7 @@ export default function CustomExercise() {
     cache = useQueryClient();
   const [name, setName] = useState(''),
     [tracking, setTracking] = useState<(typeof trackingModes)[number]>('reps'),
-    [mode, setMode] = useState<(typeof loadModes)[number] | null>(null),
+    [mode, setMode] = useState<(typeof manualLoadModes)[number] | null>(null),
     [invalid, setInvalid] = useState(false);
   const submitting = useRef(false);
   const mutation = useMutation({
@@ -108,7 +105,7 @@ export default function CustomExercise() {
             selected={mode === null}
             onPress={() => setMode(null)}
           />
-          {loadModes.map((v) => (
+          {manualLoadModes.map((v) => (
             <Choice
               key={v}
               label={t(`loadModes.${v}`)}

@@ -249,6 +249,16 @@ for (const device of devices)
       .getByTestId('progress-editorial-screen')
       .getByTestId('editorial-hero-art')
       .boundingBox())!.height;
+    const art = (await page
+        .getByTestId('progress-editorial-screen')
+        .getByTestId('editorial-hero-art')
+        .boundingBox())!,
+      seam = (await page.getByTestId('progress-hero-seam').boundingBox())!;
+    expect(seam.y).toBeLessThan(art.y + art.height);
+    expect(seam.y + seam.height).toBeGreaterThan(art.y + art.height);
+    expect(
+      Math.abs(seam.y + seam.height / 2 - (art.y + art.height)),
+    ).toBeLessThanOrEqual(3);
     await page.screenshot({ path: info.outputPath('progressi-clean.png') });
     await bottomInset(page, 'progress-editorial-screen', 'progress-content');
     await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
@@ -779,11 +789,11 @@ test.describe('isolated Profile component with account data (no Clerk or databas
       page.getByTestId('profile-avatar-photo').locator('img'),
     ).toHaveAttribute('src', original!);
   });
-  test('profile status bar switches from light icons over the full bleed hero to dark icons over paper after scrolling', async ({
+  test('light profile keeps dark status icons over its full bleed hero and paper body after scrolling', async ({
     page,
   }) => {
     await openProfile(page);
-    await expect(page.getByTestId('fixture-status-bar-light')).toHaveCount(1);
+    await expect(page.getByTestId('fixture-status-bar-dark')).toHaveCount(1);
     expect(
       (await page.getByTestId('editorial-hero-art').boundingBox())!.y,
     ).toBe(0);

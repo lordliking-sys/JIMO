@@ -178,5 +178,6 @@
   "requiredName": "Enter a name.",
   "durationShort": "Duration",
   "restShort": "Rest",
-  "confirmArchiveAny": "Archive this program? Workout history will be preserved."
+  "confirmArchiveAny": "Archive this program? Workout history will be preserved.",
+  "legacyAssistance": "Existing assistance prescription. Keep it or choose one of the three modes."
 }

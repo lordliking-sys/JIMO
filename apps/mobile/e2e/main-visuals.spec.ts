@@ -167,17 +167,17 @@ for (const device of devices)
     expect(Math.abs(background.x)).toBeLessThan(1);
     expect(Math.abs(background.width - device.width)).toBeLessThan(1);
     const hero = (await page.getByTestId('home-hero').boundingBox())!,
-      brand = (await page.getByTestId('home-brand').boundingBox())!,
-      greeting = (await page.getByTestId('home-greeting').boundingBox())!,
-      motto = (await page.getByTestId('home-motto').boundingBox())!,
       workoutCard = (await page
         .getByTestId('home-workout-card')
         .boundingBox())!;
-    expect(hero.height).toBeLessThan(device.width * 0.8);
-    expect(brand.y + brand.height).toBeLessThanOrEqual(greeting.y);
-    expect(greeting.y + greeting.height).toBeLessThanOrEqual(motto.y);
-    expect(motto.y + motto.height).toBeLessThanOrEqual(workoutCard.y - 8);
-    await expect(page.getByTestId('home-progress')).toBeInViewport();
+    expect(hero.height).toBeGreaterThanOrEqual(296);
+    expect(hero.y + hero.height).toBeLessThanOrEqual(workoutCard.y - 8);
+    await expect(page.getByTestId('home-greeting')).toHaveCount(0);
+    await expect(page.getByTestId('home-name')).toHaveCount(0);
+    await expect(page.getByTestId('home-motto')).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { name: 'JIMO', exact: true }),
+    ).toHaveCount(1);
     await expect(page.getByRole('tab')).toHaveText([
       'Home',
       'Scheda',

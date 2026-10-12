@@ -310,7 +310,7 @@ export const presentationStyles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: programInk.border,
-    borderRadius: 18,
+    borderRadius: 24,
     backgroundColor: programInk.surface,
     overflow: 'hidden',
   },

@@ -200,7 +200,7 @@ export function NumberControl({
               gap: 0,
               borderWidth: 1,
               borderColor: programInk.border,
-              borderRadius: 7,
+              borderRadius: 14,
               backgroundColor: programInk.field,
             },
             compact && { width: 164 },
