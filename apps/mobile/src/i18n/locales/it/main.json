@@ -37,5 +37,16 @@
   "dayNumber": "Giorno {{number}}",
   "todayPlan": "Piano di oggi",
   "seeAll": "Vedi tutto",
-  "yourPrograms": "I TUOI PROGRAMMI"
+  "yourPrograms": "I TUOI PROGRAMMI",
+  "activePlan": "ATTIVA",
+  "inactivePlan": "NON ATTIVA",
+  "switchPlan": "Cambia scheda",
+  "switchPlanTitle": "CAMBIA SCHEDA",
+  "newPlan": "+ Nuova scheda",
+  "managePlan": "Modifica scheda",
+  "noActivePlan": "Nessuna scheda attiva",
+  "noActivePlanHint": "Crea una scheda o scegli quale usare da Cambia scheda.",
+  "setActive": "Imposta come attiva",
+  "confirmSetActive": "Impostare {{name}} come scheda attiva?",
+  "manageSelected": "Modifica questa scheda"
 }

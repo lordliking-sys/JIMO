@@ -4,23 +4,18 @@ import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import ChevronDown from 'lucide-react-native/icons/chevron-down';
 import Check from 'lucide-react-native/icons/check';
 import type { LucideProps } from 'lucide-react-native';
-import {
-  EditorialText,
-  Copy,
-  PaperCard,
-  useProfileMenuAnchor,
-} from './Surface';
+import { EditorialText, Copy, useProfileMenuAnchor } from './Surface';
 import { ink } from './theme';
 export function ProfileMenu({ children }: { children: ReactNode }) {
   const { rememberMenu } = useProfileMenuAnchor();
   return (
-    <PaperCard
+    <View
       testID="profile-menu"
       onLayout={(event) => rememberMenu(event.nativeEvent.layout.y)}
-      style={{ paddingHorizontal: 18, paddingTop: 0, paddingBottom: 0 }}
+      style={{ paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0 }}
     >
       {children}
-    </PaperCard>
+    </View>
   );
 }
 

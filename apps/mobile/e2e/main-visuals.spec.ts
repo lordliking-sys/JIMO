@@ -224,7 +224,7 @@ for (const device of devices)
     const push = page.getByTestId(`program-day-${fixture.program.days[0]!.id}`),
       pull = page.getByTestId(`program-day-${fixture.program.days[1]!.id}`),
       legs = page.getByTestId(`program-day-${fixture.program.days[2]!.id}`);
-    await expect(push).toHaveAccessibleName(/Rivedi Push, Completato/);
+    await expect(push).toHaveAccessibleName(/Apri giornata Push, Completato/);
     await expect(pull).toHaveAccessibleName(/Corrente/);
     await expect(legs).toHaveAccessibleName(/Pianificato/);
     await expect(legs).toBeEnabled();
@@ -290,7 +290,9 @@ for (const device of devices)
       .evaluate((element: HTMLElement) => element.click());
     await page.getByRole('radio', { name: 'Settimana 1', exact: true }).click();
     await expect(push).toHaveAccessibleName(/Completato/);
-    await page.getByTestId('program-week-overview').scrollIntoViewIfNeeded();
+    await page
+      .getByTestId(`program-day-${fixture.program.days.at(-1)!.id}`)
+      .scrollIntoViewIfNeeded();
     await noOverflow(page);
     await page.screenshot({ path: info.outputPath('week-overview.png') });
     expect(fixture.writes).toHaveLength(0);
@@ -325,33 +327,24 @@ test('Home starts the actual scheduled day and Workout remains fullscreen', asyn
   expect(fixture.workout.programDayId).toBe(fixture.program.days[1]!.id);
 });
 
-test('Scheda opens the single Program editor directly and back returns to the hub', async ({
+test('Scheda management and creation are overlays; closing returns to the same hub', async ({
   page,
 }) => {
   await visualFixture(page);
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/program');
   await page
-    .getByRole('button', { name: 'Modifica programma', exact: true })
+    .getByRole('button', { name: 'Modifica scheda', exact: true })
     .click();
-  await expect(
-    page.getByRole('heading', { name: 'MODIFICA PROGRAMMA', exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('textbox', { name: 'Nome programma', exact: true }),
-  ).toHaveValue('Push Pull Legs');
+  await expect(page.getByTestId('program-action-overlay')).toBeVisible();
+  await expect(page.getByLabel('Nome programma', { exact: true })).toHaveValue(
+    'Push Pull Legs',
+  );
+  expect(new URL(page.url()).pathname).toBe('/program');
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(page.getByTestId('program-main-screen')).toBeVisible();
+  await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
   await page
-    .getByRole('button', { name: 'Apri Push Pull Legs', exact: true })
+    .getByRole('button', { name: '+ Nuova scheda', exact: true })
     .click();
-  await expect(
-    page.getByRole('heading', { name: 'MODIFICA PROGRAMMA', exact: true }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await page.getByTestId('program-new-action').click();
-  await expect(page).toHaveURL(/\/program\/manual$/);
   await page
     .getByLabel('Nome programma', { exact: true })
     .fill('Prova refinement');
@@ -359,9 +352,9 @@ test('Scheda opens the single Program editor directly and back returns to the hu
   await expect(
     page.getByText('25 ottobre 2026', { exact: true }).last(),
   ).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe('/program');
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(page.getByTestId('program-main-screen')).toBeVisible();
-  expect(errors).toEqual([]);
+  await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
 });
 test('Home stays full bleed with lateral insets and its last row clears the navbar', async ({
   page,
@@ -505,45 +498,37 @@ test('one-day overview and archived programs stay compact; program access uses t
     route.fulfill({ json: { programs: [fixture.program, archived] } }),
   );
   await page.goto('/program');
-  await expect(page.getByTestId('program-single-day-overview')).toBeVisible();
-  await expect(
-    page.getByTestId(`program-day-${fixture.program.days[0]!.id}`),
-  ).not.toContainText(/Giorno \d/);
-  const overview = (await page
-      .getByTestId('program-week-overview')
-      .boundingBox())!,
-    row = (await page
-      .getByTestId(`other-program-${archived.id}`)
-      .boundingBox())!,
-    headerAction = (await page
-      .getByTestId('program-header-action')
-      .boundingBox())!;
-  expect(overview.height).toBeLessThanOrEqual(90);
-  expect(row.height).toBeLessThanOrEqual(85);
-  expect(headerAction.width).toBe(48);
-  await expect(
-    page.getByRole('button', { name: 'Modifica programma', exact: true }),
-  ).toHaveCount(1);
-  await expect(
-    page.getByTestId(`other-program-${archived.id}`),
-  ).toHaveAccessibleName(/Archiviato.*0 giorni/i);
-  await expect(
-    page
-      .getByTestId(`program-day-${fixture.program.days[0]!.id}`)
-      .getByTestId('program-day-artwork'),
-  ).toHaveCount(0);
-  await page.getByTestId('program-new-action').scrollIntoViewIfNeeded();
-  const newAction = (await page
-      .getByTestId('program-new-action')
-      .boundingBox())!,
-    tab = (await page.getByRole('tab').first().boundingBox())!;
-  expect(newAction.y + newAction.height).toBeLessThanOrEqual(tab.y);
+  const card = page.getByTestId(`program-day-${fixture.program.days[0]!.id}`);
+  await expect(card).toBeVisible();
+  await expect(card).not.toContainText(/Giorno \d/);
+  await expect(page.getByTestId('program-week-overview')).toHaveCount(0);
+  await expect(page.getByTestId('program-other-programs')).toHaveCount(0);
+  await expect(page.getByText('Forza precedente', { exact: true })).toHaveCount(
+    0,
+  );
+  const edit = page.getByRole('button', {
+    name: 'Modifica scheda',
+    exact: true,
+  });
+  expect((await edit.boundingBox())!.width).toBe(48);
+  await page
+    .getByRole('button', { name: '+ Nuova scheda', exact: true })
+    .scrollIntoViewIfNeeded();
   await noOverflow(page);
   await page.screenshot({ path: info.outputPath('single-day-program.png') });
+  await page
+    .getByRole('button', { name: 'Cambia scheda', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', {
+      name: 'Forza precedente, NON ATTIVA',
+      exact: true,
+    }),
+  ).toBeVisible();
   expect(fixture.writes).toHaveLength(0);
 });
 
-test('an archived-only account does not turn its archive into a primary program', async ({
+test('an archived-only account has no active plan and shows archives only in Switch plan', async ({
   page,
 }) => {
   const fixture = await visualFixture(page);
@@ -551,13 +536,20 @@ test('an archived-only account does not turn its archive into a primary program'
   fixture.program.days = [];
   fixture.program.daysCount = 0;
   await page.goto('/program');
-  await expect(
-    page.getByTestId(`other-program-${fixture.program.id}`),
-  ).toBeVisible();
+  await expect(page.getByTestId('no-active-plan')).toBeVisible();
   await expect(page.getByTestId('program-week-selector')).toHaveCount(0);
-  await expect(page.getByTestId('program-week-overview')).toHaveCount(0);
-  await expect(page.getByTestId('program-header-action')).toHaveCount(0);
-  await noOverflow(page);
+  await expect(
+    page.getByText(fixture.program.name, { exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole('button', { name: 'Cambia scheda', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', {
+      name: `${fixture.program.name}, NON ATTIVA`,
+      exact: true,
+    }),
+  ).toBeVisible();
   expect(fixture.writes).toHaveLength(0);
 });
 
@@ -705,6 +697,6 @@ for (const device of devices)
     );
     expect(
       await body.evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(255, 247, 250)');
+    ).toBe('rgb(255, 255, 255)');
     await page.screenshot({ path: info.outputPath('scheme-hero-body.png') });
   });

@@ -15,15 +15,12 @@ async function manual(page: Page, label: string, value: string) {
     .click();
 }
 for (const device of devices) {
-  test(`Three-level program flow, overlays, custom exercise, mode editing and deletion ${device.width}x${device.height}`, async ({
+  test(`Compatibility program editor, overlays, custom exercise, mode editing and deletion ${device.width}x${device.height}`, async ({
     page,
   }, info) => {
     await page.setViewportSize(device);
     const f = await builderFixture(page);
-    await page.goto('/program');
-    await page
-      .getByRole('button', { name: 'Crea programma', exact: true })
-      .click();
+    await page.goto('/program/manual');
     await expect(
       valueButton(page, 'Durata in settimane (opzionale)'),
     ).toHaveText('4');
@@ -137,6 +134,10 @@ for (const device of devices) {
     await expect(
       page.getByRole('textbox', { name: 'Cerca esercizio', exact: true }),
     ).toBeVisible();
+    await page.keyboard.press('Escape');
+    await page
+      .getByRole('button', { name: 'Azioni giornata Push A', exact: true })
+      .click();
     await page
       .getByRole('button', {
         name: '+ Crea esercizio personalizzato',
@@ -207,7 +208,7 @@ for (const device of devices) {
     await page.getByRole('button', { name: 'Salva', exact: true }).click();
     await expect(page).toHaveURL(/\/program$/);
     await page
-      .getByRole('button', { name: 'Modifica programma', exact: true })
+      .getByRole('button', { name: 'Modifica scheda', exact: true })
       .click();
     await expect(
       page.getByRole('textbox', { name: 'Nome programma', exact: true }),
@@ -242,8 +243,11 @@ for (const device of devices) {
       .last()
       .click();
     await expect(page).toHaveURL(/\/program$/);
+    await expect(page.getByTestId('program-action-overlay')).toHaveCount(0, {
+      timeout: 45000,
+    });
     await expect(
-      page.getByRole('button', { name: 'Crea programma', exact: true }),
+      page.getByRole('button', { name: '+ Nuova scheda', exact: true }),
     ).toBeVisible();
   });
   test(`Hands-free EMOM preparation, auto rounds, reload and summary correction ${device.width}x${device.height}`, async ({
@@ -263,6 +267,8 @@ for (const device of devices) {
       .getByRole('button', { name: 'Inizia allenamento', exact: true })
       .first()
       .click();
+    const emomStart = await page.evaluate(() => Date.now());
+    await page.clock.setFixedTime(emomStart);
     await page
       .getByRole('button', { name: 'Inizia EMOM', exact: true })
       .click();
@@ -273,10 +279,12 @@ for (const device of devices) {
       }),
     ).toHaveCount(0);
     await page.screenshot({ path: info.outputPath('prepare.png') });
-    await page.clock.fastForward(5000);
+    // Advance device time explicitly so loading cannot consume the preparation window.
+    await page.clock.setFixedTime(emomStart + 5000);
     await page.reload();
     await expect(page.getByText('PREPARATI', { exact: true })).toBeVisible();
-    await page.clock.fastForward(5000);
+    await page.clock.setSystemTime(emomStart + 10000);
+    await page.clock.runFor(100);
     await expect(page.getByText('Round 1 / 15', { exact: true })).toBeVisible();
     await expect(page.getByTestId('emom-target-reps')).toHaveText(
       '14 RIPETIZIONI',
@@ -293,7 +301,21 @@ for (const device of devices) {
     await expect(page.getByText('Round 3 / 15', { exact: true })).toBeVisible();
     await page.clock.fastForward(800_000);
     await expect(page.getByTestId('emom-summary')).toBeVisible();
-    await expect.poll(() => f.workout.completedSets).toBe(15);
+    // A large virtual-clock jump can expire an in-flight HTTP request.
+    // Verify the existing retry catches up all persisted rounds without duplicates.
+    await expect
+      .poll(
+        async () => {
+          const retry = page
+            .getByRole('button', { name: 'Riprova', exact: true })
+            .first();
+          if ((await retry.isVisible()) && (await retry.isEnabled()))
+            await retry.click();
+          return f.workout.completedSets;
+        },
+        { timeout: 30000 },
+      )
+      .toBe(15);
     await page
       .getByRole('button', { name: 'Correggi serie 1', exact: true })
       .click();

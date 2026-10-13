@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { ProgressSummary } from '@jimo/schemas';
 import { formatNumber } from '../progress/helpers';
-import { Copy, EditorialText, PaperCard } from './Surface';
+import { Copy, EditorialText } from './Surface';
 import { ink } from './theme';
 
 export function ProfileStats({
@@ -32,9 +32,15 @@ export function ProfileStats({
     },
   ];
   return (
-    <PaperCard
+    <View
       testID="profile-stats"
-      style={{ paddingVertical: 12, paddingHorizontal: 6, gap: 4 }}
+      style={{
+        paddingVertical: 16,
+        paddingHorizontal: 0,
+        gap: 4,
+        borderTopWidth: 1,
+        borderColor: ink.border,
+      }}
     >
       <View style={{ flexDirection: 'row' }}>
         {metrics.map((metric, index) => (
@@ -65,6 +71,6 @@ export function ProfileStats({
           ? `${new Date(summary.period.from).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })} – ${new Date(summary.period.to).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}`
           : t('noData')}
       </Copy>
-    </PaperCard>
+    </View>
   );
 }

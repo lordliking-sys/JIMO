@@ -60,7 +60,6 @@ export function ExerciseActions({
             setExercise(e);
             setStep('editor');
           }}
-          onCustom={() => setStep('custom')}
         />
       ) : step === 'custom' ? (
         <CustomExerciseEditor

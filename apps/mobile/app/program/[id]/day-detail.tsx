@@ -35,13 +35,14 @@ import { moved } from '../../../src/programs/helpers';
 import { exerciseSummary } from '../../../src/programs/summary';
 import { StartWorkout } from '../../../src/workouts/components';
 export default function DayDetail() {
-  const { id, dayId, overlay, exerciseId, prescriptionId } =
+  const { id, dayId, overlay, exerciseId, prescriptionId, backTo } =
       useLocalSearchParams<{
         id: string;
         dayId: string;
         overlay?: string;
         exerciseId?: string;
         prescriptionId?: string;
+        backTo?: string;
       }>(),
     query = useProgram(id),
     locale = useApiLocale(),
@@ -110,12 +111,19 @@ export default function DayDetail() {
             icon={<EllipsisVertical size={22} color={programInk.paper} />}
             label={t('dayActions', { name: day.name })}
             title={day.name}
-            actions={[{ label: t('editDay'), action: () => setEditDay(true) }]}
+            actions={[
+              { label: t('editDay'), action: () => setEditDay(true) },
+              { label: t('createCustom'), action: () => setAction('custom') },
+            ]}
           />
         </View>
       }
       background="day"
-      fallback={{ pathname: '/program/[id]', params: { id } }}
+      fallback={
+        backTo === 'scheda'
+          ? '/program'
+          : { pathname: '/program/[id]', params: { id } }
+      }
       footer={
         <ProgramButton
           label={t('addExercise')}

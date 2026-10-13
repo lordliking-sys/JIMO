@@ -24,7 +24,7 @@ async function dipFixture(page: Page) {
   return fixture;
 }
 
-test('standard sumi-e: live values, accessible controls and responsive layout', async ({
+test('standard anime pink: live values, accessible controls and responsive layout', async ({
   page,
 }, info) => {
   const fixture = await dipFixture(page);
@@ -95,69 +95,26 @@ test('rest: timer follows the saved timestamp and preserves correction and skip'
   await expect(page.getByLabel('Serie 2 di 5', { exact: true })).toBeVisible();
 });
 
-test('EMOM and pyramid are isolated visual previews and never save a workout', async ({
+test('Workout hub and active action menu expose only real sessions, without preview actions', async ({
   page,
-}, info) => {
+}) => {
   const fixture = await workoutFixture(page);
+  fixture.setStarted();
   await page.goto('/workout');
-  await page
-    .getByRole('button', { name: 'Anteprima EMOM', exact: true })
-    .click();
-  await expect(page.getByText('PREVIEW', { exact: true })).toBeVisible();
   await expect(
-    page.getByText('Anteprima visiva · nessun allenamento viene registrato', {
-      exact: true,
-    }),
-  ).toHaveCount(0);
-  const timer = page.getByRole('progressbar', {
-    name: 'EMOM 00:38',
-    exact: true,
-  });
-  await expect(timer).toBeVisible();
-  await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: info.outputPath('03-emom.png') });
-  await page
-    .getByRole('button', { name: 'Informazioni anteprima', exact: true })
-    .click();
-  await expect(
-    page.getByText(/Timer e avviso sonoro sono dimostrativi/),
+    page.getByRole('button', { name: 'Riprendi allenamento', exact: true }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Anteprima/ })).toHaveCount(0);
   await page
-    .getByRole('button', { name: 'Anteprima piramidale', exact: true })
+    .getByRole('button', { name: 'Riprendi allenamento', exact: true })
     .click();
   await expect(
-    page.getByText('Progressione piramide', { exact: true }),
-  ).toBeVisible();
-  await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: info.outputPath('04-pyramid.png') });
+    page.getByRole('button', { name: '✓ Completa serie', exact: true }),
+  ).toBeEnabled();
   await page
-    .getByRole('button', { name: 'Aumenta Carico', exact: true })
+    .getByRole('button', { name: 'Azioni allenamento', exact: true })
     .click();
-  await expect(
-    page.getByRole('button', {
-      name: 'Modifica manualmente Carico',
-      exact: true,
-    }),
-  ).toHaveText('82,5 kg');
-  for (const width of [320, 390, 430]) {
-    await page.setViewportSize({ width, height: 844 });
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-  }
-  expect(fixture.writes).toEqual([]);
-  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Anteprima piramidale', exact: true })
-    .click();
-  await expect(
-    page.getByRole('button', {
-      name: 'Modifica manualmente Carico',
-      exact: true,
-    }),
-  ).toHaveText('80 kg');
+  await expect(page.getByRole('button', { name: /Anteprima/ })).toHaveCount(0);
+  await expect(page.getByText('PREVIEW', { exact: true })).toHaveCount(0);
   expect(fixture.writes).toEqual([]);
 });

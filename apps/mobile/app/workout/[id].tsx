@@ -1,8 +1,4 @@
 import {
-  WorkoutVisualPreview,
-  type PreviewMode,
-} from '../../src/workouts/visual/WorkoutVisualPreview';
-import {
   EmomWorkout,
   PyramidSetTimeline,
 } from '../../src/workouts/visual/RealModes';
@@ -242,7 +238,6 @@ export default function WorkoutScreen() {
       live = false;
     };
   }, [runtime, reviewKey]);
-  const [preview, setPreview] = useState<PreviewMode | null>(null);
   const previousRest = useRef<string | null>(null),
     storageKey = `rest-skipped:${runtime.owner}:${id}`;
   const restReady = restPreference?.key === storageKey;
@@ -314,8 +309,6 @@ export default function WorkoutScreen() {
       action: () =>
         confirm.ask(t('cancelConfirm'), () => cancel.mutate(undefined)),
     },
-    { label: t('visual.emomPreview'), action: () => setPreview('emom') },
-    { label: t('visual.pyramidPreview'), action: () => setPreview('pyramid') },
   ];
   const counter = `${(next?.exerciseIndex ?? 0) + 1} / ${workout.exercises.length}`;
   const header = (
@@ -354,7 +347,6 @@ export default function WorkoutScreen() {
       )}
       <SyncStatus />
       {confirm.dialog}
-      <WorkoutVisualPreview mode={preview} onClose={() => setPreview(null)} />
     </>
   );
   const errors = (

@@ -1,3 +1,4 @@
+import { SectionBody } from '../components/SectionBody';
 import {
   SectionHeroScope,
   SectionHeroCanvas,
@@ -33,6 +34,7 @@ const Typeface = createContext(false);
 const MenuAnchor = createContext({
   jumpToMenu: () => {},
   rememberMenu: (_y: number) => {},
+  rememberBody: (_y: number) => {},
 });
 export const useProfileMenuAnchor = () => useContext(MenuAnchor);
 export function EditorialText({ style, ...props }: TextProps) {
@@ -106,14 +108,21 @@ function EditorialSurface({
     insets.top,
   );
   const scroll = useRef<ScrollView>(null),
-    menuOffset = useRef(0);
+    menuOffset = useRef(0),
+    bodyOffset = useRef(0);
   const anchor = useMemo(
     () => ({
       jumpToMenu: () =>
         scroll.current?.scrollTo({
-          y: Math.max(0, menuOffset.current - insets.top - 12),
+          y: Math.max(
+            0,
+            bodyOffset.current + menuOffset.current - insets.top - 12,
+          ),
           animated: false,
         }),
+      rememberBody: (y: number) => {
+        bodyOffset.current = y;
+      },
       rememberMenu: (y: number) => {
         menuOffset.current = y;
       },
@@ -157,7 +166,7 @@ function EditorialSurface({
               maxWidth: 560,
               width: '100%',
               alignSelf: 'center',
-              gap: 10,
+              gap: 0,
             }}
           >
             <SectionHeroCanvas
@@ -187,5 +196,28 @@ export function EditorialScreen(props: {
     <SectionHeroScope>
       <EditorialSurface {...props} />
     </SectionHeroScope>
+  );
+}
+
+/** The profile's unboxed sections and the progress metric cards share one seam. */
+export function EditorialBody({
+  profile = false,
+  children,
+}: {
+  profile?: boolean;
+  children: ReactNode;
+}) {
+  const { width } = useWindowDimensions(),
+    anchor = useProfileMenuAnchor();
+  return (
+    <SectionBody
+      testID={profile ? 'profile-body' : 'progress-body'}
+      padding={width < 360 ? 16 : 22}
+      color={profile ? ink.card : ink.paper}
+      style={{ gap: profile ? 16 : 10 }}
+      onLayout={(event) => anchor.rememberBody(event.nativeEvent.layout.y)}
+    >
+      {children}
+    </SectionBody>
   );
 }

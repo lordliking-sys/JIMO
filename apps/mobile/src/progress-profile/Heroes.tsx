@@ -1,12 +1,7 @@
 import { SectionHeroFrame } from '../components/SectionHero';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import {
-  EditorialText,
-  Copy,
-  PaperCard,
-  useProfileMenuAnchor,
-} from './Surface';
+import { EditorialText, Copy, useProfileMenuAnchor } from './Surface';
 import { HeroTitle } from '../themes/anime-pink/HeroTitle';
 import { animePink } from '@jimo/ui';
 import Settings from 'lucide-react-native/icons/settings';
@@ -62,17 +57,18 @@ export function ProfileIdentity({
 }) {
   const { t } = useTranslation('progressProfile');
   return (
-    <PaperCard
+    <View
       testID="profile-identity-card"
       style={{
-        marginTop: -48,
-        zIndex: 1,
+        paddingVertical: 4,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 16,
       }}
     >
-      <ProfileAvatar name={name} />
+      <View style={{ width: 84 }}>
+        <ProfileAvatar name={name} />
+      </View>
       <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
         <EditorialText
           testID="profile-display-name"
@@ -82,6 +78,6 @@ export function ProfileIdentity({
         </EditorialText>
         {email ? <Copy style={{ fontSize: 13 }}>{email}</Copy> : null}
       </View>
-    </PaperCard>
+    </View>
   );
 }

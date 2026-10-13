@@ -1,23 +1,14 @@
 import { useState } from 'react';
-import {
-  Image,
-  StyleSheet,
-  View,
-  type ImageSourcePropType,
-} from 'react-native';
+import { Image, View, type ImageSourcePropType } from 'react-native';
 import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import type { ExerciseDto } from '@jimo/schemas';
-import { animePink } from '@jimo/ui';
 import { ink } from '../progress-profile/theme';
 import {
   exerciseArtworkKey,
   type ExerciseArtworkKey,
   type ExerciseArtworkVariant,
 } from './exercise-artwork';
-import {
-  exerciseArtSources,
-  exerciseCardBackgrounds,
-} from './exercise-artwork-sources';
+import { exerciseArtSources } from './exercise-artwork-sources';
 
 /** Decorative only: the containing row owns the full exercise/accessibility label. */
 export function ExerciseThumbnail({
@@ -25,7 +16,7 @@ export function ExerciseThumbnail({
   tone = 'light',
   variant = 'male',
   size = 56,
-  cardBackground = true,
+  cardBackground = false,
 }: {
   exercise: Pick<ExerciseDto, 'canonicalName' | 'isCustom'>;
   tone?: 'light' | 'dark';
@@ -53,7 +44,7 @@ export function ExerciseThumbnail({
         width: geometry.width,
         height: geometry.height,
         flexShrink: 0,
-        borderRadius: 14,
+        borderRadius: 4,
         overflow: 'hidden',
         backgroundColor: cardBackground
           ? tone === 'dark'
@@ -64,19 +55,6 @@ export function ExerciseThumbnail({
         justifyContent: 'center',
       }}
     >
-      {cardBackground ? (
-        <Image
-          testID={`exercise-card-${tone}`}
-          source={exerciseCardBackgrounds[tone]}
-          resizeMode="cover"
-          accessible={false}
-          style={[
-            StyleSheet.absoluteFill,
-            { width: '100%', height: '100%' },
-            tone === 'light' && { tintColor: animePink.surfaceSoft },
-          ]}
-        />
-      ) : null}
       {source && !failed ? (
         <Image
           testID={`exercise-art-${variant}-${key}`}

@@ -59,6 +59,7 @@ export const programArtwork = {
   structure: tabArtwork.program,
 };
 const Context = createContext(false);
+export const ProgramPresentationProvider = Context.Provider;
 const BackTarget = createContext<Href>('/program');
 export const useProgramBackTarget = () => useContext(BackTarget);
 export const useProgramPresentation = () => useContext(Context);

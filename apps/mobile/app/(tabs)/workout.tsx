@@ -1,10 +1,6 @@
-import { useState } from 'react';
 import { useIsFocused } from 'expo-router';
-import { Button, Text, colors, Screen, animePink } from '@jimo/ui';
-import {
-  WorkoutVisualPreview,
-  type PreviewMode,
-} from '../../src/workouts/visual/WorkoutVisualPreview';
+import { Screen, animePink } from '@jimo/ui';
+
 import { useTranslation } from 'react-i18next';
 import { View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +17,6 @@ import {
 import { WorkoutSchedule } from '../../src/workouts/Schedule';
 import { artwork } from '../../src/workouts/visual/theme';
 function WorkoutHub() {
-  const [preview, setPreview] = useState<PreviewMode | null>(null);
   const { t } = useTranslation('workouts'),
     { width } = useWindowDimensions(),
     insets = useSafeAreaInsets(),
@@ -80,22 +75,6 @@ function WorkoutHub() {
         }}
       >
         <WorkoutSchedule />
-        <View style={{ gap: 4 }}>
-          <Text variant="caption" color={colors.secondary}>
-            {t('visual.previews')}
-          </Text>
-          <Button
-            variant="text"
-            label={t('visual.emomPreview')}
-            onPress={() => setPreview('emom')}
-          />
-          <Button
-            variant="text"
-            label={t('visual.pyramidPreview')}
-            onPress={() => setPreview('pyramid')}
-          />
-        </View>
-        <WorkoutVisualPreview mode={preview} onClose={() => setPreview(null)} />
       </View>
     </Screen>
   );

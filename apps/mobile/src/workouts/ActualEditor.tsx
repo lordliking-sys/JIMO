@@ -43,7 +43,7 @@ export function ActualEditor({
           labels.some(
             (label) =>
               labelWidth <
-              label.length * (labelSize * 0.5 + 0.25) * fontScale + 30,
+              label.length * (labelSize * 0.6 + 0.25) * fontScale + 30,
           ),
       }
     : undefined;

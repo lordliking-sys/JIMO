@@ -15,7 +15,7 @@ import { useAuthSession } from '../auth/SessionProvider';
 import { useOffline } from '../db/Provider';
 import { authErrorKey, logoutWarning } from '../auth/helpers';
 import { useProgressQuery, progressParams } from '../progress/queries';
-import { EditorialScreen, Copy, PaperCard } from './Surface';
+import { EditorialScreen, EditorialBody, Copy, PaperCard } from './Surface';
 import { ProfileHero, ProfileIdentity } from './Heroes';
 import { ProfileStats } from './ProfileStats';
 import { ProfileChoice, ProfileMenu, ProfileMenuRow } from './ProfileMenu';
@@ -72,210 +72,212 @@ export default function ProfileScreen() {
   return (
     <EditorialScreen profile>
       <ProfileHero />
-      <ProfileIdentity
-        name={profile?.displayName ?? null}
-        email={session.email ?? null}
-      />
-      <ProfileStats summary={summary.data?.payload} />
-      <CacheNote
-        stale={summary.data?.stale ?? false}
-        {...(summary.data ? { fetchedAt: summary.data.fetchedAt } : {})}
-      />
-      {summary.error && !summary.data ? <Copy>{t('noData')}</Copy> : null}
-      <ProfileMenu>
-        <ProfileMenuRow
-          icon={UserRound}
-          title={t('auth:account')}
-          subtitle={
-            session.email ?? profile?.displayName ?? t('identityFallback')
-          }
-          disabled={!profile || busy}
-          expanded={panel === 'account'}
-          onPress={() => toggle('account')}
+      <EditorialBody profile>
+        <ProfileIdentity
+          name={profile?.displayName ?? null}
+          email={session.email ?? null}
+        />
+        <ProfileStats summary={summary.data?.payload} />
+        <CacheNote
+          stale={summary.data?.stale ?? false}
+          {...(summary.data ? { fetchedAt: summary.data.fetchedAt } : {})}
+        />
+        {summary.error && !summary.data ? <Copy>{t('noData')}</Copy> : null}
+        <ProfileMenu>
+          <ProfileMenuRow
+            icon={UserRound}
+            title={t('auth:account')}
+            subtitle={
+              session.email ?? profile?.displayName ?? t('identityFallback')
+            }
+            disabled={!profile || busy}
+            expanded={panel === 'account'}
+            onPress={() => toggle('account')}
+          >
+            {profile ? (
+              <>
+                {session.email ? <Copy>{session.email}</Copy> : null}
+                <Copy>{t('auth:name')}</Copy>
+                <TextInput
+                  accessibilityLabel={t('auth:name')}
+                  value={name ?? profile.displayName ?? ''}
+                  onChangeText={setName}
+                  onFocus={() => setNameFocused(true)}
+                  onBlur={() => setNameFocused(false)}
+                  selectionColor={ink.green}
+                  editable={!busy}
+                  maxLength={120}
+                  autoComplete="name"
+                  style={{
+                    minHeight: 48,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    borderWidth: 1,
+                    borderColor: nameFocused ? ink.green : ink.border,
+                    color: ink.charcoal,
+                    borderRadius: 18,
+                    backgroundColor: ink.card,
+                    fontSize: 16,
+                    fontFamily: 'Inter_400Regular',
+                  }}
+                />
+                <Action
+                  label={t('auth:save')}
+                  disabled={
+                    busy ||
+                    !(name ?? '').trim() ||
+                    name === profile.displayName ||
+                    !runtime.online
+                  }
+                  onPress={() =>
+                    void run(async () => {
+                      await account.update({ displayName: name!.trim() });
+                      setName(null);
+                    })
+                  }
+                />
+              </>
+            ) : null}
+          </ProfileMenuRow>
+          <ProfileMenuRow
+            icon={Languages}
+            title={t('common:language')}
+            subtitle={t(
+              `common:languages.${preferences?.localePreference ?? 'system'}`,
+            )}
+            disabled={busy || saving}
+            expanded={panel === 'language'}
+            onPress={() => toggle('language')}
+          >
+            <Copy>{t('common:profile.languageHelp')}</Copy>
+            <View
+              accessibilityRole="radiogroup"
+              accessibilityLabel={t('common:language')}
+              style={{ gap: 6 }}
+            >
+              {(['system', 'it', 'en'] as const).map((locale) => (
+                <ProfileChoice
+                  key={locale}
+                  label={t(`common:languages.${locale}`)}
+                  selected={preferences?.localePreference === locale}
+                  disabled={busy || saving}
+                  onPress={() => {
+                    if (profile) void run(() => account.update({ locale }));
+                    else void changeLocale(locale);
+                  }}
+                />
+              ))}
+            </View>
+          </ProfileMenuRow>
+          <ProfileMenuRow
+            icon={Ruler}
+            title={t('auth:units')}
+            subtitle={profile ? t(`auth:${profile.unitSystem}`) : t('noData')}
+            disabled={!profile || busy}
+            expanded={panel === 'units'}
+            onPress={() => toggle('units')}
+          >
+            <View
+              accessibilityRole="radiogroup"
+              accessibilityLabel={t('auth:units')}
+              style={{ gap: 6 }}
+            >
+              {(['metric', 'imperial'] as const).map((unit) => (
+                <ProfileChoice
+                  key={unit}
+                  label={t(`auth:${unit}`)}
+                  selected={profile?.unitSystem === unit}
+                  disabled={busy || !runtime.online}
+                  onPress={() =>
+                    void run(() => account.update({ unitSystem: unit }))
+                  }
+                />
+              ))}
+            </View>
+            <Copy>{t('auth:unitsHelp')}</Copy>
+          </ProfileMenuRow>
+          <ProfileMenuRow
+            icon={ShieldCheck}
+            title={t('privacyTitle')}
+            subtitle={t('privacySubtitle')}
+            expanded={panel === 'privacy'}
+            onPress={() => toggle('privacy')}
+          >
+            <Copy>{t('privacyBody')}</Copy>
+            <Copy>{t('privacyScope')}</Copy>
+          </ProfileMenuRow>
+          <ProfileMenuRow
+            icon={Info}
+            title={t('aboutTitle')}
+            subtitle={t('aboutSubtitle')}
+            expanded={panel === 'about'}
+            onPress={() => toggle('about')}
+          >
+            <Copy>
+              {t('version', { version: Constants.expoConfig?.version ?? '—' })}
+            </Copy>
+            <Copy>{t('aboutBody')}</Copy>
+            <Copy>{t('fontLicense')}</Copy>
+          </ProfileMenuRow>
+          <ProfileMenuRow
+            icon={LogOut}
+            title={t('auth:logout')}
+            subtitle={t('logoutSubtitle')}
+            disabled={busy}
+            onPress={logout}
+          />
+        </ProfileMenu>
+        {account.error ? <DataNotice retry={account.retry} /> : null}
+        {profile && !runtime.online ? (
+          <Copy>{t('auth:offlineProfile')}</Copy>
+        ) : null}
+        {saved ? (
+          <Copy accessibilityRole="alert" style={{ color: ink.green }}>
+            {t('auth:saved')}
+          </Copy>
+        ) : null}
+        {saveError || error ? (
+          <Copy style={{ color: ink.danger }} accessibilityRole="alert">
+            {error ? t(`auth:${error}`) : t('common:saveError')}
+          </Copy>
+        ) : null}
+        <Modal
+          visible={!!warning}
+          transparent
+          animationType="none"
+          onRequestClose={() => setWarning(null)}
         >
-          {profile ? (
-            <>
-              {session.email ? <Copy>{session.email}</Copy> : null}
-              <Copy>{t('auth:name')}</Copy>
-              <TextInput
-                accessibilityLabel={t('auth:name')}
-                value={name ?? profile.displayName ?? ''}
-                onChangeText={setName}
-                onFocus={() => setNameFocused(true)}
-                onBlur={() => setNameFocused(false)}
-                selectionColor={ink.green}
-                editable={!busy}
-                maxLength={120}
-                autoComplete="name"
-                style={{
-                  minHeight: 48,
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  borderWidth: 1,
-                  borderColor: nameFocused ? ink.green : ink.border,
-                  color: ink.charcoal,
-                  borderRadius: 18,
-                  backgroundColor: ink.card,
-                  fontSize: 16,
-                  fontFamily: 'Inter_400Regular',
-                }}
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              padding: 24,
+              backgroundColor: 'rgba(15,8,18,0.55)',
+            }}
+          >
+            <PaperCard accessibilityViewIsModal style={{ gap: 12 }}>
+              <Copy accessibilityRole="alert" style={{ fontSize: 14 }}>
+                {warning ? t(`auth:${warning}`) : ''}
+              </Copy>
+              <Action
+                label={t('auth:cancel')}
+                disabled={busy}
+                onPress={() => setWarning(null)}
               />
               <Action
-                label={t('auth:save')}
-                disabled={
-                  busy ||
-                  !(name ?? '').trim() ||
-                  name === profile.displayName ||
-                  !runtime.online
-                }
+                label={t('auth:logoutAnyway')}
+                disabled={busy}
                 onPress={() =>
                   void run(async () => {
-                    await account.update({ displayName: name!.trim() });
-                    setName(null);
-                  })
+                    await account.logout();
+                    setWarning(null);
+                  }, false)
                 }
               />
-            </>
-          ) : null}
-        </ProfileMenuRow>
-        <ProfileMenuRow
-          icon={Languages}
-          title={t('common:language')}
-          subtitle={t(
-            `common:languages.${preferences?.localePreference ?? 'system'}`,
-          )}
-          disabled={busy || saving}
-          expanded={panel === 'language'}
-          onPress={() => toggle('language')}
-        >
-          <Copy>{t('common:profile.languageHelp')}</Copy>
-          <View
-            accessibilityRole="radiogroup"
-            accessibilityLabel={t('common:language')}
-            style={{ gap: 6 }}
-          >
-            {(['system', 'it', 'en'] as const).map((locale) => (
-              <ProfileChoice
-                key={locale}
-                label={t(`common:languages.${locale}`)}
-                selected={preferences?.localePreference === locale}
-                disabled={busy || saving}
-                onPress={() => {
-                  if (profile) void run(() => account.update({ locale }));
-                  else void changeLocale(locale);
-                }}
-              />
-            ))}
+            </PaperCard>
           </View>
-        </ProfileMenuRow>
-        <ProfileMenuRow
-          icon={Ruler}
-          title={t('auth:units')}
-          subtitle={profile ? t(`auth:${profile.unitSystem}`) : t('noData')}
-          disabled={!profile || busy}
-          expanded={panel === 'units'}
-          onPress={() => toggle('units')}
-        >
-          <View
-            accessibilityRole="radiogroup"
-            accessibilityLabel={t('auth:units')}
-            style={{ gap: 6 }}
-          >
-            {(['metric', 'imperial'] as const).map((unit) => (
-              <ProfileChoice
-                key={unit}
-                label={t(`auth:${unit}`)}
-                selected={profile?.unitSystem === unit}
-                disabled={busy || !runtime.online}
-                onPress={() =>
-                  void run(() => account.update({ unitSystem: unit }))
-                }
-              />
-            ))}
-          </View>
-          <Copy>{t('auth:unitsHelp')}</Copy>
-        </ProfileMenuRow>
-        <ProfileMenuRow
-          icon={ShieldCheck}
-          title={t('privacyTitle')}
-          subtitle={t('privacySubtitle')}
-          expanded={panel === 'privacy'}
-          onPress={() => toggle('privacy')}
-        >
-          <Copy>{t('privacyBody')}</Copy>
-          <Copy>{t('privacyScope')}</Copy>
-        </ProfileMenuRow>
-        <ProfileMenuRow
-          icon={Info}
-          title={t('aboutTitle')}
-          subtitle={t('aboutSubtitle')}
-          expanded={panel === 'about'}
-          onPress={() => toggle('about')}
-        >
-          <Copy>
-            {t('version', { version: Constants.expoConfig?.version ?? '—' })}
-          </Copy>
-          <Copy>{t('aboutBody')}</Copy>
-          <Copy>{t('fontLicense')}</Copy>
-        </ProfileMenuRow>
-        <ProfileMenuRow
-          icon={LogOut}
-          title={t('auth:logout')}
-          subtitle={t('logoutSubtitle')}
-          disabled={busy}
-          onPress={logout}
-        />
-      </ProfileMenu>
-      {account.error ? <DataNotice retry={account.retry} /> : null}
-      {profile && !runtime.online ? (
-        <Copy>{t('auth:offlineProfile')}</Copy>
-      ) : null}
-      {saved ? (
-        <Copy accessibilityRole="alert" style={{ color: ink.green }}>
-          {t('auth:saved')}
-        </Copy>
-      ) : null}
-      {saveError || error ? (
-        <Copy style={{ color: ink.danger }} accessibilityRole="alert">
-          {error ? t(`auth:${error}`) : t('common:saveError')}
-        </Copy>
-      ) : null}
-      <Modal
-        visible={!!warning}
-        transparent
-        animationType="none"
-        onRequestClose={() => setWarning(null)}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            padding: 24,
-            backgroundColor: 'rgba(15,8,18,0.55)',
-          }}
-        >
-          <PaperCard accessibilityViewIsModal style={{ gap: 12 }}>
-            <Copy accessibilityRole="alert" style={{ fontSize: 14 }}>
-              {warning ? t(`auth:${warning}`) : ''}
-            </Copy>
-            <Action
-              label={t('auth:cancel')}
-              disabled={busy}
-              onPress={() => setWarning(null)}
-            />
-            <Action
-              label={t('auth:logoutAnyway')}
-              disabled={busy}
-              onPress={() =>
-                void run(async () => {
-                  await account.logout();
-                  setWarning(null);
-                }, false)
-              }
-            />
-          </PaperCard>
-        </View>
-      </Modal>
+        </Modal>
+      </EditorialBody>
     </EditorialScreen>
   );
 }

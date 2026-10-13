@@ -199,7 +199,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
     ],
   ]);
   await expect(
-    page.getByRole('button', { name: 'Modifica programma', exact: true }),
+    page.getByRole('button', { name: 'Modifica scheda', exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Archivia programma', exact: true }),
@@ -303,7 +303,13 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await page.getByRole('button', { name: /Lingua/ }).click();
   await page.getByRole('radio', { name: 'English', exact: true }).click();
   await page.getByRole('tab', { name: 'Program', exact: true }).click();
-  await page.getByRole('button', { name: /^Open FORZA, / }).click();
+  await page.getByRole('button', { name: 'Switch plan', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'FORZA, INACTIVE', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Edit this plan', exact: true })
+    .click();
   await expect(
     page.getByText('FORZA · 8 weeks · October 6, 2026', { exact: true }),
   ).toBeVisible();

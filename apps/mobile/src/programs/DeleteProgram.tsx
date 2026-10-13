@@ -9,7 +9,13 @@ import { useOffline } from '../db/Provider';
 import { programsApi } from '../api/programs';
 import { ProgramButton, programInk } from './presentation';
 import { ErrorNotice } from './components';
-export function DeleteProgram({ id }: { id: string }) {
+export function DeleteProgram({
+  id,
+  onDeleted,
+}: {
+  id: string;
+  onDeleted?: () => void;
+}) {
   const { t } = useTranslation('programs'),
     locale = useApiLocale(),
     router = useRouter(),
@@ -31,7 +37,8 @@ export function DeleteProgram({ id }: { id: string }) {
       ]);
       void runtime.engine.request(true);
       setOpen(false);
-      router.dismissTo('/program');
+      if (onDeleted) onDeleted();
+      else router.dismissTo('/program');
     },
   });
   return (

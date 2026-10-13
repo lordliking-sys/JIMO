@@ -1,16 +1,20 @@
 import { useEffect, type ReactNode } from 'react';
 import { Keyboard, Modal, Platform, View } from 'react-native';
 import { ProgramOverlayContext } from './overlay-context';
-import { programInk } from './presentation';
+import { programInk, ProgramPresentationProvider } from './presentation';
 /** A single native modal hosts the action stack; the parent destination stays mounted. */
 export function ProgramOverlay({
   children,
   back,
   title,
+  visible = true,
+  onDismiss,
 }: {
   children: ReactNode;
   back(): void;
   title?: string;
+  visible?: boolean;
+  onDismiss?: () => void;
 }) {
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -30,6 +34,8 @@ export function ProgramOverlay({
   }, []);
   return (
     <Modal
+      visible={visible}
+      {...(onDismiss ? { onDismiss } : {})}
       transparent
       animationType="none"
       statusBarTranslucent
@@ -39,31 +45,33 @@ export function ProgramOverlay({
         back();
       }}
     >
-      <ProgramOverlayContext.Provider
-        value={{ back, ...(title ? { title } : {}) }}
-      >
-        <View
-          testID="program-action-overlay"
-          accessibilityViewIsModal
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.48)',
-            paddingTop: 12,
-          }}
+      <ProgramPresentationProvider value={true}>
+        <ProgramOverlayContext.Provider
+          value={{ back, ...(title ? { title } : {}) }}
         >
           <View
+            testID="program-action-overlay"
+            accessibilityViewIsModal
             style={{
               flex: 1,
-              backgroundColor: programInk.background,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              overflow: 'hidden',
+              backgroundColor: 'rgba(0,0,0,0.48)',
+              paddingTop: 12,
             }}
           >
-            {children}
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: programInk.background,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                overflow: 'hidden',
+              }}
+            >
+              {children}
+            </View>
           </View>
-        </View>
-      </ProgramOverlayContext.Provider>
+        </ProgramOverlayContext.Provider>
+      </ProgramPresentationProvider>
     </Modal>
   );
 }

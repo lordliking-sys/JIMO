@@ -8,7 +8,7 @@ const sizes = [
   { width: 430, height: 860 },
 ];
 async function fit(page: Page) {
-  const overlay = page.getByTestId('program-action-overlay');
+  const overlay = page.getByTestId('program-action-overlay').last();
   const screen = page
     .getByTestId('program-management-screen')
     .filter({ has: page.getByRole('heading') });
@@ -40,7 +40,7 @@ async function fit(page: Page) {
       await page
         .getByTestId('program-tab-body')
         .evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(255, 247, 250)');
+    ).toBe('rgb(255, 255, 255)');
   }
   expect(
     await page.evaluate(
@@ -54,14 +54,7 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
   const fixture = await builderFixture(page);
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('/program/manage');
-  await expect(
-    page.getByRole('heading', { name: 'SCHEDA', exact: true }),
-  ).toBeVisible();
-  await expect(page.getByText('Libreria', { exact: true })).toHaveCount(0);
-  await page
-    .getByRole('button', { name: 'Crea programma', exact: true })
-    .click();
+  await page.goto('/program/manual');
   await page.getByRole('button', { name: 'Continua', exact: true }).click();
   await expect(
     page.getByText('Inserisci un nome.', { exact: true }),
@@ -223,7 +216,13 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
     });
   }
   await page
-    .getByRole('button', { name: 'Modifica programma', exact: true })
+    .getByRole('button', { name: 'Cambia scheda', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Routine v2, NON ATTIVA', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Modifica questa scheda', exact: true })
     .click();
   await expect(page.getByLabel('Nome programma', { exact: true })).toHaveValue(
     'Routine v2',
@@ -241,9 +240,14 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
     .getByLabel('Nome programma', { exact: true })
     .fill('Routine v2 aggiornata');
   await page.getByRole('button', { name: 'Salva', exact: true }).click();
+  await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+  await expect(page.getByTestId('no-active-plan')).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Cambia scheda', exact: true })
+    .click();
   await expect(
     page.getByRole('button', {
-      name: 'Apri Routine v2 aggiornata',
+      name: 'Routine v2 aggiornata, NON ATTIVA',
       exact: true,
     }),
   ).toBeVisible();
@@ -251,7 +255,7 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
   expect(fixture.program.days).toHaveLength(1);
   expect(errors).toEqual([]);
 });
-test('library uses actual source/tracking filters and persists a custom exercise through the existing schema', async ({
+test('library searches the whole catalog without source/tracking controls and persists a custom exercise through the existing schema', async ({
   page,
 }, info) => {
   const fixture = await builderFixture(page);
@@ -271,26 +275,33 @@ test('library uses actual source/tracking filters and persists a custom exercise
   await page
     .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Durata', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Plank', exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Panca piana', exact: true }),
-  ).toHaveCount(0);
+  ).toBeVisible();
+  for (const name of [
+    'Tutti',
+    'Durata',
+    'Ripetizioni',
+    'Esercizi JIMO',
+    'I tuoi esercizi',
+  ])
+    await expect(page.getByRole('button', { name, exact: true })).toHaveCount(
+      0,
+    );
   for (const viewport of sizes) {
     await page.setViewportSize(viewport);
     await fit(page);
-    const filter = await page
-      .getByRole('button', { name: 'Tutti', exact: true })
-      .first()
-      .boundingBox();
-    expect(filter!.height).toBeGreaterThanOrEqual(48);
-    expect(filter!.height).toBeLessThanOrEqual(64);
     await page.screenshot({
       path: info.outputPath(`library-${viewport.width}.png`),
     });
   }
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Azioni giornata Durata', exact: true })
+    .click();
   await page
     .getByRole('button', {
       name: '+ Crea esercizio personalizzato',
@@ -339,8 +350,8 @@ test('library uses actual source/tracking filters and persists a custom exercise
     .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
     .click();
   await page
-    .getByRole('button', { name: 'I tuoi esercizi', exact: true })
-    .click();
+    .getByLabel('Cerca esercizio', { exact: true })
+    .fill('Tenuta personale');
   await expect(
     page.getByRole('button', { name: 'Tenuta personale', exact: true }),
   ).toBeVisible();

@@ -3,6 +3,9 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
   workers: 1,
+  // Functional RN flows load local fonts and bundles; these are not latency tests.
+  timeout: 90000,
+  expect: { timeout: 15000 },
   globalTeardown: './test/cleanup-api.ts',
   use: {
     baseURL: 'http://localhost:4173',

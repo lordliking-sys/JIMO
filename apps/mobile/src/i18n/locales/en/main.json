@@ -37,5 +37,16 @@
   "dayNumber": "Day {{number}}",
   "todayPlan": "Today's plan",
   "seeAll": "See all",
-  "yourPrograms": "YOUR PROGRAMS"
+  "yourPrograms": "YOUR PROGRAMS",
+  "activePlan": "ACTIVE",
+  "inactivePlan": "INACTIVE",
+  "switchPlan": "Switch plan",
+  "switchPlanTitle": "SWITCH PLAN",
+  "newPlan": "+ New plan",
+  "managePlan": "Edit plan",
+  "noActivePlan": "No active plan",
+  "noActivePlanHint": "Create a plan or choose which one to use in Switch plan.",
+  "setActive": "Set as active",
+  "confirmSetActive": "Set {{name}} as the active plan?",
+  "manageSelected": "Edit this plan"
 }
