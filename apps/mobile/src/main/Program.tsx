@@ -97,9 +97,25 @@ export function MainProgram() {
             {t('title')}
           </MainText>
           {program ? (
-            <MainText style={{ fontSize: 29, lineHeight: 33 }}>
-              {program.name}
-            </MainText>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${t('programs:open')} ${program.name}`}
+              onPress={() =>
+                router.push({
+                  pathname: '/program/[id]',
+                  params: { id: program.id },
+                })
+              }
+              style={({ pressed }) => ({
+                minHeight: 48,
+                justifyContent: 'center',
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <MainText style={{ fontSize: 29, lineHeight: 33 }}>
+                {program.name}
+              </MainText>
+            </Pressable>
           ) : (
             <MainText style={{ fontSize: 23 }}>
               {t('programs:subtitle')}
@@ -109,8 +125,13 @@ export function MainProgram() {
             <Pressable
               testID="program-header-action"
               accessibilityRole="button"
-              accessibilityLabel={t('programs:managePrograms')}
-              onPress={() => router.push('/program/manage')}
+              accessibilityLabel={t('programs:editProgram')}
+              onPress={() =>
+                router.push({
+                  pathname: '/program/[id]',
+                  params: { id: program.id },
+                })
+              }
               style={({ pressed }) => ({
                 position: 'absolute',
                 right: 0,
@@ -211,12 +232,11 @@ export function MainProgram() {
               <MainNotice retry={() => void history.refetch()} />
             ) : null}
             <View style={{ gap: 8 }}>
-              {program.days.map((day, index) => (
+              {program.days.map((day) => (
                 <DayCard
                   key={day.id}
                   program={program}
                   day={day}
-                  index={index}
                   state={states.get(day.id) ?? 'future'}
                   completed={
                     states.get(day.id) === 'completed'
@@ -307,7 +327,7 @@ export function MainProgram() {
             testID="program-new-action"
             accessibilityRole="button"
             accessibilityLabel={t('programs:newProgram')}
-            onPress={() => router.push('/program/create')}
+            onPress={() => router.push('/program/manual')}
             style={({ pressed }) => ({
               minHeight: 48,
               paddingHorizontal: 8,

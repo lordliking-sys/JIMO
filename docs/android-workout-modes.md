@@ -1,3 +1,5 @@
+> Historical implementation report. The current Program/Giornata overlays and definitive hands-free EMOM behavior are documented in [program-flow-handsfree-emom.md](program-flow-handsfree-emom.md).
+
 # Android refinement and real workout modes
 
 Scope: the requested Android UI fixes plus real EMOM and Pyramid prescriptions. Home, folklore PNGs, authentication and AI implementation are unchanged. All live database operations in this task use Neon HTTP and the verified development branch `br-purple-math-b1fsq2wb`. No production connection or deployment was made.

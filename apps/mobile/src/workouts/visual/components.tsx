@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Image,
   Modal,
@@ -8,6 +8,13 @@ import {
   View,
 } from 'react-native';
 import type { AccessibilityValue, StyleProp, ViewStyle } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withTiming,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import Check from 'lucide-react-native/icons/check';
 import ArrowRight from 'lucide-react-native/icons/arrow-right';
@@ -344,22 +351,41 @@ export function ValuePill({ values }: { values: string[] }) {
     </View>
   );
 }
+const AnimatedTimerCircle = Animated.createAnimatedComponent(Circle);
 export function EnsoTimer({
   remaining,
   total,
   brush = false,
   label,
+  deadline,
+  secondsOnly = false,
 }: {
   remaining: number;
   total: number;
   brush?: boolean;
   label: string;
+  deadline?: number;
+  secondsOnly?: boolean;
 }) {
   const { fontScale, restRing, emomRing } = useWorkoutLayout(),
     diameter = brush ? emomRing : restRing,
     r = 46,
     circumference = 2 * Math.PI * r;
   const fraction = total > 0 ? Math.min(1, Math.max(0, remaining / total)) : 0;
+  const reduced = useReducedMotion(),
+    progress = useSharedValue(fraction);
+  useEffect(() => {
+    if (deadline === undefined || reduced) {
+      progress.value = fraction;
+      return;
+    }
+    const left = Math.max(0, deadline - Date.now());
+    progress.value = Math.min(1, left / (Math.max(total, 1) * 1000));
+    progress.value = withTiming(0, { duration: left, easing: Easing.linear });
+  }, [deadline, total, reduced, fraction, progress]);
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: circumference * (1 - progress.value),
+  }));
   return (
     <View
       accessibilityRole="progressbar"
@@ -418,7 +444,21 @@ export function EnsoTimer({
             strokeWidth="4.8"
           />
         ) : null}
-        {fraction > 0 ? (
+        {deadline !== undefined && !reduced ? (
+          <AnimatedTimerCircle
+            animatedProps={animatedProps}
+            cx="50"
+            cy="50"
+            r={r}
+            fill="none"
+            stroke="url(#timerSage)"
+            strokeWidth="4.8"
+            strokeLinecap="round"
+            strokeDasharray={`${circumference} ${circumference}`}
+            rotation="-90"
+            origin="50,50"
+          />
+        ) : fraction > 0 ? (
           <Circle
             cx="50"
             cy="50"
@@ -439,7 +479,7 @@ export function EnsoTimer({
           lineHeight: Math.min(110, diameter * 0.38),
         }}
       >
-        {countdown(remaining)}
+        {secondsOnly ? remaining : countdown(remaining)}
       </InkText>
     </View>
   );

@@ -73,6 +73,9 @@ export async function programRoutes(
       locale(r.headers),
     ),
   );
+  app.delete('/programs/:id', async (r) =>
+    s.remove((await user(r)).id, idParams.parse(r.params).id),
+  );
   app.post('/programs/:id/activate', async (r) => {
     z.object({})
       .strict()

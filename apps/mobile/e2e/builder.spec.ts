@@ -121,7 +121,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await page
     .getByRole('textbox', { name: 'Nome programma', exact: true })
     .fill('FORZA');
-  await page.getByRole('button', { name: '8 settimane', exact: true }).click();
+  await setManual(page, 'Durata in settimane (opzionale)', '8');
   await page.locator('input[type="date"]').fill('2026-10-06');
   await page.getByRole('button', { name: 'Continua', exact: true }).click();
   await addDay(page, 'PUSH', 'Lunedì');
@@ -151,13 +151,13 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await structure(page);
   await page.reload();
   await expect(
-    page.getByRole('heading', { name: 'FORZA', exact: true }),
+    page.getByRole('heading', { name: 'MODIFICA PROGRAMMA', exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Impostazioni', exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByText('8 settimane · 6 ottobre 2026', { exact: true }),
+    page.getByText('FORZA · 8 settimane · 6 ottobre 2026', { exact: true }),
   ).toBeVisible();
   await expect(page.getByText('2026-10-06', { exact: true })).toHaveCount(0);
   const summaries = [
@@ -203,7 +203,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   ).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Archivia programma', exact: true }),
-  ).toHaveCount(0);
+  ).toHaveCount(1);
   await openDay(page, 'PUSH');
   for (const width of [320, 390, 393, 430]) {
     await page.setViewportSize({ width, height: 844 });
@@ -221,7 +221,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await structure(page);
   // Capture the content at the top of the builder rather than an administrative action stack.
   await page
-    .getByRole('heading', { name: 'FORZA', exact: true })
+    .getByRole('heading', { name: 'MODIFICA PROGRAMMA', exact: true })
     .scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('forza-builder.png') });
   await openDay(page, 'PUSH');
@@ -281,13 +281,10 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await page
     .getByRole('button', { name: 'Attiva programma', exact: true })
     .click();
-  await expect(page.getByText('ATTIVO', { exact: true })).toBeVisible();
+  await expect.poll(() => fixture.program.status).toBe('active');
   await expect(
     page.getByRole('button', { name: 'Attiva programma', exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole('button', { name: 'Azioni programma', exact: true })
-    .click();
   await page
     .getByRole('button', { name: 'Archivia programma', exact: true })
     .click();
@@ -298,7 +295,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
     ),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Conferma', exact: true }).click();
-  await expect(page.getByText('ARCHIVIATO', { exact: true })).toBeVisible();
+  await expect.poll(() => fixture.program.status).toBe('archived');
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   if (page.url().includes('/manage'))
     await page.getByRole('button', { name: 'Indietro', exact: true }).click();
@@ -308,7 +305,7 @@ test('FORZA: build PUSH/PULL, four full prescriptions, reload, tap-to-edit and s
   await page.getByRole('tab', { name: 'Program', exact: true }).click();
   await page.getByRole('button', { name: /^Open FORZA, / }).click();
   await expect(
-    page.getByText('8 weeks · October 6, 2026', { exact: true }),
+    page.getByText('FORZA · 8 weeks · October 6, 2026', { exact: true }),
   ).toBeVisible();
   expect(errors).toEqual([]);
 });

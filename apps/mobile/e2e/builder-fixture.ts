@@ -118,6 +118,11 @@ export async function builderFixture(page: Page) {
         json: { error: { code: 'NOT_FOUND', message: 'Fixture not found' } },
         headers,
       });
+    if (path === `/programs/${program.id}` && method === 'DELETE') {
+      const id = program.id;
+      program = null;
+      return reply({ id });
+    }
     if (path === `/programs/${program.id}` && method === 'GET')
       return reply(program);
     if (path === `/programs/${program.id}` && method === 'PATCH') {

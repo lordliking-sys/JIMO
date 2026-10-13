@@ -8,7 +8,7 @@ import {
   type Prescription,
   type PerSetTarget,
 } from '@jimo/schemas';
-import { FormScreen, FormHeader, ErrorNotice } from './components';
+import { FormScreen, FormHeader, ErrorNotice, Field } from './components';
 import { ProgramButton, programInk } from './presentation';
 import { NumberControl, Choice, choiceStyles } from './NumberControl';
 import { RestControl } from './RestControl';
@@ -31,6 +31,7 @@ export function ModePrescriptionEditor({
   pending,
   error,
   fallback,
+  extraActions,
 }: {
   exercise: ExerciseDto;
   initial?: Partial<Prescription>;
@@ -40,6 +41,7 @@ export function ModePrescriptionEditor({
   pending: boolean;
   error: unknown;
   fallback?: Href;
+  extraActions?: import('react').ReactNode;
 }) {
   const { t, i18n } = useTranslation('programs');
   const locale = i18n.resolvedLanguage ?? 'it';
@@ -56,6 +58,7 @@ export function ModePrescriptionEditor({
     rpe: decimalDisplay(initial?.targetRpe, locale),
     rest: String(initial?.restSeconds ?? ''),
   });
+  const [notes, setNotes] = useState(initial?.notes ?? '');
   const [rounds, setRounds] = useState(String(initial?.targetSets ?? 3));
   const [targets, setTargets] = useState(
     () =>
@@ -151,7 +154,7 @@ export function ModePrescriptionEditor({
           emomIntervalSeconds:
             seriesMode === 'emom' ? (initial?.emomIntervalSeconds ?? 60) : null,
           setTargets: seriesMode === 'pyramid' ? list : null,
-          notes: initial?.notes ?? null,
+          notes: notes.trim() || null,
         }),
       );
       setInvalid(false);
@@ -313,7 +316,15 @@ export function ModePrescriptionEditor({
           invalid={() => setInvalid(true)}
         />
       ) : null}
+      <Field
+        label={t('notes')}
+        value={notes}
+        onChangeText={setNotes}
+        multiline
+        maxLength={2000}
+      />
       {error ? <ErrorNotice error={error} /> : null}
+      {extraActions}
     </FormScreen>
   );
 }

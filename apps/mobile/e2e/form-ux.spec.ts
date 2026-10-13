@@ -128,7 +128,7 @@ async function mockApi(
   return { saved, metadata };
 }
 
-test('manual form: quick weeks, localized calendar date, clear date and visible footer', async ({
+test('manual form: single duration stepper, localized calendar date, clear date and visible footer', async ({
   page,
 }, testInfo) => {
   const { metadata } = await mockApi(page);
@@ -142,15 +142,15 @@ test('manual form: quick weeks, localized calendar date, clear date and visible 
       name: 'Aumenta Durata in settimane (opzionale)',
       exact: true,
     }),
-  ).toHaveCount(0);
-  await page.getByRole('button', { name: '4 settimane', exact: true }).click();
+  ).toBeVisible();
   await expect(valueButton(page, 'Durata in settimane (opzionale)')).toHaveText(
     '4',
   );
-  await page.getByRole('button', { name: '8 settimane', exact: true }).click();
-  await expect(valueButton(page, 'Durata in settimane (opzionale)')).toHaveText(
-    '8',
-  );
+  await expect(
+    page.getByRole('button', {
+      name: /^(4 settimane|8 settimane|Non impostato)$/,
+    }),
+  ).toHaveCount(0);
   await (await manualField(page, 'Durata in settimane (opzionale)')).fill('7');
   await page
     .getByRole('button', {
@@ -162,7 +162,10 @@ test('manual form: quick weeks, localized calendar date, clear date and visible 
   const date = page.locator('input[type="date"]');
   await date.fill('2026-10-25');
   await expect(
-    page.getByText('25 ottobre 2026', { exact: true }),
+    page
+      .getByText('25 ottobre 2026', { exact: true })
+      .filter({ visible: true })
+      .last(),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Rimuovi data', exact: true }).click();
   await expect(date).toHaveValue('');
@@ -192,8 +195,8 @@ test('manual form: quick weeks, localized calendar date, clear date and visible 
   });
   await next.click();
   await expect(
-    page.getByText('Upper', { exact: true }).filter({ visible: true }),
-  ).toBeVisible();
+    page.getByRole('textbox', { name: 'Nome programma', exact: true }),
+  ).toHaveValue('Upper');
   expect(metadata).toEqual([
     {
       name: 'Upper',

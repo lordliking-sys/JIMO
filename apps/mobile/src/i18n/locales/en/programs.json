@@ -193,5 +193,10 @@
   "removeSet": "Remove set",
   "pyramidSummary": "Pyramid · {{sets}} sets",
   "emomSummary": "EMOM · {{rounds}} × {{reps}} reps · {{seconds}} sec",
-  "perSetTargets": "Per-set targets"
+  "perSetTargets": "Per-set targets",
+  "deleteProgram": "Delete program",
+  "confirmDeleteProgram": "Permanently delete this program?",
+  "deleteProgramExplanation": "The program and its structure will be removed. Your past workouts and their snapshots will be preserved.",
+  "daysHeading": "DAYS",
+  "deleteSyncPending": "Wait for your workouts to sync before deleting this program."
 }

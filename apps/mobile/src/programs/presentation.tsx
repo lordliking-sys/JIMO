@@ -61,7 +61,7 @@ export const programArtwork = {
 };
 const Context = createContext(false);
 const Font = createContext(false);
-const BackTarget = createContext<Href>('/program/manage');
+const BackTarget = createContext<Href>('/program');
 export const useProgramBackTarget = () => useContext(BackTarget);
 export const useProgramPresentation = () => useContext(Context);
 export function ProgramText({ style, ...props }: TextProps) {
@@ -213,7 +213,7 @@ function ProgramSurface({
   header,
   footer,
   background = 'programs',
-  fallback = '/program/manage',
+  fallback = '/program',
 }: {
   children: ReactNode;
   header?: ReactNode;
@@ -241,8 +241,11 @@ function ProgramSurface({
   useFocusEffect(
     useCallback(() => {
       const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-        if (router.canGoBack()) return false;
-        router.replace(fallback);
+        if (Keyboard.isVisible()) {
+          Keyboard.dismiss();
+          return true;
+        }
+        router.dismissTo(fallback);
         return true;
       });
       return () => sub.remove();

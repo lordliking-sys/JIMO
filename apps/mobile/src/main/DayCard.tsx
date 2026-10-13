@@ -15,13 +15,11 @@ export function DayCard({
   program,
   day,
   state,
-  index,
   completed,
 }: {
   program: ProgramDetail;
   day: DayDto;
   state: DayState;
-  index: number;
   completed?: WorkoutSummary | undefined;
 }) {
   const { t } = useTranslation(['main', 'programs', 'workouts']),
@@ -79,9 +77,13 @@ export function DayCard({
           }}
         >
           <View style={{ flex: 1, gap: 1 }}>
-            <MainText style={{ fontSize: 18 }}>
-              {t('dayNumber', { number: index + 1 })}
-            </MainText>
+            {day.dayOfWeek ? (
+              <MainText style={{ fontSize: 18 }}>
+                {t(
+                  `programs:weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`,
+                )}
+              </MainText>
+            ) : null}
             <MainText style={{ fontSize: 30, lineHeight: 33 }}>
               {day.name}
             </MainText>

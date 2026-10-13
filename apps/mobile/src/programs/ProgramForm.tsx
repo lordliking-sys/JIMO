@@ -10,6 +10,7 @@ import {
 import { Field, FormHeader, ErrorNotice, FormScreen } from './components';
 import { integerInput, stepInteger } from './helpers';
 import { NumberControl } from './NumberControl';
+import { calendarDateLabel } from './date';
 import { DateField } from './DateField';
 import { ProgramButton } from './presentation';
 import type { ReactNode } from 'react';
@@ -21,6 +22,7 @@ export function ProgramForm({
   error,
   actions,
   fallback,
+  children,
 }: {
   initial?: ProgramSummary;
   save: (input: ProgramInput) => void;
@@ -28,11 +30,14 @@ export function ProgramForm({
   error: unknown;
   actions?: ReactNode;
   fallback?: Href;
+  children?: ReactNode;
 }) {
-  const { t } = useTranslation('programs');
+  const { t, i18n } = useTranslation('programs');
   const [name, setName] = useState(initial?.name ?? ''),
     [description, setDescription] = useState(initial?.description ?? ''),
-    [weeks, setWeeks] = useState(initial?.durationWeeks?.toString() ?? ''),
+    [weeks, setWeeks] = useState(
+      initial ? (initial.durationWeeks?.toString() ?? '') : '4',
+    ),
     [starts, setStarts] = useState(initial?.startsOn ?? ''),
     [invalid, setInvalid] = useState(false);
   const submit = () => {
@@ -51,7 +56,18 @@ export function ProgramForm({
   };
   return (
     <FormScreen
-      header={<FormHeader title={t(initial ? 'editProgram' : 'create')} />}
+      header={
+        <FormHeader
+          title={t(initial ? 'editProgram' : 'create')}
+          subtitle={[
+            name,
+            weeks ? t('weekCount', { count: Number(weeks) }) : '',
+            starts ? calendarDateLabel(starts, i18n.language) : '',
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        />
+      }
       presentation
       {...(fallback ? { fallback } : {})}
       invalid={invalid}
@@ -100,7 +116,7 @@ export function ProgramForm({
         <NumberControl
           label={t('weeks')}
           displayLabel={t('durationShort')}
-          hideEmptyControl
+          fillRow
           value={weeks}
           onChange={(value) => {
             setWeeks(value);
@@ -119,13 +135,6 @@ export function ProgramForm({
               setInvalid(true);
             }
           }}
-          presets={[
-            { value: '', label: t('unspecified') },
-            ...[4, 8, 12].map((n) => ({
-              value: String(n),
-              label: t('weekCount', { count: n }),
-            })),
-          ]}
         />
         <DateField
           value={starts}
@@ -135,6 +144,7 @@ export function ProgramForm({
           }}
         />
       </View>
+      {children}
       {actions}
       {error ? <ErrorNotice error={error} /> : null}
     </FormScreen>

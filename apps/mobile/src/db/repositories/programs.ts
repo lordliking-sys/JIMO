@@ -34,6 +34,14 @@ export class ProgramCacheRepository {
       if (program) await this.save(sql, owner, program);
     });
   }
+  async remove(owner: string, id: string) {
+    await this.db.transaction(async (sql) => {
+      await sql.run(
+        'DELETE FROM cached_programs WHERE owner_user_id=? AND id=?',
+        [owner, id],
+      );
+    });
+  }
   private async save(sql: SqlExecutor, owner: string, p: ProgramDetail) {
     await sql.run(
       'INSERT INTO cached_programs VALUES(?,?,?,?) ON CONFLICT(owner_user_id,id) DO UPDATE SET status=excluded.status,payload=excluded.payload',

@@ -11,6 +11,11 @@ import {
   type WorkoutOperation,
 } from '@jimo/schemas';
 import type { LocalDatabase, SqlExecutor } from '../database';
+import {
+  EMOM_PREPARATION_SECONDS,
+  emomClock,
+  defaultEmomActual,
+} from '../../workouts/modes';
 import { enqueue } from './outbox';
 export class LocalSaveError extends Error {
   constructor() {
@@ -326,7 +331,9 @@ export class WorkoutLocalRepository {
         throw new Error('WORKOUT_STATE_CONFLICT');
       if (e.emomStartedAt) return w;
       const now = this.clock();
-      e.emomStartedAt = now;
+      e.emomStartedAt = new Date(
+        Date.parse(now) + EMOM_PREPARATION_SECONDS * 1000,
+      ).toISOString();
       e.updatedAt = now;
       w.updatedAt = now;
       await store(sql, owner, w);
@@ -336,9 +343,49 @@ export class WorkoutLocalRepository {
         entityId: exerciseId,
         operationType: 'START_EMOM',
         createdAt: now,
-        payload: {},
+        payload: { preparationSeconds: EMOM_PREPARATION_SECONDS },
       });
       return w;
+    });
+  }
+  advanceEmom(owner: string, sessionId: string, exerciseId: string) {
+    return this.write(async (sql) => {
+      const w = await read(sql, owner, sessionId);
+      if (!w || w.status !== 'in_progress')
+        throw new Error('WORKOUT_STATE_CONFLICT');
+      const e = w.exercises.find((e) => e.id === exerciseId);
+      if (!e || e.workoutModeSnapshot !== 'emom')
+        throw new Error('WORKOUT_STATE_CONFLICT');
+      const now = this.clock(),
+        clock = emomClock(e, Date.parse(now));
+      const due = e.sets.filter(
+        (s, i) => i < clock.completedRounds && s.status === 'pending',
+      );
+      if (!due.length) return w;
+      // Reconcile elapsed intervals in one transaction, not a queue of delayed timers.
+      // Existing outbox receipts make retries / kill / double render idempotent.
+      for (const s of due) {
+        const actual = actualFor(e).parse(defaultEmomActual(s));
+        Object.assign(s, actual);
+        s.status = 'completed';
+        s.completedAt = new Date(
+          Date.parse(e.emomStartedAt!) + s.setNumber * clock.interval * 1000,
+        ).toISOString();
+        s.updatedAt = now;
+        await enqueue(sql, owner, {
+          operationId: this.uuid(),
+          sessionId,
+          entityId: s.id,
+          operationType: 'COMPLETE_SET',
+          createdAt: s.completedAt,
+          payload: actual,
+        });
+      }
+      e.updatedAt = now;
+      w.updatedAt = now;
+      const result = recount(w);
+      await store(sql, owner, result);
+      return result;
     });
   }
   save(owner: string, id: string, input: ActualInput, correction = false) {

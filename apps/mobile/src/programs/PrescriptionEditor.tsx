@@ -43,11 +43,13 @@ export function PrescriptionEditor({
   preserveMissing = false,
   presentation = false,
   fallback,
+  extraActions,
 }: {
   mappingAction?: ReactNode;
   preserveMissing?: boolean;
   presentation?: boolean;
   fallback?: Href;
+  extraActions?: import('react').ReactNode;
   save: (input: Prescription) => void;
   pending: boolean;
   error: unknown;
@@ -228,6 +230,7 @@ export function PrescriptionEditor({
         save={save}
         pending={pending}
         error={error}
+        extraActions={extraActions}
         {...(fallback ? { fallback } : {})}
       />
     );
@@ -524,6 +527,7 @@ export function PrescriptionEditor({
         </>
       )}
       {error ? <ErrorNotice error={error} /> : null}
+      {extraActions}
     </FormScreen>
   );
 }

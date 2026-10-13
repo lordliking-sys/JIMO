@@ -131,7 +131,8 @@ export class WorkoutSyncService {
         throw new ApiError(400, 'INVALID_EVENT_TIME', 'Event precedes workout');
       const sessionGate = `(${gate}) AND w.id=${session}::uuid`;
       if (o.operationType === 'START_EMOM') {
-        changed = `UPDATE workout_exercises e SET emom_started_at=${at}::timestamptz,updated_at=now()
+        const preparation = bind(o.payload.preparationSeconds ?? 0);
+        changed = `UPDATE workout_exercises e SET emom_started_at=${at}::timestamptz + ${preparation}::integer * interval '1 second',updated_at=now()
           FROM workout_sessions w WHERE e.id=${entity}::uuid AND e.workout_session_id=w.id
           AND w.id=${session}::uuid AND w.user_id=$1::uuid AND w.status='in_progress'
           AND e.workout_mode_snapshot='emom' AND e.emom_started_at IS NULL AND (${gate}) RETURNING e.id`;

@@ -20,6 +20,7 @@ import { emomClock } from '../src/workouts/modes';
 import { recoverRest, prefillDraft } from '../src/workouts/helpers';
 import { sqliteAdapter } from './sqlite-adapter';
 import { cachedProgram } from './offline-fixtures';
+import { ProgramCacheRepository } from '../src/db/repositories/programs';
 import { thumbnailGeometry } from '../src/programs/thumbnail-geometry';
 const time = Date.parse('2026-10-12T10:00:00Z');
 const actual = {
@@ -68,7 +69,7 @@ async function setup(mode: 'emom' | 'pyramid', path?: string) {
     },
   };
 }
-test('EMOM snapshots, starts once and advances from its durable timestamp without inventing actuals', async () => {
+test('EMOM snapshots, prepares once and derives its durable clock without premature actuals', async () => {
   const c = await setup('emom');
   try {
     const w = await c.repo.start(c.owner, c.p, c.p.days[0]!.id);
@@ -78,16 +79,17 @@ test('EMOM snapshots, starts once and advances from its durable timestamp withou
     await c.repo.startEmom(c.owner, w.id, e.id);
     assert.equal((await c.outbox.list(c.owner)).length, 2);
     const ex = started.exercises[0]!;
-    assert.equal(emomClock(ex, time).remaining, 60);
-    assert.equal(emomClock(ex, time + 59_001).remaining, 1);
-    assert.equal(emomClock(ex, time + 60_000).index, 1);
-    assert.equal(emomClock(ex, time + 125_000).remaining, 55);
-    assert.equal(emomClock(ex, time + 180_000).finished, true);
+    assert.equal(emomClock(ex, time).remaining, 10);
+    assert.equal(emomClock(ex, time + 69_001).remaining, 1);
+    assert.equal(emomClock(ex, time + 70_000).index, 1);
+    assert.equal(emomClock(ex, time + 135_000).remaining, 55);
+    assert.equal(emomClock(ex, time + 190_000).finished, true);
     assert.ok(
       ex.sets.every((s) => s.actualReps === null && s.status === 'pending'),
     );
     assert.equal(prefillDraft(ex, ex.sets[0]!, 'it').reps, '5');
     await assert.rejects(c.repo.save(c.owner, ex.sets[1]!.id, actual));
+    c.clock(time + 10_000);
     const result = await c.repo.save(c.owner, ex.sets[0]!.id, actual);
     assert.equal(result.exercises[0]!.sets[0]!.targetReps, 5);
     assert.equal(result.exercises[0]!.sets[0]!.actualReps, 4);
@@ -109,6 +111,7 @@ test('EMOM kill/reopen restores clock, actuals and ordered pending operations; b
     const w = await c.repo.start(owner, c.p, c.p.days[0]!.id),
       e = w.exercises[0]!;
     await c.repo.startEmom(owner, w.id, e.id);
+    c.clock(time + 10_000);
     await c.repo.save(owner, e.sets[0]!.id, actual);
     c.sqlite.close();
     c = await setup('emom', path);
@@ -116,7 +119,7 @@ test('EMOM kill/reopen restores clock, actuals and ordered pending operations; b
     assert.equal(restored.id, w.id);
     assert.equal(
       restored.exercises[0]!.emomStartedAt,
-      new Date(time).toISOString(),
+      new Date(time + 10_000).toISOString(),
     );
     assert.equal(emomClock(restored.exercises[0]!, time + 75_000).index, 1);
     assert.equal(restored.exercises[0]!.sets[0]!.actualReps, 4);
@@ -190,6 +193,7 @@ for (const mode of ['pyramid', 'emom'] as const)
       const w = await c.repo.start(c.owner, c.p, c.p.days[0]!.id);
       if (mode === 'emom')
         await c.repo.startEmom(c.owner, w.id, w.exercises[0]!.id);
+      c.clock(time + 10_000);
       await c.repo.save(c.owner, w.exercises[0]!.sets[0]!.id, actual);
       const receipts = new Set<string>();
       const engine = new SyncEngine({
@@ -300,4 +304,114 @@ test('Shared thumbnail geometry contains measured character bounds with margins 
     thumbnailGeometry('push_up', 'male', 56).width >
       thumbnailGeometry('pull_up', 'male', 56).width,
   );
+});
+
+test('Hands-free preparation, automatic end, catch-up and corrections preserve TARGET != ACTUAL', async () => {
+  const c = await setup('emom');
+  try {
+    const w = await c.repo.start(c.owner, c.p, c.p.days[0]!.id),
+      e = w.exercises[0]!;
+    const started = await c.repo.startEmom(c.owner, w.id, e.id);
+    assert.equal(emomClock(started.exercises[0]!, time).preparing, true);
+    assert.equal(emomClock(started.exercises[0]!, time - 900).remaining, 10);
+    assert.equal(emomClock(started.exercises[0]!, time + 9999).remaining, 1);
+    assert.equal(
+      emomClock(started.exercises[0]!, time + 10000).preparing,
+      false,
+    );
+    c.clock(time + 10000);
+    assert.equal(
+      (await c.repo.advanceEmom(c.owner, w.id, e.id)).completedSets,
+      0,
+    );
+    await assert.rejects(c.repo.save(c.owner, e.sets[1]!.id, actual));
+    c.clock(time + 135000);
+    const resumed = await c.repo.advanceEmom(c.owner, w.id, e.id);
+    assert.equal(resumed.completedSets, 2);
+    assert.equal(resumed.exercises[0]!.sets[0]!.actualReps, 5);
+    assert.equal(resumed.exercises[0]!.sets[2]!.actualReps, null);
+    assert.equal(
+      resumed.exercises[0]!.sets[0]!.completedAt,
+      new Date(time + 70000).toISOString(),
+    );
+    const count = (await c.outbox.list(c.owner)).length;
+    await c.repo.advanceEmom(c.owner, w.id, e.id);
+    assert.equal((await c.outbox.list(c.owner)).length, count);
+    c.clock(time + 190000);
+    const ended = await c.repo.advanceEmom(c.owner, w.id, e.id);
+    assert.equal(ended.completedSets, 3);
+    assert.equal(ended.pendingSets, 0);
+    assert.equal(ended.status, 'in_progress');
+    const corrected = await c.repo.save(
+      c.owner,
+      e.sets[0]!.id,
+      { ...actual, actualReps: 4 },
+      true,
+    );
+    assert.equal(corrected.exercises[0]!.sets[0]!.targetReps, 5);
+    assert.equal(corrected.exercises[0]!.sets[0]!.actualReps, 4);
+    assert.equal(recoverRest(corrected, time + 191000), null);
+    assert.equal(
+      (await c.outbox.batch(c.owner)).every(
+        (o) => workoutOperationSchema.safeParse(o).success,
+      ),
+      true,
+    );
+  } finally {
+    c.sqlite.close();
+  }
+});
+test('Hands-free preparation survives SQLite kill/restart and catch-up remains atomic', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'jimo-emom-prep-')),
+    path = join(directory, 'workout.db');
+  let c = await setup('emom', path);
+  const owner = c.owner;
+  try {
+    const w = await c.repo.start(owner, c.p, c.p.days[0]!.id),
+      e = w.exercises[0]!;
+    await c.repo.startEmom(owner, w.id, e.id);
+    c.sqlite.close();
+    c = await setup('emom', path);
+    c.clock(time + 5000);
+    const restored = (await c.repo.detail(owner, w.id))!;
+    assert.equal(emomClock(restored.exercises[0]!, time + 5000).remaining, 5);
+    c.clock(time + 135000);
+    c.sqlite.exec(
+      "CREATE TRIGGER fail_advance BEFORE INSERT ON sync_outbox BEGIN SELECT RAISE(ABORT,'disk'); END;",
+    );
+    await assert.rejects(c.repo.advanceEmom(owner, w.id, e.id), LocalSaveError);
+    assert.equal((await c.repo.detail(owner, w.id))!.completedSets, 0);
+    assert.equal((await c.outbox.list(owner)).length, 2);
+    c.sqlite.exec('DROP TRIGGER fail_advance');
+    assert.equal(
+      (await c.repo.advanceEmom(owner, w.id, e.id)).completedSets,
+      2,
+    );
+  } finally {
+    c.sqlite.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('Removing a cached program preserves workout snapshots, history and pending outbox', async () => {
+  const c = await setup('pyramid');
+  try {
+    const cache = new ProgramCacheRepository(c.db);
+    await cache.replaceActive(c.owner, c.p);
+    const w = await c.repo.start(c.owner, c.p, c.p.days[0]!.id);
+    await c.repo.save(c.owner, w.exercises[0]!.sets[0]!.id, actual);
+    await c.repo.finish(c.owner, w.id, true);
+    const count = (await c.outbox.list(c.owner)).length;
+    await cache.remove(randomUUID(), c.p.id);
+    assert.equal((await cache.active(c.owner))!.id, c.p.id);
+    await cache.remove(c.owner, c.p.id);
+    assert.equal(await cache.active(c.owner), null);
+    assert.equal((await c.repo.history(c.owner)).length, 1);
+    assert.equal((await c.outbox.list(c.owner)).length, count);
+    const history = (await c.repo.detail(c.owner, w.id))!;
+    assert.equal(history.exercises[0]!.sets[0]!.targetReps, 12);
+    assert.equal(history.exercises[0]!.sets[0]!.actualReps, 4);
+  } finally {
+    c.sqlite.close();
+  }
 });

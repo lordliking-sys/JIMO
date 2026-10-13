@@ -273,6 +273,19 @@ export class ProgramService {
     if (!rows.length) return notFound('PROGRAM_NOT_FOUND');
     return this.detail(userId, id, locale);
   }
+  async remove(userId: string, id: string) {
+    const result = await this.db.batch([
+      this.db.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtextextended(${userId}::text, 0))`,
+      ),
+      this.db
+        .delete(programs)
+        .where(and(eq(programs.id, id), eq(programs.userId, userId)))
+        .returning({ id: programs.id }),
+    ]);
+    if (!result[1].length) return notFound('PROGRAM_NOT_FOUND');
+    return { id };
+  }
   async activate(userId: string, id: string, locale: string) {
     const result = await this.db.batch([
       this.db.execute(

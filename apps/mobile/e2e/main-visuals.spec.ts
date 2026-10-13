@@ -339,7 +339,7 @@ test('Home starts the actual scheduled day and Workout remains fullscreen', asyn
   expect(fixture.workout.programDayId).toBe(fixture.program.days[1]!.id);
 });
 
-test('Scheda pencil, secondary creation and contextual back preserve the existing program routes', async ({
+test('Scheda opens the single Program editor directly and back returns to the hub', async ({
   page,
 }) => {
   await visualFixture(page);
@@ -347,37 +347,32 @@ test('Scheda pencil, secondary creation and contextual back preserve the existin
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/program');
   await page
-    .getByRole('button', { name: 'Gestisci programmi', exact: true })
+    .getByRole('button', { name: 'Modifica programma', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'PROGRAMMI', exact: true }),
+    page.getByRole('heading', { name: 'MODIFICA PROGRAMMA', exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole('textbox', { name: 'Nome programma', exact: true }),
+  ).toHaveValue('Push Pull Legs');
+  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
+  await expect(page.getByTestId('program-main-screen')).toBeVisible();
   await page
     .getByRole('button', { name: 'Apri Push Pull Legs', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Push Pull Legs', exact: true }),
+    page.getByRole('heading', { name: 'MODIFICA PROGRAMMA', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: 'PROGRAMMI', exact: true }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(page.getByTestId('program-main-screen')).toBeVisible();
   await page.getByTestId('program-new-action').click();
-  await expect(page).toHaveURL(/\/program\/create$/);
-  await page
-    .getByRole('button', { name: 'Crea manualmente', exact: true })
-    .click();
+  await expect(page).toHaveURL(/\/program\/manual$/);
   await page
     .getByLabel('Nome programma', { exact: true })
     .fill('Prova refinement');
   await page.locator('input[type="date"]').fill('2026-10-25');
   await expect(
-    page.getByText('25 ottobre 2026', { exact: true }),
+    page.getByText('25 ottobre 2026', { exact: true }).last(),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(page).toHaveURL(/\/program\/create$/);
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   await expect(page.getByTestId('program-main-screen')).toBeVisible();
   expect(errors).toEqual([]);
@@ -523,6 +518,9 @@ test('one-day overview and archived programs stay compact; program access uses t
   );
   await page.goto('/program');
   await expect(page.getByTestId('program-single-day-overview')).toBeVisible();
+  await expect(
+    page.getByTestId(`program-day-${fixture.program.days[0]!.id}`),
+  ).not.toContainText(/Giorno \d/);
   const overview = (await page
       .getByTestId('program-week-overview')
       .boundingBox())!,
@@ -536,7 +534,7 @@ test('one-day overview and archived programs stay compact; program access uses t
   expect(row.height).toBeLessThanOrEqual(85);
   expect(headerAction.width).toBe(48);
   await expect(
-    page.getByRole('button', { name: 'Gestisci programmi', exact: true }),
+    page.getByRole('button', { name: 'Modifica programma', exact: true }),
   ).toHaveCount(1);
   await expect(
     page.getByTestId(`other-program-${archived.id}`),

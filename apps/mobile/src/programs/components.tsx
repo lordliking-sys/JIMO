@@ -35,6 +35,7 @@ import {
   programInk,
   type programArtwork,
 } from './presentation';
+import { useProgramOverlay } from './overlay-context';
 import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 /** Form sections use hierarchy and dividers instead of nested surfaces. */
 export function FormSection({ children }: { children: ReactNode }) {
@@ -70,6 +71,26 @@ export function FormScreen({
   fallback?: Href;
 }) {
   const { t } = useTranslation('programs');
+  const overlay = useProgramOverlay();
+  if (overlay)
+    return (
+      <Screen
+        keyboardAware
+        surfaceStyle={{ backgroundColor: programInk.background }}
+        contentStyle={{ padding: 16, gap: 16 }}
+        footerStyle={{ backgroundColor: programInk.background }}
+        dismissKeyboardLabel={t('keyboardDone')}
+        {...(footer ? { footer } : {})}
+      >
+        {header}
+        {children}
+        {invalid ? (
+          <Text color={programInk.danger} accessibilityRole="alert">
+            {t('invalidForm')}
+          </Text>
+        ) : null}
+      </Screen>
+    );
   if (presentation)
     return (
       <ProgramScreen
@@ -236,10 +257,15 @@ export function Back({
     { t } = useTranslation('programs');
   const visual = useProgramPresentation();
   const fallback = useProgramBackTarget();
+  const overlay = useProgramOverlay();
   const goBack = () =>
-    router.canGoBack()
-      ? router.back()
-      : router.replace(visual ? fallback : '/program');
+    overlay
+      ? overlay.back()
+      : visual
+        ? router.dismissTo(fallback)
+        : router.canGoBack()
+          ? router.back()
+          : router.replace('/program');
   if (compact || visual)
     return (
       <IconButton
@@ -265,24 +291,27 @@ export function FormHeader({
   fontSize?: number;
 }) {
   const visual = useProgramPresentation();
+  const overlay = useProgramOverlay();
   if (visual)
     return (
       <View style={{ gap: 8, position: 'relative', paddingBottom: 8 }}>
-        <HeroReadabilityWash variant="dark" />
+        {!overlay ? <HeroReadabilityWash variant="dark" /> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Back compact />
-          <ProgramText
-            accessibilityRole="header"
-            style={{ flex: 1, fontSize, lineHeight: fontSize + 4 }}
-          >
-            {title.toUpperCase()}
-          </ProgramText>
+          <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+            <ProgramText
+              accessibilityRole="header"
+              style={{ flex: 1, fontSize, lineHeight: fontSize + 4 }}
+            >
+              {(overlay?.title ?? title).toUpperCase()}
+            </ProgramText>
+            {subtitle ? (
+              <Text variant="caption" color={programInk.secondary}>
+                {subtitle}
+              </Text>
+            ) : null}
+          </View>
         </View>
-        {subtitle ? (
-          <Text variant="caption" color={programInk.secondary}>
-            {subtitle}
-          </Text>
-        ) : null}
       </View>
     );
   return (
@@ -413,12 +442,15 @@ export function ErrorNotice({
         color={visual ? programInk.danger : colors.text}
       >
         {t(
-          error instanceof ApiClientError && error.code === 'CONFLICT'
-            ? 'conflictError'
-            : error instanceof ApiClientError &&
-                error.code === 'API_NOT_CONFIGURED'
-              ? 'configurationError'
-              : 'serverError',
+          error instanceof ApiClientError &&
+            error.code === 'PROGRAM_SYNC_PENDING'
+            ? 'deleteSyncPending'
+            : error instanceof ApiClientError && error.code === 'CONFLICT'
+              ? 'conflictError'
+              : error instanceof ApiClientError &&
+                  error.code === 'API_NOT_CONFIGURED'
+                ? 'configurationError'
+                : 'serverError',
         )}
       </Text>
       {retry ? (

@@ -195,9 +195,34 @@ export class OfflineRuntime {
       return this.workouts.start(owner, program, dayId);
     });
   }
+  async prepareProgramDelete(id: string) {
+    const owner = this.identity();
+    await this.engine.request(true);
+    const rows = await this.outbox.list(owner);
+    if (
+      rows.some((row) => {
+        const operation = JSON.parse(row.payload) as {
+          operationType: string;
+          payload: { programId?: string };
+        };
+        return (
+          operation.operationType === 'START_WORKOUT' &&
+          operation.payload.programId === id
+        );
+      })
+    )
+      throw new ApiClientError('PROGRAM_SYNC_PENDING');
+    if (this.identity() !== owner)
+      throw new ApiClientError('IDENTITY_CHANGED', 403);
+  }
   startEmom(sessionId: string, exerciseId: string) {
     return this.mutate((owner) =>
       this.workouts.startEmom(owner, sessionId, exerciseId),
+    );
+  }
+  advanceEmom(sessionId: string, exerciseId: string) {
+    return this.mutate((owner) =>
+      this.workouts.advanceEmom(owner, sessionId, exerciseId),
     );
   }
   save(id: string, input: ActualInput, correction = false) {

@@ -1,3 +1,5 @@
+> Historical implementation report. The current Program/Giornata overlays and definitive hands-free EMOM behavior are documented in [program-flow-handsfree-emom.md](program-flow-handsfree-emom.md).
+
 > Task 8 replaces the temporary identity described historically below with Clerk → internal UUID. Development bootstrap now requires explicit `ALLOW_DEV_AUTH=true`; production requires verified Clerk and fails closed. See [Authentication](authentication.md). Browser tests require the dedicated `EXPO_PUBLIC_AUTH_TEST=true` test export, never a release artifact.
 
 # Program Management — Task 4

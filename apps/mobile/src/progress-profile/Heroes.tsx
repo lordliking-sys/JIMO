@@ -3,7 +3,6 @@ import { Pressable, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { EditorialText, useProfileMenuAnchor } from './Surface';
 import Settings from 'lucide-react-native/icons/settings';
-import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 import { ink } from './theme';
 import { ProfileAvatar } from './ProfileAvatar';
 
@@ -18,7 +17,7 @@ export function ProgressHero() {
           textAlign: 'center',
           fontSize: 30,
           letterSpacing: 2,
-          marginBottom: 0,
+          marginBottom: 12,
         }}
       >
         {t('progressTitle')}
@@ -57,10 +56,6 @@ export function ProfileHero({ name }: { name: string | null }) {
         }}
       >
         <View style={{ alignItems: 'center', gap: 2 }}>
-          <HeroReadabilityWash
-            variant="dark"
-            testID="profile-readability-wash"
-          />
           <ProfileAvatar name={name} />
           <EditorialText
             testID="profile-display-name"

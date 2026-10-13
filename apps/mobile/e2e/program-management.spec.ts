@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { manualField } from './helpers';
 import { builderFixture } from './builder-fixture';
 const sizes = [
   { width: 320, height: 740 },
@@ -7,21 +8,40 @@ const sizes = [
   { width: 430, height: 860 },
 ];
 async function fit(page: Page) {
+  const overlay = page.getByTestId('program-action-overlay');
   const screen = page
     .getByTestId('program-management-screen')
     .filter({ has: page.getByRole('heading') });
-  await expect(screen).toBeVisible();
-
-  const hero = (await screen.getByTestId('section-hero-art').boundingBox())!;
-  const body = screen.getByTestId('program-management-body');
-  expect(hero.height).toBeLessThan(320);
-  expect(
-    await body.evaluate((el) => getComputedStyle(el).backgroundColor),
-  ).toBe('rgb(16, 19, 15)');
-  expect(
-    await screen.evaluate((node) => getComputedStyle(node).backgroundColor),
-  ).toBe('rgb(16, 19, 15)');
-
+  if (await overlay.count()) {
+    await expect(overlay).toBeVisible();
+    await expect(overlay.getByTestId('section-hero-art')).toHaveCount(0);
+    expect(
+      await overlay
+        .locator(':scope > div')
+        .first()
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).toBe('rgb(16, 19, 15)');
+  } else if (await screen.count()) {
+    await expect(screen).toBeVisible();
+    expect(
+      (await screen.getByTestId('section-hero-art').boundingBox())!.height,
+    ).toBeLessThan(320);
+    expect(
+      await screen
+        .getByTestId('program-management-body')
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).toBe('rgb(16, 19, 15)');
+    expect(
+      await screen.evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).toBe('rgb(16, 19, 15)');
+  } else {
+    await expect(page.getByTestId('program-main-screen')).toBeVisible();
+    expect(
+      await page
+        .getByTestId('program-tab-body')
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).toBe('rgb(16, 19, 15)');
+  }
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -36,7 +56,7 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/program/manage');
   await expect(
-    page.getByRole('heading', { name: 'PROGRAMMI', exact: true }),
+    page.getByRole('heading', { name: 'SCHEDA', exact: true }),
   ).toBeVisible();
   await expect(page.getByText('Libreria', { exact: true })).toHaveCount(0);
   await page
@@ -51,10 +71,19 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
   await page
     .getByLabel('Descrizione (opzionale)', { exact: true })
     .fill('Routine personale');
-  await page.getByRole('button', { name: '8 settimane', exact: true }).click();
+  await (await manualField(page, 'Durata in settimane (opzionale)')).fill('8');
+  await page
+    .getByRole('button', {
+      name: 'Conferma Durata in settimane (opzionale)',
+      exact: true,
+    })
+    .click();
   await page.locator('input[type="date"]').fill('2026-10-20');
   await expect(
-    page.getByText('20 ottobre 2026', { exact: true }),
+    page
+      .getByText('20 ottobre 2026', { exact: true })
+      .filter({ visible: true })
+      .last(),
   ).toBeVisible();
   for (const viewport of sizes) {
     await page.setViewportSize(viewport);
@@ -123,7 +152,7 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
     .getByRole('button', { name: 'Apri giornata Prima giornata', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Routine v2 Mercoledì', exact: true }),
+    page.getByRole('heading', { name: 'ROUTINE V2', exact: true }),
   ).toBeVisible();
   await page
     .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
@@ -184,7 +213,7 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
   ).toPass();
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: 'PROGRAMMI', exact: true }),
+    page.getByRole('heading', { name: 'SCHEDA', exact: true }),
   ).toBeVisible();
   for (const viewport of sizes) {
     await page.setViewportSize(viewport);
@@ -193,9 +222,6 @@ test('v2 management: real program form, inline validation, dates, days, reorder 
       path: info.outputPath(`manager-${viewport.width}.png`),
     });
   }
-  await page
-    .getByRole('button', { name: 'Azioni programma Routine v2', exact: true })
-    .click();
   await page
     .getByRole('button', { name: 'Modifica programma', exact: true })
     .click();
@@ -245,9 +271,6 @@ test('library uses actual source/tracking filters and persists a custom exercise
   await page
     .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
     .click();
-  await page
-    .getByRole('button', { name: 'Filtra esercizi', exact: true })
-    .click();
   await page.getByRole('button', { name: 'Durata', exact: true }).click();
   await expect(
     page.getByRole('button', { name: 'Plank', exact: true }),
@@ -255,14 +278,12 @@ test('library uses actual source/tracking filters and persists a custom exercise
   await expect(
     page.getByRole('button', { name: 'Panca piana', exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole('button', { name: 'Libreria esercizi', exact: true })
-    .click();
   for (const viewport of sizes) {
     await page.setViewportSize(viewport);
     await fit(page);
     const filter = await page
       .getByRole('button', { name: 'Tutti', exact: true })
+      .first()
       .boundingBox();
     expect(filter!.height).toBeGreaterThanOrEqual(48);
     expect(filter!.height).toBeLessThanOrEqual(64);

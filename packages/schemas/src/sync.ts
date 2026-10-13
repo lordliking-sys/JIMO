@@ -97,7 +97,9 @@ export const workoutOperationSchema = z.discriminatedUnion('operationType', [
     .object({
       ...envelope,
       operationType: z.literal('START_EMOM'),
-      payload: z.object({}).strict(),
+      payload: z
+        .object({ preparationSeconds: z.literal(10).optional() })
+        .strict(),
     })
     .strict(),
   z

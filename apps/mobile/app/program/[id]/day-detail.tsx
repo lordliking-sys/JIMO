@@ -1,18 +1,24 @@
+import { useState } from 'react';
+import { ExerciseActions } from '../../../src/programs/ExerciseActions';
+import { DayEditor } from '../../../src/programs/DayEditor';
+import { ProgramOverlay } from '../../../src/programs/ProgramOverlay';
+import type { ProgramExerciseDto } from '@jimo/schemas';
 import { ExerciseThumbnail } from '../../../src/programs/ExerciseThumbnail';
 import { View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@jimo/ui';
 import EllipsisVertical from 'lucide-react-native/icons/ellipsis-vertical';
 import {
   useProgram,
+  useExercise,
   useProgramMutation,
   useApiLocale,
 } from '../../../src/api/queries';
 import { programsApi } from '../../../src/api/programs';
 import { ApiClientError } from '../../../src/api/client';
 import {
-  Back,
+  FormHeader,
   ActionMenu,
   QueryState,
   ErrorNotice,
@@ -27,15 +33,24 @@ import {
 } from '../../../src/programs/presentation';
 import { moved } from '../../../src/programs/helpers';
 import { exerciseSummary } from '../../../src/programs/summary';
-import { HeroReadabilityWash } from '../../../src/components/HeroReadabilityWash';
 import { StartWorkout } from '../../../src/workouts/components';
 export default function DayDetail() {
-  const { id, dayId } = useLocalSearchParams<{ id: string; dayId: string }>(),
+  const { id, dayId, overlay, exerciseId, prescriptionId } =
+      useLocalSearchParams<{
+        id: string;
+        dayId: string;
+        overlay?: string;
+        exerciseId?: string;
+        prescriptionId?: string;
+      }>(),
     query = useProgram(id),
-    router = useRouter(),
     locale = useApiLocale(),
     { t } = useTranslation('programs'),
     confirmation = useConfirmation();
+  const [userAction, setAction] = useState<
+      ProgramExerciseDto | 'new' | 'custom' | null
+    >(null),
+    [editDay, setEditDay] = useState(false);
   const mutation = useProgramMutation(
     (action: () => ReturnType<typeof programsApi.detail>) => action(),
   );
@@ -43,6 +58,30 @@ export default function DayDetail() {
     if (!mutation.isPending) mutation.mutate(action);
   };
   const day = query.data?.days.find((d) => d.id === dayId);
+  const selected = useExercise(exerciseId ?? '');
+  const [handled, setHandled] = useState<string | null>(null);
+  const key = `${id}:${dayId}:${overlay}:${exerciseId}:${prescriptionId}`;
+  const requested = !!day && !!overlay && handled !== key;
+  const legacyAction =
+    requested && overlay !== 'day'
+      ? prescriptionId
+        ? (day.exercises.find((e) => e.id === prescriptionId) ?? null)
+        : overlay === 'editor' && !selected.data
+          ? null
+          : overlay === 'custom'
+            ? 'custom'
+            : 'new'
+      : null;
+  const action = userAction ?? legacyAction;
+  const closeAction = () => {
+    setAction(null);
+    setHandled(key);
+  };
+  const editingDay = editDay || (requested && overlay === 'day');
+  const closeDay = () => {
+    setEditDay(false);
+    setHandled(key);
+  };
   if (!query.data || !day)
     return (
       <QueryState
@@ -55,44 +94,24 @@ export default function DayDetail() {
   return (
     <ProgramScreen
       header={
-        <View
-          style={{ position: 'relative', paddingBottom: 22, minHeight: 155 }}
-        >
-          <HeroReadabilityWash variant="dark" />
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <Back compact color={programInk.paper} />
-            <ActionMenu
-              icon={<EllipsisVertical size={22} color={programInk.paper} />}
-              label={t('dayActions', { name: day.name })}
-              title={day.name}
-              actions={[
-                {
-                  label: t('editDay'),
-                  action: () =>
-                    router.push({
-                      pathname: '/program/[id]/day',
-                      params: { id, dayId },
-                    }),
-                },
-              ]}
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <View style={{ flex: 1 }}>
+            <FormHeader
+              fontSize={22}
+              title={query.data.name}
+              subtitle={
+                day.dayOfWeek
+                  ? t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`)
+                  : day.name
+              }
             />
           </View>
-          <ProgramText
-            accessibilityRole="header"
-            style={{ color: programInk.paper, fontSize: 32, lineHeight: 34 }}
-          >
-            {query.data.name}
-            {'\n'}
-            {day.dayOfWeek
-              ? t(`weekdays.${day.dayOfWeek as 1 | 2 | 3 | 4 | 5 | 6 | 7}`)
-              : day.name}
-          </ProgramText>
+          <ActionMenu
+            icon={<EllipsisVertical size={22} color={programInk.paper} />}
+            label={t('dayActions', { name: day.name })}
+            title={day.name}
+            actions={[{ label: t('editDay'), action: () => setEditDay(true) }]}
+          />
         </View>
       }
       background="day"
@@ -101,15 +120,32 @@ export default function DayDetail() {
         <ProgramButton
           label={t('addExercise')}
           disabled={mutation.isPending}
-          onPress={() =>
-            router.push({
-              pathname: '/program/[id]/choose-exercise',
-              params: { id, dayId },
-            })
-          }
+          onPress={() => setAction('new')}
         />
       }
     >
+      <ProgramText accessibilityRole="header">{day.name}</ProgramText>
+      {editingDay ? (
+        <ProgramOverlay back={closeDay}>
+          <DayEditor id={id} day={day} onSaved={closeDay} />
+        </ProgramOverlay>
+      ) : null}
+      {action ? (
+        <ExerciseActions
+          dayId={day.id}
+          {...(action === 'new' || action === 'custom'
+            ? {}
+            : { initial: action })}
+          {...(userAction === null &&
+          action === 'new' &&
+          overlay === 'editor' &&
+          selected.data
+            ? { selected: selected.data }
+            : {})}
+          custom={action === 'custom'}
+          close={closeAction}
+        />
+      ) : null}
       {day.notes ? (
         <Text variant="caption" color={programInk.text}>
           {day.notes}
@@ -135,17 +171,7 @@ export default function DayDetail() {
               }
               label={`${t('editExercise')} ${exercise.exercise.displayName}`}
               subtitle={`${summary.primary}${summary.details ? `\n${summary.details}` : ''}${exercise.notes ? `\n${exercise.notes}` : ''}`}
-              onPress={() =>
-                router.push({
-                  pathname: '/program/[id]/exercise',
-                  params: {
-                    id,
-                    dayId,
-                    exerciseId: exercise.exerciseId,
-                    prescriptionId: exercise.id,
-                  },
-                })
-              }
+              onPress={() => setAction(exercise)}
               trailing={
                 <ActionMenu
                   label={t('exerciseActions', {

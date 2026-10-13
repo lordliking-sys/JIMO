@@ -115,12 +115,14 @@
   },
   "emom": {
     "confirmRound": "Conferma round {{round}}",
-    "start": "Avvia EMOM",
+    "start": "Inizia EMOM",
     "round": "Round {{current}} / {{total}}",
     "roundLabel": "Round",
     "lastSeconds": "Ultimi 5 secondi",
     "finished": "Intervalli terminati · registra i round mancanti",
     "saved": "Salvato: {{reps}} reps",
-    "completed": "Round completati: {{count}}"
+    "completed": "Round completati: {{count}}",
+    "prepare": "PREPARATI",
+    "defaultActualNotice": "Round completati automaticamente con i valori target come default. Correggi qui i valori effettivi se necessario."
   }
 }

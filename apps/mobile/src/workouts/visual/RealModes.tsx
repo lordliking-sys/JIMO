@@ -1,21 +1,15 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { View, Pressable, AccessibilityInfo } from 'react-native';
 import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'react-native-reanimated';
-import type {
-  WorkoutDetail,
-  WorkoutExercise,
-  WorkoutSet,
-  ActualInput,
-} from '@jimo/schemas';
+import type { WorkoutDetail, WorkoutExercise, WorkoutSet } from '@jimo/schemas';
 import { emomClock } from '../modes';
 import { useWorkoutActions, useWorkoutMutation } from '../queries';
-import { prefillDraft, actualPayload, setSummary } from '../helpers';
-import { ActualEditor } from '../ActualEditor';
+import { setSummary } from '../helpers';
 import { workoutHaptic } from '../haptics';
 import { WorkoutSurface, InkText } from './Surface';
-import { EnsoTimer, TargetPill, InkButton, ExerciseHero } from './components';
+import { EnsoTimer, CompletedSet, InkButton, ExerciseHero } from './components';
 import { ink } from './theme';
 import { ErrorNotice } from '../../programs/components';
 
@@ -87,117 +81,105 @@ export function PyramidSetTimeline({
     </View>
   );
 }
-function RoundEditor({
-  exercise,
-  set,
-  onSaved,
-}: {
-  exercise: WorkoutExercise;
-  set: WorkoutSet;
-  onSaved(w: WorkoutDetail): void;
-}) {
-  const { t, i18n } = useTranslation('workouts'),
-    api = useWorkoutActions(),
-    reduced = useReducedMotion();
-  const [draft, setDraft] = useState(() =>
-    prefillDraft(exercise, set, i18n.resolvedLanguage ?? 'it'),
-  );
-  const save = useWorkoutMutation(
-    (actual: ActualInput) => api.save(set.id, actual),
-    (w) => {
-      workoutHaptic('set', reduced);
-      onSaved(w);
-    },
-  );
-  let actual: ActualInput | null = null;
-  try {
-    actual = actualPayload(exercise, draft);
-  } catch {
-    /* inline feedback */
-  }
-  return (
-    <View style={{ width: '100%', gap: 8 }}>
-      <TargetPill exercise={exercise} set={set} />
-      <ActualEditor exercise={exercise} draft={draft} onChange={setDraft} />
-      <InkButton
-        primary
-        label={t('emom.confirmRound', { round: set.setNumber })}
-        disabled={!actual || save.isPending}
-        onPress={() => {
-          if (actual) save.mutate(actual);
-        }}
-      />
-      {save.error ? <ErrorNotice error={save.error} /> : null}
-    </View>
-  );
-}
 export function EmomWorkout({
   workout,
   exercise,
   now,
   header,
   onEdit,
+  onContinue,
 }: {
   workout: WorkoutDetail;
   exercise: WorkoutExercise;
   now: number;
   header: ReactNode;
   onEdit(set: WorkoutSet): void;
+  onContinue(): void;
 }) {
   const { t } = useTranslation('workouts'),
     api = useWorkoutActions(),
     reduced = useReducedMotion();
-  const clock = emomClock(exercise, now),
-    [selected, setSelected] = useState<string | null>(null);
+  const clock = emomClock(exercise, now);
   const start = useWorkoutMutation(() =>
     api.startEmom(workout.id, exercise.id),
   );
+  const advance = useWorkoutMutation(() =>
+    api.advanceEmom(workout.id, exercise.id),
+  );
   const cue = useRef<string | null>(null);
+  const needsReconcile = exercise.sets.some(
+    (s, i) => i < clock.completedRounds && s.status === 'pending',
+  );
   useEffect(() => {
-    if (!clock.started || clock.finished || clock.remaining > 5) return;
-    const key = `${exercise.id}:${clock.index}`;
+    if (needsReconcile && !advance.isPending && !advance.error)
+      advance.mutate(undefined);
+  }, [needsReconcile, advance]);
+  useEffect(() => {
+    if (!clock.started || clock.preparing) return;
+    const key = `${exercise.id}:${clock.finished ? 'finished' : clock.index}`;
     if (cue.current === key) return;
+    const firstObservation = cue.current === null;
     cue.current = key;
-    workoutHaptic('rest', reduced);
-    AccessibilityInfo.announceForAccessibility(t('emom.lastSeconds'));
+    if (!firstObservation || clock.index === 0 || clock.finished) {
+      workoutHaptic(clock.finished ? 'set' : 'rest', reduced);
+      AccessibilityInfo.announceForAccessibility(
+        t(clock.finished ? 'emom.finished' : 'emom.round', {
+          current: clock.index + 1,
+          total: exercise.sets.length,
+        }),
+      );
+    }
   }, [
     clock.started,
-    clock.finished,
-    clock.remaining,
+    clock.preparing,
     clock.index,
+    clock.finished,
     exercise.id,
+    exercise.sets.length,
     reduced,
     t,
   ]);
-  const round =
-    exercise.sets.find((s) => s.id === selected) ?? exercise.sets[clock.index]!;
+  const current = exercise.sets[clock.index]!;
   return (
     <WorkoutSurface variant="emom" centered>
       <View
         testID="emom-live"
-        style={{ width: '100%', gap: 12, alignItems: 'center' }}
+        style={{ width: '100%', gap: 14, alignItems: 'center' }}
       >
         {header}
         <ExerciseHero compact name={exercise.exerciseNameSnapshot} />
+        {clock.preparing ? (
+          <InkText style={{ fontSize: 26, letterSpacing: 2 }}>
+            {t('emom.prepare')}
+          </InkText>
+        ) : null}
         <EnsoTimer
           brush
           remaining={clock.remaining}
-          total={clock.interval}
-          label="EMOM"
+          total={clock.preparing ? 10 : clock.interval}
+          {...(clock.deadline && !clock.finished
+            ? { deadline: clock.deadline }
+            : {})}
+          secondsOnly={clock.preparing}
+          label={clock.preparing ? t('emom.prepare') : 'EMOM'}
         />
-        <InkText accessibilityLiveRegion="polite" style={{ fontSize: 24 }}>
-          {t('emom.round', {
-            current: clock.index + 1,
-            total: exercise.sets.length,
-          })}
-        </InkText>
-        {clock.started && !clock.finished && clock.remaining <= 5 ? (
-          <InkText style={{ color: ink.sage, fontSize: 20 }}>
-            {t('emom.lastSeconds')}
+        {!clock.preparing ? (
+          <InkText accessibilityLiveRegion="polite" style={{ fontSize: 24 }}>
+            {clock.finished
+              ? t('emom.finished')
+              : t('emom.round', {
+                  current: clock.index + 1,
+                  total: exercise.sets.length,
+                })}
           </InkText>
         ) : null}
-        {clock.finished ? (
-          <InkText style={{ fontSize: 22 }}>{t('emom.finished')}</InkText>
+        {!clock.finished && !clock.preparing ? (
+          <InkText
+            testID="emom-target-reps"
+            style={{ fontSize: 34, color: ink.parchment }}
+          >
+            {current.targetReps} {t('reps').toUpperCase()}
+          </InkText>
         ) : null}
         {!clock.started ? (
           <InkButton
@@ -206,66 +188,89 @@ export function EmomWorkout({
             disabled={start.isPending}
             onPress={() => start.mutate(undefined)}
           />
-        ) : round.status === 'pending' ? (
-          <RoundEditor
-            key={round.id}
-            exercise={exercise}
-            set={round}
-            onSaved={() => setSelected(null)}
-          />
-        ) : (
-          <InkText style={{ color: ink.sage, fontSize: 22 }}>
-            {t('emom.saved', { reps: round.actualReps ?? '—' })}
-          </InkText>
-        )}
+        ) : null}
         {start.error ? <ErrorNotice error={start.error} /> : null}
+        {advance.error ? (
+          <ErrorNotice
+            error={advance.error}
+            retry={() => advance.mutate(undefined)}
+          />
+        ) : null}
         <View
+          testID="emom-round-grid"
           style={{
             flexDirection: 'row',
             flexWrap: 'wrap',
-            gap: 6,
+            justifyContent: 'center',
+            alignSelf: 'center',
+            gap: 8,
             width: '100%',
+            maxWidth: 5 * 40 + 4 * 8,
           }}
         >
-          {exercise.sets.map((s, i) => (
-            <Pressable
-              key={s.id}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('emom.roundLabel')} ${s.setNumber} · ${t(s.status === 'completed' ? 'completed' : i === clock.index ? 'current' : 'pending')}`}
-              accessibilityState={{
-                selected: s.id === round.id,
-                disabled:
-                  !clock.started || (!clock.finished && i > clock.index),
-              }}
-              disabled={!clock.started || (!clock.finished && i > clock.index)}
-              onPress={() =>
-                s.status === 'completed' ? onEdit(s) : setSelected(s.id)
-              }
-              style={{
-                minWidth: 48,
-                minHeight: 48,
-                borderRadius: 24,
-                borderWidth: i === clock.index ? 2 : 1,
-                borderColor: i === clock.index ? ink.sage : ink.border,
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: i > clock.index && !clock.finished ? 0.55 : 1,
-              }}
-            >
-              <InkText style={{ fontSize: 20 }}>
-                {String(s.setNumber).padStart(2, '0')}
-              </InkText>
-              {s.status === 'completed' ? (
-                <Check size={16} color={ink.sage} />
-              ) : null}
-            </Pressable>
-          ))}
-        </View>
-        <InkText style={{ fontSize: 17, color: ink.secondary }}>
-          {t('emom.completed', {
-            count: exercise.sets.filter((s) => s.status === 'completed').length,
+          {exercise.sets.map((s, i) => {
+            const completed = i < clock.completedRounds,
+              active =
+                clock.started &&
+                !clock.preparing &&
+                !clock.finished &&
+                i === clock.index;
+            return (
+              <View
+                key={s.id}
+                accessible
+                accessibilityLabel={`${t('emom.roundLabel')} ${s.setNumber} · ${t(completed ? 'completed' : active ? 'current' : 'pending')}`}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  borderWidth: active ? 2 : 1,
+                  borderColor: active ? ink.sage : ink.border,
+                  backgroundColor: active ? ink.surface : 'transparent',
+                  opacity: completed || active ? 1 : 0.5,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {completed ? (
+                  <Check size={20} color={ink.sage} />
+                ) : (
+                  <InkText
+                    style={{
+                      fontSize: 20,
+                      color: active ? ink.sage : ink.secondary,
+                    }}
+                  >
+                    {String(s.setNumber).padStart(2, '0')}
+                  </InkText>
+                )}
+              </View>
+            );
           })}
-        </InkText>
+        </View>
+        {clock.finished ? (
+          <View testID="emom-summary" style={{ width: '100%', gap: 10 }}>
+            <InkText style={{ fontSize: 19, color: ink.secondary }}>
+              {t('emom.defaultActualNotice')}
+            </InkText>
+            {exercise.sets
+              .filter((s) => s.status === 'completed')
+              .map((s) => (
+                <CompletedSet
+                  key={s.id}
+                  exercise={exercise}
+                  set={s}
+                  onEdit={() => onEdit(s)}
+                />
+              ))}
+            <InkButton
+              primary
+              label={t('continue')}
+              disabled={needsReconcile || advance.isPending}
+              onPress={onContinue}
+            />
+          </View>
+        ) : null}
       </View>
     </WorkoutSurface>
   );

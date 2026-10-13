@@ -212,7 +212,10 @@ export async function workoutFixture(page: Page, locale = 'it') {
             });
           } else if (op.operationType === 'START_EMOM') {
             const e = workout.exercises.find((e) => e.id === op.entityId)!;
-            e.emomStartedAt ??= op.createdAt;
+            e.emomStartedAt ??= new Date(
+              Date.parse(op.createdAt) +
+                (op.payload.preparationSeconds ?? 0) * 1000,
+            ).toISOString();
           } else if (
             op.operationType === 'COMPLETE_SET' ||
             op.operationType === 'UPDATE_SET' ||

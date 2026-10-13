@@ -5,6 +5,7 @@ import {
   type DayInput,
   type Prescription,
 } from '@jimo/schemas';
+import { z } from 'zod';
 import { apiRequest } from './client';
 export const programsApi = {
   list: (locale: string, signal?: AbortSignal) =>
@@ -37,6 +38,11 @@ export const programsApi = {
   archive: (id: string, locale: string) =>
     apiRequest(`/programs/${id}/archive`, programDetailSchema, {
       method: 'POST',
+      locale,
+    }),
+  remove: (id: string, locale: string) =>
+    apiRequest(`/programs/${id}`, z.object({ id: z.uuid() }), {
+      method: 'DELETE',
       locale,
     }),
   saveDay: (

@@ -136,6 +136,9 @@ for (const device of devices) {
         expect(title.y + title.height).toBeLessThanOrEqual(before.height);
       }
       if (route === '/profile') {
+        await expect(page.getByTestId('profile-readability-wash')).toHaveCount(
+          0,
+        );
         await expect(
           page.getByText('Disciplina · Costanza · Risultati', { exact: true }),
         ).toHaveCount(0);
@@ -173,7 +176,7 @@ for (const device of devices) {
       `/program/${f.program.id}/day-detail?dayId=${f.program.days[0]!.id}`,
     );
     await expect(
-      page.getByRole('heading', { name: 'FORZA Lunedì', exact: true }),
+      page.getByRole('heading', { name: 'FORZA', exact: true }),
     ).toBeVisible();
     await expect(page.getByRole('heading', { name: /Giorno 1/ })).toHaveCount(
       0,
@@ -206,12 +209,12 @@ for (const device of devices) {
       if (mode === 'emom') {
         await expect(page.getByTestId('emom-live')).toBeVisible();
         await page
-          .getByRole('button', { name: 'Avvia EMOM', exact: true })
+          .getByRole('button', { name: 'Inizia EMOM', exact: true })
           .click();
         await expect(
-          page.getByText('Round 1 / 3', { exact: true }),
+          page.getByText('PREPARATI', { exact: true }),
         ).toBeVisible();
-        await expect(valueButton(page, 'Ripetizioni')).toHaveText('5');
+        await expect(valueButton(page, 'Ripetizioni')).toHaveCount(0);
       } else {
         await expect(page.getByTestId('pyramid-live-timeline')).toBeVisible();
         await expect(valueButton(page, 'Ripetizioni')).toHaveText('12');
@@ -225,31 +228,26 @@ for (const device of devices) {
       await page.screenshot({ path: info.outputPath(`${mode}-live.png`) });
     });
 }
-test('EMOM interval advances while actuals remain explicit; durable timer resumes after reload', async ({
+test('EMOM prepares, auto-advances with defaults and durable timer resumes after reload', async ({
   page,
 }) => {
-  await page.clock.install({ time: new Date('2026-10-12T10:00:00Z') });
+  await page.clock.install({ time: new Date('2026-10-13T10:00:00Z') });
   const f = await modeFixture(page, 'emom');
   await page.goto('/workout');
   await page
     .getByRole('button', { name: 'Inizia allenamento', exact: true })
     .first()
     .click();
-  await page.getByRole('button', { name: 'Avvia EMOM', exact: true }).click();
-  await page
-    .getByRole('button', { name: 'Diminuisci Ripetizioni', exact: true })
-    .click();
-  await page
-    .getByRole('button', { name: 'Conferma round 1', exact: true })
-    .click();
-  await expect.poll(() => f.workout.exercises[0]!.sets[0]!.actualReps).toBe(4);
-  expect(f.workout.exercises[0]!.sets[0]!.targetReps).toBe(5);
-  await page.clock.fastForward(61_000);
+  await page.getByRole('button', { name: 'Inizia EMOM', exact: true }).click();
+  await expect(page.getByText('PREPARATI', { exact: true })).toBeVisible();
+  await page.clock.fastForward(71_000);
   await expect(page.getByText('Round 2 / 3', { exact: true })).toBeVisible();
+  await expect.poll(() => f.workout.exercises[0]!.sets[0]!.actualReps).toBe(5);
+  expect(f.workout.exercises[0]!.sets[0]!.targetReps).toBe(5);
   expect(f.workout.exercises[0]!.sets[1]!.actualReps).toBeNull();
   await page.reload();
   await expect(page.getByText('Round 2 / 3', { exact: true })).toBeVisible();
-  await expect(valueButton(page, 'Ripetizioni')).toHaveText('5');
+  await expect(valueButton(page, 'Ripetizioni')).toHaveCount(0);
 });
 test('Pyramid confirmation/rest/correction use real per-set snapshots', async ({
   page,

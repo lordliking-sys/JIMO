@@ -95,6 +95,7 @@ export function NumberControl({
   displayValue,
   labelAccessory,
   hideEmptyControl = false,
+  fillRow = false,
 }: {
   label: string;
   value: string;
@@ -113,6 +114,7 @@ export function NumberControl({
   displayValue?: string;
   labelAccessory?: ReactNode;
   hideEmptyControl?: boolean;
+  fillRow?: boolean;
 }) {
   const { t } = useTranslation('programs');
   const [editing, setEditing] = useState(false);
@@ -175,7 +177,7 @@ export function NumberControl({
     ) : (
       chipsBody
     );
-  const compact = visual && !editing;
+  const compact = visual && (!editing || fillRow);
   return (
     <View style={{ gap: spacing.sm }}>
       {!compact ? (
@@ -210,7 +212,7 @@ export function NumberControl({
           <Text
             variant="label"
             color={programInk.text}
-            style={{ flex: 1, minWidth: 0, fontSize: 13 }}
+            style={{ flex: fillRow ? undefined : 1, minWidth: 0, fontSize: 13 }}
           >
             {displayLabel ?? label}
           </Text>
@@ -226,7 +228,8 @@ export function NumberControl({
                 borderRadius: 14,
                 backgroundColor: programInk.field,
               },
-              compact && { width: 164 },
+              compact &&
+                (fillRow ? { flex: 1, minWidth: 164 } : { width: 164 }),
             ]}
           >
             <IconButton

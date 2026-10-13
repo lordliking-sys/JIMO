@@ -6,7 +6,6 @@ import {
   EmomWorkout,
   PyramidSetTimeline,
 } from '../../src/workouts/visual/RealModes';
-import { emomClock } from '../../src/workouts/modes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
@@ -218,6 +217,31 @@ export default function WorkoutScreen() {
   } | null>(null);
   const [restSaving, setRestSaving] = useState(false),
     [restSaveError, setRestSaveError] = useState(false);
+  const [reviewSaveError, setReviewSaveError] = useState(false);
+  const [reviewed, setReviewed] = useState<{
+    key: string;
+    ids: string[];
+  } | null>(null);
+  const reviewKey = `emom-reviewed:${runtime.owner}:${id}`;
+  useEffect(() => {
+    let live = true;
+    if (!runtime.owner) return;
+    void runtime
+      .metadata(runtime.identity(), reviewKey)
+      .then((value) => {
+        if (live)
+          setReviewed({
+            key: reviewKey,
+            ids: value ? (JSON.parse(value) as string[]) : [],
+          });
+      })
+      .catch(() => {
+        if (live) setReviewed({ key: reviewKey, ids: [] });
+      });
+    return () => {
+      live = false;
+    };
+  }, [runtime, reviewKey]);
   const [preview, setPreview] = useState<PreviewMode | null>(null);
   const previousRest = useRef<string | null>(null),
     storageKey = `rest-skipped:${runtime.owner}:${id}`;
@@ -335,6 +359,9 @@ export default function WorkoutScreen() {
   );
   const errors = (
     <>
+      {reviewSaveError ? (
+        <InkText accessibilityRole="alert">{t('offline.saveFailed')}</InkText>
+      ) : null}
       {finish.error ? (
         <ErrorNotice error={finish.error} retry={finishAction} />
       ) : null}
@@ -377,7 +404,7 @@ export default function WorkoutScreen() {
         (e) =>
           e.workoutModeSnapshot === 'emom' &&
           e.emomStartedAt &&
-          !emomClock(e, now).finished,
+          (reviewed?.key !== reviewKey || !reviewed.ids.includes(e.id)),
       ) ??
       (next?.exercise.workoutModeSnapshot === 'emom' ? next.exercise : null);
     if (emom)
@@ -393,6 +420,14 @@ export default function WorkoutScreen() {
             </>
           }
           onEdit={(s) => openCorrection(emom.id, s.id)}
+          onContinue={() => {
+            setReviewSaveError(false);
+            const ids = [...(reviewed?.ids ?? []), emom.id];
+            void runtime
+              .metadata(runtime.identity(), reviewKey, JSON.stringify(ids))
+              .then(() => setReviewed({ key: reviewKey, ids }))
+              .catch(() => setReviewSaveError(true));
+          }}
         />
       );
     if (rest && next)

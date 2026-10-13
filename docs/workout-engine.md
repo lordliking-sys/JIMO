@@ -1,3 +1,5 @@
+> Current navigation and EMOM execution: see [program-flow-handsfree-emom.md](program-flow-handsfree-emom.md) for the three-level program flow, permanent deletion with preserved history, durable 10-second preparation and automatic round defaults/corrections. No new migration.
+
 > EMOM and Pyramid use the same session/SQLite/outbox/sync engine. See [android-workout-modes.md](android-workout-modes.md) for mode snapshots, `START_EMOM`, per-set targets, actual recording and verified compatibility.
 
 # Task 5 — Workout Engine

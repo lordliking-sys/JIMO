@@ -121,6 +121,8 @@
     "lastSeconds": "Last 5 seconds",
     "finished": "Intervals finished · record missing rounds",
     "saved": "Saved: {{reps}} reps",
-    "completed": "Completed rounds: {{count}}"
+    "completed": "Completed rounds: {{count}}",
+    "prepare": "GET READY",
+    "defaultActualNotice": "Rounds completed automatically using targets as defaults. Correct your actual values here if needed."
   }
 }

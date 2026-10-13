@@ -193,5 +193,10 @@
   "removeSet": "Rimuovi serie",
   "pyramidSummary": "Piramidale · {{sets}} serie",
   "emomSummary": "EMOM · {{rounds}} × {{reps}} reps · {{seconds}} sec",
-  "perSetTargets": "Target per serie"
+  "perSetTargets": "Target per serie",
+  "deleteProgram": "Elimina programma",
+  "confirmDeleteProgram": "Eliminare definitivamente questo programma?",
+  "deleteProgramExplanation": "Il programma e la sua struttura verranno rimossi. Lo storico degli allenamenti già eseguiti non verrà eliminato.",
+  "daysHeading": "GIORNATE",
+  "deleteSyncPending": "Attendi la sincronizzazione degli allenamenti prima di eliminare il programma."
 }
