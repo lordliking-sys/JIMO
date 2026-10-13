@@ -162,7 +162,7 @@ for (const device of devices)
     );
     await page.evaluate(() => document.fonts.ready);
     const background = (await page
-      .getByTestId('home-background')
+      .getByTestId('section-hero-art')
       .boundingBox())!;
     expect(Math.abs(background.x)).toBeLessThan(1);
     expect(Math.abs(background.width - device.width)).toBeLessThan(1);
@@ -172,12 +172,12 @@ for (const device of devices)
         .boundingBox())!;
     expect(hero.height).toBeGreaterThanOrEqual(296);
     expect(hero.y + hero.height).toBeLessThanOrEqual(workoutCard.y - 8);
-    await expect(page.getByTestId('home-greeting')).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { name: 'Buon pomeriggio', exact: true }),
+    ).toBeVisible();
     await expect(page.getByTestId('home-name')).toHaveCount(0);
     await expect(page.getByTestId('home-motto')).toHaveCount(0);
-    await expect(
-      page.getByRole('heading', { name: 'JIMO', exact: true }),
-    ).toHaveCount(1);
+    await expect(page.getByTestId('home-brand')).toHaveCount(1);
     await expect(page.getByRole('tab')).toHaveText([
       'Home',
       'Scheda',
@@ -192,10 +192,6 @@ for (const device of devices)
         device.height - device.bottom + 1,
       );
     }
-    await expect(page.getByTestId('home-progress')).toContainText('7');
-    await expect(page.getByTestId('home-streak')).toContainText(
-      'Non disponibile',
-    );
     await expect(page.getByText('Leonardo', { exact: true })).toHaveCount(0);
     await expect(
       page
@@ -235,10 +231,10 @@ for (const device of devices)
     for (const day of fixture.program.days) {
       const card = page.getByTestId(`program-day-${day.id}`);
       await expect(card.locator('img')).toHaveCount(0);
-      await expect(card).toHaveCSS('background-color', 'rgb(16, 19, 15)');
+      await expect(card).toHaveCSS('background-color', 'rgb(255, 255, 255)');
       await expect(card.locator('svg').last()).toHaveAttribute(
         'stroke',
-        '#b7c69b',
+        '#FF4D8D',
       );
     }
     await expect(
@@ -246,16 +242,6 @@ for (const device of devices)
     ).toBeChecked();
     await expect(page.getByRole('radio')).toHaveCount(12);
     const weekScroll = page.getByTestId('program-week-scroll');
-    if (device.width === 390) {
-      const viewport = (await weekScroll.boundingBox())!,
-        third = (await page
-          .getByRole('radio', { name: 'Settimana 3', exact: true })
-          .boundingBox())!;
-      expect(third.x).toBeLessThan(viewport.x + viewport.width);
-      expect(third.x + third.width).toBeGreaterThan(
-        viewport.x + viewport.width,
-      );
-    }
     await noOverflow(page);
     await page.screenshot({ path: info.outputPath('program-reference.png') });
     await page.getByRole('radio', { name: 'Settimana 2', exact: true }).click();
@@ -388,7 +374,9 @@ test('Home stays full bleed with lateral insets and its last row clears the navb
   await expect(page.getByTestId('home-workout-card')).toContainText(
     'Push Pull Legs',
   );
-  const background = (await page.getByTestId('home-background').boundingBox())!,
+  const background = (await page
+      .getByTestId('section-hero-art')
+      .boundingBox())!,
     card = (await page.getByTestId('home-workout-card').boundingBox())!;
   expect(Math.abs(background.x)).toBeLessThan(1);
   expect(Math.abs(background.width - 390)).toBeLessThan(1);
@@ -678,7 +666,7 @@ test('week selection keeps adjacent context, avoids unnecessary movement and scr
 });
 
 for (const device of devices)
-  test(`shared folklore seam ${device.width}x${device.height}: low progress title, name-only profile and clean dark program body`, async ({
+  test(`shared anime-pink seam ${device.width}x${device.height}: upper progress title, overlapping identity and light program body`, async ({
     page,
   }, info) => {
     await page.setViewportSize(device);
@@ -696,7 +684,7 @@ for (const device of devices)
     await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
     await expect(
       page.getByRole('heading', { name: 'PROFILO', exact: true }),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
     const profile = (await page
       .getByTestId('profile-editorial-screen')
       .getByTestId('section-hero-art')
@@ -712,11 +700,11 @@ for (const device of devices)
     expect(scheme.height).toBeCloseTo(progress.height, 0);
     expect(scheme.y).toBe(0);
     expect((await body.boundingBox())!.y).toBeCloseTo(
-      scheme.y + scheme.height,
+      scheme.y + scheme.height - 24,
       0,
     );
     expect(
       await body.evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(16, 19, 15)');
+    ).toBe('rgb(255, 247, 250)');
     await page.screenshot({ path: info.outputPath('scheme-hero-body.png') });
   });

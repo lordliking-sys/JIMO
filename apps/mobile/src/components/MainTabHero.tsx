@@ -85,7 +85,7 @@ export function MainTabHeroArtwork({
   lighten = false,
   imageTestID,
 }: {
-  source: ImageSourcePropType;
+  source: ImageSourcePropType | null;
   width: number;
   height: number;
   dark: boolean;
@@ -109,7 +109,7 @@ export function MainTabHeroArtwork({
     >
       <Image
         testID={imageTestID}
-        source={source}
+        source={source ?? undefined}
         accessible={false}
         resizeMode="cover"
         style={{

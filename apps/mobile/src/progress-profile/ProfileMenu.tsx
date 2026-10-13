@@ -53,7 +53,7 @@ export function ProfileMenuRow({
         disabled={disabled}
         onPress={onPress}
         style={({ pressed }) => ({
-          minHeight: 74,
+          minHeight: 68,
           flexDirection: 'row',
           alignItems: 'center',
           gap: 16,
@@ -61,15 +61,15 @@ export function ProfileMenuRow({
           opacity: disabled ? 0.6 : pressed ? 0.7 : 1,
         })}
       >
-        <Icon size={27} color={ink.charcoal} accessible={false} />
+        <Icon size={27} color={ink.green} accessible={false} />
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <EditorialText style={{ fontSize: 24, lineHeight: 27 }}>
+          <EditorialText style={{ fontSize: 17, lineHeight: 23 }}>
             {title}
           </EditorialText>
           <Copy>{subtitle}</Copy>
         </View>
         {!disabled ? (
-          <Chevron size={22} color={ink.charcoal} accessible={false} />
+          <Chevron size={22} color={ink.green} accessible={false} />
         ) : null}
       </Pressable>
       {expanded ? (
@@ -105,7 +105,7 @@ export function ProfileChoice({
         gap: 12,
         borderWidth: selected ? 2 : 1,
         borderColor: selected ? ink.green : ink.border,
-        borderRadius: 7,
+        borderRadius: 16,
         paddingHorizontal: 14,
         paddingVertical: 10,
         opacity: disabled ? 0.5 : 1,

@@ -27,7 +27,14 @@ import type {
   ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, radius, sizes, spacing, typography } from './tokens';
+import {
+  animePink,
+  colors,
+  radius,
+  sizes,
+  spacing,
+  typography,
+} from './tokens';
 import type { TextVariant } from './tokens';
 import { scrollToReveal } from './keyboard';
 
@@ -227,8 +234,12 @@ export function Button({
             ? colors.primary
             : variant === 'text'
               ? 'transparent'
-              : colors.elevated,
+              : colors.surface,
           opacity: disabled ? 0.55 : pressed ? 0.8 : 1,
+        },
+        variant === 'secondary' && {
+          borderWidth: 1,
+          borderColor: colors.primary,
         },
         variant === 'text' && {
           paddingVertical: spacing.sm,
@@ -239,11 +250,11 @@ export function Button({
       ]}
     >
       {busy ? (
-        <ActivityIndicator color={primary ? colors.background : colors.text} />
+        <ActivityIndicator color={primary ? animePink.white : colors.primary} />
       ) : (
         <Text
           variant="bodyMedium"
-          color={primary ? colors.background : colors.text}
+          color={primary ? animePink.white : colors.primary}
           style={styles.center}
         >
           {label}
@@ -315,7 +326,7 @@ const styles = StyleSheet.create({
   },
   button: {
     minWidth: sizes.touch,
-    minHeight: sizes.touch,
+    minHeight: 54,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.medium,
@@ -330,6 +341,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.large,
     padding: spacing.xl,
     gap: spacing.lg,
+    shadowColor: animePink.ink,
+    shadowOpacity: 0.035,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
   iconButton: {
     width: sizes.touch,

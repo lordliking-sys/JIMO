@@ -1,75 +1,87 @@
 import { SectionHeroFrame } from '../components/SectionHero';
-import { Pressable, View, useWindowDimensions } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { EditorialText, useProfileMenuAnchor } from './Surface';
+import {
+  EditorialText,
+  Copy,
+  PaperCard,
+  useProfileMenuAnchor,
+} from './Surface';
+import { HeroTitle } from '../themes/anime-pink/HeroTitle';
+import { animePink } from '@jimo/ui';
 import Settings from 'lucide-react-native/icons/settings';
-import { ink } from './theme';
 import { ProfileAvatar } from './ProfileAvatar';
-
 export function ProgressHero() {
   const { t } = useTranslation('progressProfile');
   return (
-    <SectionHeroFrame testID="progress-tab-hero">
-      <EditorialText
-        testID="progress-hero-title"
-        accessibilityRole="header"
-        style={{
-          textAlign: 'center',
-          fontSize: 30,
-          letterSpacing: 2,
-          marginBottom: 12,
-        }}
-      >
-        {t('progressTitle')}
-      </EditorialText>
+    <SectionHeroFrame
+      testID="progress-tab-hero"
+      style={{ justifyContent: 'flex-start', paddingTop: 18 }}
+    >
+      <HeroTitle testID="progress-hero-title" accessibilityRole="header">
+        {t('progressTitle').toUpperCase()}
+      </HeroTitle>
     </SectionHeroFrame>
   );
 }
-export function ProfileHero({ name }: { name: string | null }) {
-  const { t } = useTranslation('progressProfile'),
-    { width } = useWindowDimensions();
+export function ProfileHero() {
+  const { t } = useTranslation('progressProfile');
   const { jumpToMenu } = useProfileMenuAnchor();
   return (
-    <SectionHeroFrame testID="profile-tab-hero">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('settings')}
-        onPress={jumpToMenu}
-        style={({ pressed }) => ({
-          position: 'absolute',
-          right: 0,
-          top: 8,
-          width: 48,
-          height: 48,
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: pressed ? 0.7 : 1,
-        })}
-      >
-        <Settings size={25} color={ink.paper} accessible={false} />
-      </Pressable>
-      <View
-        style={{
-          alignSelf: 'flex-end',
-          width: '56%',
-          paddingTop: Math.min(130, width * 0.3),
-        }}
-      >
-        <View style={{ alignItems: 'center', gap: 2 }}>
-          <ProfileAvatar name={name} />
-          <EditorialText
-            testID="profile-display-name"
-            style={{
-              color: ink.paper,
-              fontSize: 23,
-              lineHeight: 26,
-              textAlign: 'center',
-            }}
-          >
-            {name || t('identityFallback')}
-          </EditorialText>
-        </View>
+    <SectionHeroFrame
+      testID="profile-tab-hero"
+      style={{ justifyContent: 'flex-start', paddingTop: 18 }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <HeroTitle accessibilityRole="header" style={{ flex: 1, fontSize: 28 }}>
+          {t('profileTitle').toUpperCase()}
+        </HeroTitle>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('settings')}
+          onPress={jumpToMenu}
+          style={{
+            width: 48,
+            height: 48,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Settings size={25} color={animePink.white} accessible={false} />
+        </Pressable>
       </View>
     </SectionHeroFrame>
+  );
+}
+export function ProfileIdentity({
+  name,
+  email,
+}: {
+  name: string | null;
+  email: string | null;
+}) {
+  const { t } = useTranslation('progressProfile');
+  return (
+    <PaperCard
+      testID="profile-identity-card"
+      style={{
+        marginTop: -48,
+        zIndex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+      }}
+    >
+      <ProfileAvatar name={name} />
+      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+        <EditorialText
+          testID="profile-display-name"
+          style={{ fontSize: 23, lineHeight: 29 }}
+        >
+          {name || t('identityFallback')}
+        </EditorialText>
+        {email ? <Copy style={{ fontSize: 13 }}>{email}</Copy> : null}
+      </View>
+    </PaperCard>
   );
 }

@@ -1,7 +1,8 @@
-/** Original supplied files; shared by tab and program surfaces without duplication. */
+import { animePinkAssets } from '../themes/anime-pink/assets';
+/** Active theme only. Original folklore files remain available for rollback. */
 export const tabArtwork = {
-  home: require('../../assets/jimo/folklore/alba_d_autunno_del_kitsune.png'),
-  program: require('../../assets/jimo/folklore/scheda-oni-bg.png'),
-  progress: require('../../assets/jimo/folklore/progressi-tengu-bg.png'),
-  profile: require('../../assets/jimo/folklore/profilo-kappa-bg.png'),
+  home: animePinkAssets['home.hero'],
+  program: animePinkAssets['program.hero'],
+  progress: animePinkAssets['progress.hero'],
+  profile: animePinkAssets['profile.hero'],
 };

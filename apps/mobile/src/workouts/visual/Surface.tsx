@@ -8,12 +8,10 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import {
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -25,8 +23,9 @@ import {
 } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
-import { artwork, ink } from './theme';
+import { ink } from './theme';
+import { ThemeArtwork } from '../../themes/anime-pink/Artwork';
+import { animePinkAssets } from '../../themes/anime-pink/assets';
 
 const FontReady = createContext(false);
 const ContentWidth = createContext<number | null>(null);
@@ -57,18 +56,13 @@ export function useWorkoutLayout() {
 }
 
 export function InkText({ style, ...props }: TextProps) {
-  const loaded = useContext(FontReady);
   return (
     <Text
       {...props}
       style={[
         {
           color: ink.parchment,
-          fontFamily: loaded
-            ? 'JimoWorkoutSerif'
-            : Platform.OS === 'ios'
-              ? 'Georgia'
-              : 'serif',
+          fontFamily: 'Inter_500Medium',
           fontSize: 22,
           fontVariant: ['lining-nums', 'tabular-nums'],
         },
@@ -222,30 +216,17 @@ export function WorkoutSurface({
       testID="workout-surface"
       style={{ flex: 1, minHeight: 0, backgroundColor: ink.background }}
     >
-      <Image
-        source={artwork.background}
-        resizeMode="cover"
-        style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
-        accessible={false}
+      <ThemeArtwork
+        source={
+          animePinkAssets[
+            variant === 'emom'
+              ? 'workout.emom'
+              : variant === 'pyramid'
+                ? 'workout.pyramid'
+                : 'workout.standard'
+          ]
+        }
       />
-      <Svg
-        style={StyleSheet.absoluteFill}
-        width="100%"
-        height="100%"
-        pointerEvents="none"
-      >
-        <Defs>
-          <LinearGradient id="workoutInkShade" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#080d09" stopOpacity="0.4" />
-            <Stop offset="0.2" stopColor="#080d09" stopOpacity="0.1" />
-            <Stop offset="0.5" stopColor="#080d09" stopOpacity="0.25" />
-            <Stop offset="0.72" stopColor="#080d09" stopOpacity="0.75" />
-            <Stop offset="0.9" stopColor="#080d09" stopOpacity="0.65" />
-            <Stop offset="1" stopColor="#080d09" stopOpacity="0.25" />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#workoutInkShade)" />
-      </Svg>
       <StatusBar style="light" />
       <WorkoutTypography>
         <SafeAreaView

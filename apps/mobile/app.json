@@ -11,11 +11,11 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#090B0F",
+          "backgroundColor": "#18131C",
           "image": "./assets/wordmark.png",
           "imageWidth": 200,
           "dark": {
-            "backgroundColor": "#090B0F",
+            "backgroundColor": "#18131C",
             "image": "./assets/wordmark.png"
           }
         }
@@ -38,15 +38,15 @@
       "bundler": "metro",
       "output": "static"
     },
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#090B0F",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FFF7FA",
     "androidStatusBar": {
       "barStyle": "light-content",
-      "backgroundColor": "#090B0F"
+      "backgroundColor": "#00000000"
     },
     "androidNavigationBar": {
-      "barStyle": "light-content",
-      "backgroundColor": "#090B0F"
+      "barStyle": "dark-content",
+      "backgroundColor": "#FFFFFF"
     },
     "locales": {
       "en": "./src/i18n/permissions/en.json",

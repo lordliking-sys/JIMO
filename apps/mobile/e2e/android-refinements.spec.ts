@@ -132,7 +132,8 @@ for (const device of devices) {
         const title = (await page
           .getByTestId('progress-hero-title')
           .boundingBox())!;
-        expect(title.y).toBeGreaterThan(before.height * 0.7);
+        expect(title.y).toBeLessThan(before.height * 0.3);
+        expect(title.y).toBeGreaterThanOrEqual(24);
         expect(title.y + title.height).toBeLessThanOrEqual(before.height);
       }
       if (route === '/profile') {

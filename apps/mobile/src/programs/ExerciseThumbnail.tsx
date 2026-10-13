@@ -1,4 +1,3 @@
-import { thumbnailGeometry } from './thumbnail-geometry';
 import { useState } from 'react';
 import {
   Image,
@@ -8,6 +7,7 @@ import {
 } from 'react-native';
 import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import type { ExerciseDto } from '@jimo/schemas';
+import { animePink } from '@jimo/ui';
 import { ink } from '../progress-profile/theme';
 import {
   exerciseArtworkKey,
@@ -22,7 +22,7 @@ import {
 /** Decorative only: the containing row owns the full exercise/accessibility label. */
 export function ExerciseThumbnail({
   exercise,
-  tone = 'dark',
+  tone = 'light',
   variant = 'male',
   size = 56,
   cardBackground = true,
@@ -39,7 +39,11 @@ export function ExerciseThumbnail({
   const source = key ? sources[key] : undefined;
   const [failedSource, setFailedSource] = useState<ImageSourcePropType>();
   const failed = !!source && failedSource === source;
-  const geometry = thumbnailGeometry(key, variant, size);
+  const geometry = {
+    width: Math.round((size * 4) / 3),
+    height: size,
+    image: { width: '100%' as const, height: '100%' as const },
+  };
   return (
     <View
       testID="exercise-thumbnail"
@@ -66,7 +70,11 @@ export function ExerciseThumbnail({
           source={exerciseCardBackgrounds[tone]}
           resizeMode="cover"
           accessible={false}
-          style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
+          style={[
+            StyleSheet.absoluteFill,
+            { width: '100%', height: '100%' },
+            tone === 'light' && { tintColor: animePink.surfaceSoft },
+          ]}
         />
       ) : null}
       {source && !failed ? (

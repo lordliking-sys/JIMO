@@ -23,7 +23,7 @@ export function HomeBackdrop({
     >
       <Image
         testID="home-background"
-        source={mainArtwork.home}
+        source={mainArtwork.home ?? undefined}
         resizeMode="cover"
         accessible={false}
         style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}

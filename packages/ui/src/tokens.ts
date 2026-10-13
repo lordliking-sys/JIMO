@@ -1,17 +1,39 @@
 import type { TextStyle } from 'react-native';
+/** Active presentation palette. Dark surfaces are reserved for immersive workouts/heroes. */
+export const animePink = {
+  background: '#FFF7FA',
+  surface: '#FFFFFF',
+  surfaceSoft: '#FFF0F5',
+  surfaceDark: '#18131C',
+  ink: '#1D1723',
+  textPrimary: '#211927',
+  textSecondary: '#756A78',
+  primaryPink: '#FF4D8D',
+  primaryPinkSoft: '#FF8DB5',
+  primaryPinkPale: '#FFD9E7',
+  magenta: '#D83F8A',
+  primaryAction: '#D92D73',
+  primaryText: '#C52A68',
+  white: '#FFFFFF',
+  border: 'rgba(90,50,75,0.12)',
+  darkOverlay: 'rgba(15,8,18,0.25)',
+  danger: '#B4233C',
+  darkBorder: 'rgba(255,141,181,0.24)',
+  darkMuted: '#C9BACB',
+} as const;
 export const colors = {
-  background: '#090B0F',
-  surface: '#11151B',
-  elevated: '#171C23',
-  text: '#F4F7FA',
-  secondary: '#98A2B3',
-  muted: '#667085',
-  primary: '#39D98A',
-  primarySoft: '#67E8B2',
-  warning: '#F4B942',
-  danger: '#FF5D5D',
-  border: '#232A34',
-  activeBorder: '#2F8F68',
+  background: animePink.background,
+  surface: animePink.surface,
+  elevated: animePink.surfaceSoft,
+  text: animePink.textPrimary,
+  secondary: animePink.textSecondary,
+  muted: animePink.textSecondary,
+  primary: animePink.primaryAction,
+  primarySoft: animePink.primaryPinkSoft,
+  warning: '#8B5719',
+  danger: animePink.danger,
+  border: animePink.border,
+  activeBorder: animePink.primaryPink,
 } as const;
 export const spacing = {
   xs: 4,
@@ -25,8 +47,8 @@ export const spacing = {
 } as const;
 export const radius = {
   small: 8,
-  medium: 12,
-  large: 16,
+  medium: 18,
+  large: 20,
   xl: 24,
   full: 999,
 } as const;

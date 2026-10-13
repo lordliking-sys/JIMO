@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Check from 'lucide-react-native/icons/check';
 import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
-import { Text } from '@jimo/ui';
+import { Text, animePink } from '@jimo/ui';
 import type { DayDto, ProgramDetail, WorkoutSummary } from '@jimo/schemas';
 import { MainText } from './Surface';
 import { mainInk } from './theme';
@@ -55,15 +55,13 @@ export function DayCard({
             });
         }}
         style={({ pressed }) => ({
-          minHeight: state === 'current' ? 132 : 116,
-          borderRadius: 28,
+          minHeight: state === 'current' ? 104 : 92,
+          borderRadius: 20,
           borderWidth: 1,
           borderColor:
-            state === 'current'
-              ? 'rgba(183, 198, 155, 0.50)'
-              : 'rgba(183, 198, 155, 0.22)',
+            state === 'current' ? animePink.primaryPink : animePink.border,
           overflow: 'hidden',
-          backgroundColor: mainInk.charcoal,
+          backgroundColor: animePink.surface,
           opacity: pressed ? 0.8 : 1,
         })}
       >
@@ -73,7 +71,7 @@ export function DayCard({
             alignItems: 'center',
             gap: 16,
             paddingHorizontal: 18,
-            paddingVertical: state === 'current' ? 22 : 18,
+            paddingVertical: state === 'current' ? 18 : 14,
           }}
         >
           <View style={{ flex: 1, gap: 1 }}>
@@ -84,7 +82,7 @@ export function DayCard({
                 )}
               </MainText>
             ) : null}
-            <MainText style={{ fontSize: 30, lineHeight: 33 }}>
+            <MainText style={{ fontSize: 20, lineHeight: 27 }}>
               {day.name}
             </MainText>
             <Text
@@ -103,7 +101,7 @@ export function DayCard({
               borderRadius: 20,
               borderWidth: 1,
               borderColor: mainInk.sage,
-              backgroundColor: 'rgba(9, 15, 10, 0.8)',
+              backgroundColor: animePink.surfaceSoft,
               alignItems: 'center',
               justifyContent: 'center',
             }}

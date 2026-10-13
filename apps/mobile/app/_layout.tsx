@@ -5,7 +5,7 @@ import { OfflineProvider } from '../src/db/Provider';
 import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { Stack } from 'expo-router';
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -22,9 +22,9 @@ import { StartupScreen } from '../src/components/StartupScreen';
 import { BrandTransition } from '../src/components/BrandTransition';
 void SplashScreen.preventAutoHideAsync();
 const theme = {
-  ...DarkTheme,
+  ...DefaultTheme,
   colors: {
-    ...DarkTheme.colors,
+    ...DefaultTheme.colors,
     background: colors.background,
     card: colors.surface,
     text: colors.text,
@@ -110,7 +110,7 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <PreferencesProvider>
             <ThemeProvider value={theme}>
-              <StatusBar style="light" />
+              <StatusBar style="dark" />
               <SessionProvider>
                 <OfflineProvider>
                   <AccountProvider>

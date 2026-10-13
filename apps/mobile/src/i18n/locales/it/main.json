@@ -34,5 +34,8 @@
     "6": "S",
     "7": "D"
   },
-  "dayNumber": "Giorno {{number}}"
+  "dayNumber": "Giorno {{number}}",
+  "todayPlan": "Piano di oggi",
+  "seeAll": "Vedi tutto",
+  "yourPrograms": "I TUOI PROGRAMMI"
 }

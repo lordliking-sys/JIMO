@@ -1,9 +1,9 @@
 import { SectionHeroFrame } from '../components/SectionHero';
 import { useState } from 'react';
-import { Pressable, View, useWindowDimensions } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Text } from '@jimo/ui';
+import { Text, animePink } from '@jimo/ui';
 import Pencil from 'lucide-react-native/icons/pencil';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { usePrograms, useProgram } from '../api/queries';
@@ -18,12 +18,13 @@ import { useTraining } from './useTraining';
 import { DayCard } from './DayCard';
 import { WeekOverview } from './WeekOverview';
 import { WeekSelector } from './WeekSelector';
-import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
+import { ThemeArtwork } from '../themes/anime-pink/Artwork';
+import { animePinkAssets } from '../themes/anime-pink/assets';
+import { HeroTitle } from '../themes/anime-pink/HeroTitle';
 
 export function MainProgram() {
   const { t } = useTranslation(['main', 'programs', 'common']),
-    router = useRouter(),
-    { width } = useWindowDimensions();
+    router = useRouter();
   const list = usePrograms(),
     { program: cached, session, now, runtime } = useTraining(),
     importEnabled = useImportFeature();
@@ -77,50 +78,30 @@ export function MainProgram() {
   };
   return (
     <MainScreen>
-      <SectionHeroFrame testID="program-tab-hero">
+      <SectionHeroFrame
+        testID="program-tab-hero"
+        style={{ justifyContent: 'flex-start', paddingTop: 22 }}
+      >
         <View
           style={{
-            paddingTop: width < 360 ? 64 : 76,
-            paddingBottom: 16,
-            paddingHorizontal: 12,
+            paddingTop: 0,
+            paddingBottom: 0,
+            paddingHorizontal: 0,
           }}
         >
-          <HeroReadabilityWash variant="dark" />
-          <MainText
+          <HeroTitle
             accessibilityRole="header"
-            style={{
-              fontSize: width < 360 ? 38 : 44,
-              lineHeight: 48,
-              letterSpacing: 0.5,
-            }}
+            style={{ fontSize: 32, lineHeight: 36 }}
           >
             {t('title')}
-          </MainText>
-          {program ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${t('programs:open')} ${program.name}`}
-              onPress={() =>
-                router.push({
-                  pathname: '/program/[id]',
-                  params: { id: program.id },
-                })
-              }
-              style={({ pressed }) => ({
-                minHeight: 48,
-                justifyContent: 'center',
-                opacity: pressed ? 0.8 : 1,
-              })}
-            >
-              <MainText style={{ fontSize: 29, lineHeight: 33 }}>
-                {program.name}
-              </MainText>
-            </Pressable>
-          ) : (
-            <MainText style={{ fontSize: 23 }}>
-              {t('programs:subtitle')}
-            </MainText>
-          )}
+          </HeroTitle>
+          <Text
+            variant="caption"
+            color={animePink.white}
+            style={{ letterSpacing: 2, marginTop: 6 }}
+          >
+            {t('yourPrograms')}
+          </Text>
           {program ? (
             <Pressable
               testID="program-header-action"
@@ -135,24 +116,30 @@ export function MainProgram() {
               style={({ pressed }) => ({
                 position: 'absolute',
                 right: 0,
-                top: width < 360 ? 64 : 76,
+                top: 0,
                 width: 48,
                 height: 48,
                 borderRadius: 24,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: mainInk.darkSurface,
+                backgroundColor: animePink.darkOverlay,
                 opacity: pressed ? 0.8 : 1,
               })}
             >
-              <Pencil size={19} color={mainInk.muted} />
+              <Pencil size={19} color={animePink.white} />
             </Pressable>
           ) : null}
         </View>
       </SectionHeroFrame>
       <View
         testID="program-tab-body"
-        style={{ backgroundColor: mainInk.charcoal, paddingTop: 12 }}
+        style={{
+          backgroundColor: animePink.background,
+          paddingTop: 18,
+          marginTop: -24,
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+        }}
       >
         <PendingReview />
         {pending ? (
@@ -162,7 +149,7 @@ export function MainProgram() {
         ) : !program ? (
           <View
             style={{
-              backgroundColor: mainInk.darkSurface,
+              backgroundColor: animePink.surface,
               borderColor: mainInk.border,
               borderWidth: 1,
               borderRadius: 20,
@@ -170,7 +157,7 @@ export function MainProgram() {
               gap: 14,
             }}
           >
-            <MainText style={{ fontSize: 28 }}>{t('programs:empty')}</MainText>
+            <MainText style={{ fontSize: 22 }}>{t('programs:empty')}</MainText>
             <Text variant="caption" color={mainInk.muted}>
               {t('programs:emptyDescription')}
             </Text>
@@ -195,10 +182,58 @@ export function MainProgram() {
           </View>
         ) : (
           <>
+            <Pressable
+              testID="active-program-card"
+              accessibilityRole="button"
+              accessibilityLabel={`${t('programs:open')} ${program.name}`}
+              onPress={() =>
+                router.push({
+                  pathname: '/program/[id]',
+                  params: { id: program.id },
+                })
+              }
+              style={{
+                backgroundColor: animePink.surface,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: mainInk.border,
+                padding: 16,
+                marginBottom: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <View
+                style={{
+                  width: 64,
+                  height: 70,
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                }}
+              >
+                <ThemeArtwork source={animePinkAssets['program.hero']} />
+              </View>
+              <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                <MainText style={{ fontSize: 19, lineHeight: 25 }}>
+                  {program.name}
+                </MainText>
+                <Text variant="caption" color={mainInk.muted}>
+                  {t(`programs:${statusKey(program.status)}`)} ·{' '}
+                  {t('programs:dayCount', { count: program.days.length })}
+                </Text>
+                {program.description ? (
+                  <Text variant="caption" color={mainInk.muted}>
+                    {program.description}
+                  </Text>
+                ) : null}
+              </View>
+              <ChevronRight size={20} color={animePink.primaryText} />
+            </Pressable>
             {program.status !== 'active' ? (
               <Text
                 variant="caption"
-                color={mainInk.sage}
+                color={mainInk.green}
                 style={{ marginBottom: 10 }}
               >
                 {t(`programs:${statusKey(program.status)}`)}
@@ -219,7 +254,7 @@ export function MainProgram() {
                   minHeight: 48,
                   padding: 12,
                   borderRadius: 14,
-                  backgroundColor: mainInk.darkSurface,
+                  backgroundColor: animePink.surface,
                   justifyContent: 'center',
                   alignSelf: 'flex-start',
                   marginBottom: 12,
@@ -254,7 +289,7 @@ export function MainProgram() {
                 <View
                   style={{
                     padding: 18,
-                    backgroundColor: mainInk.darkSurface,
+                    backgroundColor: animePink.surface,
                     borderRadius: 14,
                     gap: 8,
                   }}
@@ -287,7 +322,7 @@ export function MainProgram() {
             >
               {t('otherPrograms')}
             </Text>
-            {otherPrograms.map((p, index) => (
+            {otherPrograms.map((p) => (
               <Pressable
                 key={p.id}
                 testID={`other-program-${p.id}`}
@@ -305,13 +340,28 @@ export function MainProgram() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
-                  borderBottomWidth: index < otherPrograms.length - 1 ? 0.5 : 0,
-                  borderBottomColor: 'rgba(183, 198, 155, 0.28)',
+                  borderWidth: 1,
+                  borderColor: mainInk.border,
+                  backgroundColor: animePink.surface,
+                  borderRadius: 20,
+                  paddingHorizontal: 14,
+                  marginBottom: 8,
+                  borderBottomColor: mainInk.border,
                   opacity: pressed ? 0.8 : 1,
                 })}
               >
+                <View
+                  style={{
+                    width: 56,
+                    height: 60,
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <ThemeArtwork source={animePinkAssets['program.hero']} />
+                </View>
                 <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                  <MainText style={{ fontSize: 22 }}>{p.name}</MainText>
+                  <MainText style={{ fontSize: 18 }}>{p.name}</MainText>
                   <Text variant="caption" color={mainInk.muted}>
                     {t(`programs:${statusKey(p.status)}`)} ·{' '}
                     {t('programs:dayCount', { count: p.daysCount })}
@@ -339,7 +389,7 @@ export function MainProgram() {
               opacity: pressed ? 0.8 : 1,
             })}
           >
-            <MainText style={{ fontSize: 21, color: mainInk.sage }}>
+            <MainText style={{ fontSize: 21, color: mainInk.green }}>
               {t('programs:newProgram')}
             </MainText>
           </Pressable>

@@ -29,6 +29,7 @@ export function StatCard({
   format?: (value: number) => string;
   testID?: string;
 }) {
+  const sideBySide = !small && !!points && value.length <= 9;
   return (
     <PaperCard
       {...(testID ? { testID } : {})}
@@ -40,27 +41,39 @@ export function StatCard({
       }}
     >
       <EditorialText
-        style={{ fontSize: small ? 19 : 21, lineHeight: small ? 22 : 24 }}
+        style={{ fontSize: small ? 15 : 18, lineHeight: small ? 21 : 25 }}
       >
         {label}
       </EditorialText>
-      <EditorialText
-        style={{ fontSize: small ? 28 : 34, lineHeight: small ? 32 : 36 }}
+      <View
+        style={{
+          flexDirection: sideBySide ? 'row' : 'column',
+          alignItems: sideBySide ? 'flex-end' : 'stretch',
+          gap: 12,
+        }}
       >
-        {value}
-      </EditorialText>
-      {caption ? (
-        <Copy style={{ fontSize: 11, lineHeight: 16 }}>{caption}</Copy>
-      ) : null}
-      {points ? (
-        <ProgressChart
-          title={label}
-          points={points}
-          bars={bars}
-          small={small}
-          {...(format ? { format } : {})}
-        />
-      ) : null}
+        <View style={{ flex: sideBySide ? 1 : undefined, minWidth: 0, gap: 3 }}>
+          <EditorialText
+            style={{ fontSize: small ? 28 : 46, lineHeight: small ? 36 : 56 }}
+          >
+            {value}
+          </EditorialText>
+          {caption ? (
+            <Copy style={{ fontSize: 11, lineHeight: 16 }}>{caption}</Copy>
+          ) : null}
+        </View>
+        {points ? (
+          <View style={{ width: sideBySide ? '53%' : '100%', minWidth: 0 }}>
+            <ProgressChart
+              title={label}
+              points={points}
+              bars={bars}
+              small={small}
+              {...(format ? { format } : {})}
+            />
+          </View>
+        ) : null}
+      </View>
     </PaperCard>
   );
 }
@@ -98,7 +111,7 @@ export function PersonalRecordRow({
     >
       <Dumbbell size={32} color={ink.green} accessible={false} />
       <View style={{ flex: 1, minWidth: 0, gap: 1 }}>
-        <EditorialText style={{ fontSize: 23 }}>
+        <EditorialText style={{ fontSize: 18 }}>
           {record.displayName}
         </EditorialText>
         <EditorialText style={{ fontSize: 21, color: ink.green }}>
@@ -143,7 +156,7 @@ export function DataRow({
       }}
     >
       <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
-        <EditorialText style={{ fontSize: 22 }}>{title}</EditorialText>
+        <EditorialText style={{ fontSize: 18 }}>{title}</EditorialText>
         <Copy>{subtitle}</Copy>
       </View>
       <ChevronRight size={20} color={ink.green} accessible={false} />

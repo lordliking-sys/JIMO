@@ -13,6 +13,7 @@ import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
+  animePink,
   Card,
   Screen,
   Text,
@@ -36,7 +37,6 @@ import {
   type programArtwork,
 } from './presentation';
 import { useProgramOverlay } from './overlay-context';
-import { HeroReadabilityWash } from '../components/HeroReadabilityWash';
 /** Form sections use hierarchy and dividers instead of nested surfaces. */
 export function FormSection({ children }: { children: ReactNode }) {
   const visual = useProgramPresentation();
@@ -295,18 +295,25 @@ export function FormHeader({
   if (visual)
     return (
       <View style={{ gap: 8, position: 'relative', paddingBottom: 8 }}>
-        {!overlay ? <HeroReadabilityWash variant="dark" /> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Back compact />
+          <Back compact color={overlay ? programInk.text : animePink.white} />
           <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
             <ProgramText
               accessibilityRole="header"
-              style={{ flex: 1, fontSize, lineHeight: fontSize + 4 }}
+              style={{
+                flex: 1,
+                fontSize,
+                lineHeight: fontSize + 4,
+                color: overlay ? programInk.text : animePink.white,
+              }}
             >
               {(overlay?.title ?? title).toUpperCase()}
             </ProgramText>
             {subtitle ? (
-              <Text variant="caption" color={programInk.secondary}>
+              <Text
+                variant="caption"
+                color={overlay ? programInk.secondary : animePink.white}
+              >
                 {subtitle}
               </Text>
             ) : null}
@@ -571,7 +578,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: spacing.xxl,
-    backgroundColor: colors.background,
+    backgroundColor: 'rgba(15,8,18,0.55)',
   },
   row: {
     flexDirection: 'row',

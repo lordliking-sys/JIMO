@@ -35,8 +35,8 @@ export function ProfileAvatar({ name }: { name: string | null }) {
             height: 84,
             borderRadius: 42,
             borderWidth: 2,
-            borderColor: ink.paper,
-            backgroundColor: 'rgba(12, 20, 14, 0.65)',
+            borderColor: ink.green,
+            backgroundColor: ink.card,
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
@@ -56,7 +56,7 @@ export function ProfileAvatar({ name }: { name: string | null }) {
             <EditorialText
               testID="profile-avatar-monogram"
               accessible={false}
-              style={{ color: ink.paper, fontSize: 42 }}
+              style={{ color: ink.green, fontSize: 32 }}
             >
               {monogram(name)}
             </EditorialText>
@@ -72,7 +72,7 @@ export function ProfileAvatar({ name }: { name: string | null }) {
             height: 24,
             borderRadius: 12,
             borderWidth: 1,
-            borderColor: ink.paper,
+            borderColor: ink.green,
             backgroundColor: ink.green,
             alignItems: 'center',
             justifyContent: 'center',
@@ -84,7 +84,7 @@ export function ProfileAvatar({ name }: { name: string | null }) {
       {avatar.error && !avatar.open ? (
         <Copy
           accessibilityRole="alert"
-          style={{ color: ink.paper, textAlign: 'center' }}
+          style={{ color: ink.danger, textAlign: 'center' }}
         >
           {t(`avatarActions.errors.${avatar.error}`)}
         </Copy>
@@ -103,7 +103,7 @@ export function ProfileAvatar({ name }: { name: string | null }) {
             paddingBottom: insets.bottom + 16,
             paddingLeft: insets.left + 24,
             paddingRight: insets.right + 24,
-            backgroundColor: 'rgba(8, 13, 9, 0.85)',
+            backgroundColor: 'rgba(15,8,18,0.55)',
           }}
         >
           <PaperCard

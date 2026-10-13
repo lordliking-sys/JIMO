@@ -1,4 +1,4 @@
-import { exerciseCardBackgrounds } from './exercise-artwork-sources';
+import { StatusBar } from 'expo-status-bar';
 import {
   createContext,
   useContext,
@@ -7,7 +7,6 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  Image,
   BackHandler,
   Keyboard,
   Pressable,
@@ -19,7 +18,6 @@ import {
   type ViewStyle,
   type StyleProp,
 } from 'react-native';
-import { useFonts } from 'expo-font';
 import {
   useFocusEffect,
   useRouter,
@@ -27,14 +25,14 @@ import {
   type Href,
 } from 'expo-router';
 import { useCallback } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   SectionHeroScope,
   SectionHeroCanvas,
   SectionHeroFrame,
+  useSectionStatusBar,
 } from '../components/SectionHero';
-import { Screen, Text, sizes } from '@jimo/ui';
+import { Screen, Text, animePink } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import KeyboardIcon from 'lucide-react-native/icons/keyboard';
@@ -42,15 +40,16 @@ import { ink } from '../progress-profile/theme';
 import { tabArtwork } from '../components/tab-artwork';
 export const programInk = {
   ...ink,
-  background: ink.charcoal,
-  surface: 'rgba(16, 19, 15, 0.82)',
-  field: 'rgba(16, 19, 15, 0.72)',
-  text: ink.paper,
-  secondary: '#bcb8ab',
-  border: 'rgba(183, 198, 155, 0.28)',
-  primary: ink.sage,
-  primaryText: ink.charcoal,
-  danger: '#ffb4a8',
+  sage: animePink.primaryAction,
+  background: animePink.background,
+  surface: animePink.surface,
+  field: animePink.surfaceSoft,
+  text: animePink.textPrimary,
+  secondary: animePink.textSecondary,
+  border: animePink.border,
+  primary: animePink.primaryAction,
+  primaryText: animePink.white,
+  danger: animePink.danger,
 };
 export const programArtwork = {
   programs: tabArtwork.program,
@@ -60,20 +59,18 @@ export const programArtwork = {
   structure: tabArtwork.program,
 };
 const Context = createContext(false);
-const Font = createContext(false);
 const BackTarget = createContext<Href>('/program');
 export const useProgramBackTarget = () => useContext(BackTarget);
 export const useProgramPresentation = () => useContext(Context);
 export function ProgramText({ style, ...props }: TextProps) {
-  const ready = useContext(Font);
   return (
     <NativeText
       {...props}
       style={[
         {
-          fontFamily: ready ? 'JimoProgramSerif' : 'serif',
-          fontSize: 24,
-          lineHeight: 28,
+          fontFamily: 'Inter_600SemiBold',
+          fontSize: 20,
+          lineHeight: 26,
           color: programInk.text,
         },
         style,
@@ -105,18 +102,18 @@ export function ProgramButton({
       onPress={onPress}
       style={({ pressed }) => [
         {
-          minHeight: sizes.touch,
+          minHeight: 54,
           paddingHorizontal: 14,
           paddingVertical: 12,
           justifyContent: 'center',
           alignItems: 'center',
           borderRadius: 18,
           borderWidth: variant === 'outline' ? 1 : 0,
-          borderColor: programInk.border,
+          borderColor: programInk.primary,
           backgroundColor:
             variant === 'primary'
               ? programInk.primary
-              : variant === 'outline'
+              : variant === 'outline' || variant === 'secondary'
                 ? programInk.surface
                 : 'transparent',
           opacity: disabled || busy ? 0.5 : pressed ? 0.75 : 1,
@@ -126,7 +123,9 @@ export function ProgramButton({
     >
       <Text
         variant="bodyMedium"
-        color={variant === 'primary' ? programInk.primaryText : programInk.text}
+        color={
+          variant === 'primary' ? programInk.primaryText : programInk.primary
+        }
         style={{ textAlign: 'center', fontSize: 14 }}
       >
         {label}
@@ -142,7 +141,6 @@ export function ProgramRow({
   onPress,
   leading,
   trailing,
-  cardTone,
 }: {
   title: string;
   subtitle?: string;
@@ -155,17 +153,6 @@ export function ProgramRow({
 }) {
   return (
     <View style={presentationStyles.row}>
-      {cardTone ? (
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <Image
-            testID={`exercise-row-background-${cardTone}`}
-            source={exerciseCardBackgrounds[cardTone]}
-            resizeMode="cover"
-            accessible={false}
-            style={[StyleSheet.absoluteFill, { width: '100%', height: '100%' }]}
-          />
-        </View>
-      ) : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label ?? title}
@@ -189,7 +176,9 @@ export function ProgramRow({
               {eyebrow}
             </Text>
           ) : null}
-          <ProgramText style={{ fontSize: 23 }}>{title}</ProgramText>
+          <ProgramText style={{ fontSize: 17, lineHeight: 23 }}>
+            {title}
+          </ProgramText>
           {subtitle
             ? subtitle.split('\n').map((line, index) => (
                 <Text
@@ -202,7 +191,7 @@ export function ProgramRow({
               ))
             : null}
         </View>
-        <ChevronRight size={18} color={programInk.secondary} />
+        <ChevronRight size={18} color={programInk.primary} />
       </Pressable>
       {trailing}
     </View>
@@ -221,15 +210,14 @@ function ProgramSurface({
   background?: keyof typeof programArtwork;
   fallback?: Href;
 }) {
-  const [ready] = useFonts({
-      JimoProgramSerif: require('../../assets/jimo/workout/fonts/CormorantGaramond.ttf'),
-    }),
-    { width } = useWindowDimensions(),
+  const { width } = useWindowDimensions(),
     [keyboard, setKeyboard] = useState(false),
     router = useRouter(),
     { t } = useTranslation('programs');
   const insets = useSafeAreaInsets(),
     focused = useIsFocused();
+  const [heroHeight, setHeroHeight] = useState(180);
+  const status = useSectionStatusBar(true, heroHeight + insets.top, insets.top);
   useEffect(() => {
     const a = Keyboard.addListener('keyboardDidShow', () => setKeyboard(true)),
       b = Keyboard.addListener('keyboardDidHide', () => setKeyboard(false));
@@ -254,97 +242,100 @@ function ProgramSurface({
   return (
     <Context.Provider value={true}>
       <BackTarget.Provider value={fallback}>
-        <Font.Provider value={ready}>
-          <View
-            testID="program-management-screen"
-            style={{ flex: 1, backgroundColor: programInk.background }}
+        <View
+          testID="program-management-screen"
+          style={{ flex: 1, backgroundColor: programInk.background }}
+        >
+          {focused ? <StatusBar style={status.style} /> : null}
+          <Screen
+            edgeToEdge
+            onScroll={status.onScroll}
+            keyboardAware
+            surfaceStyle={{ backgroundColor: 'transparent' }}
+            contentStyle={{
+              paddingHorizontal: 0,
+              paddingTop: insets.top,
+              paddingBottom: 0,
+              gap: 0,
+            }}
+            footerStyle={{
+              backgroundColor: animePink.surface,
+              borderTopWidth: 0,
+              paddingLeft: insets.left + (width < 360 ? 16 : 20),
+              paddingRight: insets.right + (width < 360 ? 16 : 20),
+            }}
+            {...(footer || keyboard
+              ? {
+                  footer: (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      {keyboard ? (
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={t('keyboardDone')}
+                          onPress={() => Keyboard.dismiss()}
+                          style={{
+                            width: 48,
+                            height: 48,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <KeyboardIcon
+                            color={programInk.secondary}
+                            size={20}
+                          />
+                        </Pressable>
+                      ) : null}
+                      <View style={{ flex: 1 }}>{footer}</View>
+                    </View>
+                  ),
+                }
+              : {})}
           >
-            {focused ? <StatusBar style="light" /> : null}
-            <Screen
-              edgeToEdge
-              keyboardAware
-              surfaceStyle={{ backgroundColor: 'transparent' }}
-              contentStyle={{
-                paddingHorizontal: 0,
-                paddingTop: insets.top,
-                paddingBottom: 0,
-                gap: 0,
-              }}
-              footerStyle={{
-                backgroundColor: 'rgba(16,19,15,0.96)',
-                borderTopWidth: 0,
-                paddingLeft: insets.left + (width < 360 ? 16 : 20),
-                paddingRight: insets.right + (width < 360 ? 16 : 20),
-              }}
-              {...(footer || keyboard
-                ? {
-                    footer: (
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 8,
-                        }}
-                      >
-                        {keyboard ? (
-                          <Pressable
-                            accessibilityRole="button"
-                            accessibilityLabel={t('keyboardDone')}
-                            onPress={() => Keyboard.dismiss()}
-                            style={{
-                              width: 48,
-                              height: 48,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <KeyboardIcon
-                              color={programInk.secondary}
-                              size={20}
-                            />
-                          </Pressable>
-                        ) : null}
-                        <View style={{ flex: 1 }}>{footer}</View>
-                      </View>
-                    ),
-                  }
-                : {})}
+            <SectionHeroCanvas
+              source={programArtwork[background]}
+              width={width}
+              topInset={insets.top}
+              sideInset={insets.left + (width < 360 ? 16 : 20)}
+              dark
+              bodyColor={programInk.background}
             >
-              <SectionHeroCanvas
-                source={programArtwork[background]}
-                width={width}
-                topInset={insets.top}
-                sideInset={insets.left + (width < 360 ? 16 : 20)}
-                dark
-                bodyColor={programInk.background}
-              >
-                <View
-                  style={{
-                    paddingLeft: insets.left + (width < 360 ? 16 : 20),
-                    paddingRight: insets.right + (width < 360 ? 16 : 20),
-                  }}
-                >
-                  <SectionHeroFrame compact testID="program-management-hero">
-                    {header}
-                  </SectionHeroFrame>
-                </View>
-              </SectionHeroCanvas>
               <View
-                testID="program-management-body"
                 style={{
-                  backgroundColor: programInk.background,
                   paddingLeft: insets.left + (width < 360 ? 16 : 20),
                   paddingRight: insets.right + (width < 360 ? 16 : 20),
-                  paddingTop: 16,
-                  paddingBottom: 16,
-                  gap: 16,
                 }}
               >
-                {children}
+                <SectionHeroFrame
+                  compact
+                  measured={setHeroHeight}
+                  testID="program-management-hero"
+                >
+                  {header}
+                </SectionHeroFrame>
               </View>
-            </Screen>
-          </View>
-        </Font.Provider>
+            </SectionHeroCanvas>
+            <View
+              testID="program-management-body"
+              style={{
+                backgroundColor: programInk.background,
+                paddingLeft: insets.left + (width < 360 ? 16 : 20),
+                paddingRight: insets.right + (width < 360 ? 16 : 20),
+                paddingTop: 16,
+                paddingBottom: 16,
+                gap: 16,
+              }}
+            >
+              {children}
+            </View>
+          </Screen>
+        </View>
       </BackTarget.Provider>
     </Context.Provider>
   );
@@ -368,7 +359,7 @@ export const presentationStyles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: programInk.border,
-    borderRadius: 24,
+    borderRadius: 20,
     backgroundColor: programInk.surface,
     overflow: 'hidden',
   },

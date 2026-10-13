@@ -123,7 +123,7 @@ export function DateField({
               mode="date"
               accessibilityLabel={t('startsOn')}
               display="inline"
-              themeVariant="dark"
+              themeVariant="light"
               accentColor={palette.primary}
               locale={i18n.language}
               onValueChange={(_event, selected) => setDraft(selected)}

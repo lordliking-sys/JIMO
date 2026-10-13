@@ -46,7 +46,7 @@ export function WeekOverview({
               paddingVertical: 8,
               borderBottomWidth:
                 index < days.length - 1 ? StyleSheet.hairlineWidth : 0,
-              borderBottomColor: 'rgba(183, 198, 155, 0.28)',
+              borderBottomColor: mainInk.border,
             }}
           >
             <View

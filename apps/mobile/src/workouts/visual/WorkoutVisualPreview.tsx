@@ -246,10 +246,10 @@ export function PyramidTimeline() {
             >
               <Defs>
                 <LinearGradient id="pyramidCurrent" x1="0" y1="0" x2="1" y2="0">
-                  <Stop offset="0" stopColor="#658556" stopOpacity="0" />
-                  <Stop offset="0.18" stopColor="#658556" stopOpacity="0.32" />
-                  <Stop offset="0.72" stopColor="#658556" stopOpacity="0.32" />
-                  <Stop offset="1" stopColor="#658556" stopOpacity="0" />
+                  <Stop offset="0" stopColor="#FF4D8D" stopOpacity="0" />
+                  <Stop offset="0.18" stopColor="#FF4D8D" stopOpacity="0.32" />
+                  <Stop offset="0.72" stopColor="#FF4D8D" stopOpacity="0.32" />
+                  <Stop offset="1" stopColor="#FF4D8D" stopOpacity="0" />
                 </LinearGradient>
               </Defs>
               <Rect

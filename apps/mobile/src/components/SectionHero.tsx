@@ -4,12 +4,9 @@ import {
   useContext,
   useMemo,
   useState,
-  useId,
   type ReactNode,
 } from 'react';
 import {
-  Image,
-  StyleSheet,
   View,
   useWindowDimensions,
   type ImageSourcePropType,
@@ -17,12 +14,12 @@ import {
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
-import { ink } from '../progress-profile/theme';
-import { sectionHeroHeight, programHeroHeight } from './section-hero-geometry';
+import { ThemeArtwork } from '../themes/anime-pink/Artwork';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { programHeroHeight } from './section-hero-geometry';
 
 type Canvas = {
-  source: ImageSourcePropType;
+  source: ImageSourcePropType | null;
   width: number;
   topInset: number;
   sideInset: number;
@@ -59,11 +56,12 @@ const Geometry = createContext<{
   report(height: number): void;
 } | null>(null);
 export function SectionHeroProvider({ children }: { children: ReactNode }) {
-  const { width, fontScale } = useWindowDimensions(),
-    key = `${width}:${fontScale}`;
+  const { width, height: viewportHeight, fontScale } = useWindowDimensions(),
+    insets = useSafeAreaInsets(),
+    key = `${width}:${viewportHeight}:${fontScale}:${insets.top}`;
   const [measurement, setMeasurement] = useState({ key, height: 0 });
   const height = Math.max(
-    sectionHeroHeight(width, fontScale),
+    Math.max(280, Math.min(480, viewportHeight * 0.46)) - insets.top,
     measurement.key === key ? measurement.height : 0,
   );
   const report = useCallback(
@@ -163,18 +161,17 @@ export function SectionHeroFrame({
 /** Illustration is bounded at the seam; all later content uses an opaque body. */
 export function SectionHeroArtwork({
   source,
-  width,
+  width: _width,
   height,
   bodyColor,
-  dark = false,
+  dark = true,
 }: {
-  source: ImageSourcePropType;
+  source: ImageSourcePropType | null;
   width: number;
   height: number;
   bodyColor: string;
   dark?: boolean;
 }) {
-  const id = `section-wash-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
     <View
       pointerEvents="none"
@@ -186,45 +183,14 @@ export function SectionHeroArtwork({
         right: 0,
         height,
         overflow: 'hidden',
-        backgroundColor: bodyColor,
       }}
     >
-      <Image
-        testID="section-hero-image"
+      <ThemeArtwork
         source={source}
-        accessible={false}
-        resizeMode="cover"
-        style={{
-          width: '100%',
-          height: Math.max(height, (width * 1672) / 941),
-          position: 'absolute',
-          top: 0,
-        }}
+        dark={dark}
+        bodyColor={bodyColor}
+        testID="section-hero-image"
       />
-      <Svg
-        accessible={false}
-        width="100%"
-        height="100%"
-        style={StyleSheet.absoluteFill}
-      >
-        <Defs>
-          <LinearGradient id={id} x1="0%" y1="0%" x2="0%" y2="100%">
-            <Stop
-              offset={0}
-              stopColor={dark ? ink.charcoal : ink.paper}
-              stopOpacity={dark ? 0.26 : 0.18}
-            />
-            <Stop
-              offset={0.28}
-              stopColor={dark ? ink.charcoal : ink.paper}
-              stopOpacity={0}
-            />
-            <Stop offset={0.9} stopColor={bodyColor} stopOpacity={0} />
-            <Stop offset={1} stopColor={bodyColor} stopOpacity={1} />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" fill={`url(#${id})`} />
-      </Svg>
     </View>
   );
 }

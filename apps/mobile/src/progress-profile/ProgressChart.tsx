@@ -1,3 +1,4 @@
+import { animePink } from '@jimo/ui';
 import { memo, useId, useState } from 'react';
 import { View } from 'react-native';
 import Svg, {
@@ -64,8 +65,16 @@ export const ProgressChart = memo(function ProgressChart({
         >
           <Defs>
             <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-              <Stop offset={0} stopColor={ink.green} stopOpacity={0.42} />
-              <Stop offset={1} stopColor={ink.sage} stopOpacity={0.22} />
+              <Stop
+                offset={0}
+                stopColor={animePink.primaryPink}
+                stopOpacity={0.18}
+              />
+              <Stop
+                offset={1}
+                stopColor={animePink.primaryPinkSoft}
+                stopOpacity={0.04}
+              />
             </LinearGradient>
           </Defs>
           <Line
@@ -89,7 +98,11 @@ export const ProgressChart = memo(function ProgressChart({
                   width={Math.min(16, (width / g.visible.length) * 0.55)}
                   height={g.baseline - g.y(p.value)}
                   rx={2}
-                  fill={i === g.visible.length - 1 ? ink.green : ink.sage}
+                  fill={
+                    i === g.visible.length - 1
+                      ? animePink.primaryPink
+                      : animePink.primaryPinkSoft
+                  }
                 />
               ) : null,
             )
@@ -122,7 +135,7 @@ export const ProgressChart = memo(function ProgressChart({
                       )
                       .join(' ')}
                     fill="none"
-                    stroke={ink.green}
+                    stroke={animePink.primaryPink}
                     strokeWidth={1.7}
                   />
                 ) : null,
@@ -135,7 +148,7 @@ export const ProgressChart = memo(function ProgressChart({
                     cy={g.y(p.value)}
                     r={small ? 1.8 : 2.8}
                     fill={ink.card}
-                    stroke={ink.green}
+                    stroke={animePink.primaryPink}
                     strokeWidth={1.4}
                   />
                 ) : null,

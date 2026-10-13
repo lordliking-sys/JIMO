@@ -41,6 +41,7 @@ export default function ProgressScreen() {
   const { t, i18n } = useTranslation(['progressProfile', 'progress']),
     router = useRouter(),
     { runtime } = useOffline();
+  const [searchFocused, setSearchFocused] = useState(false);
   const [tab, setTab] = useState<ProgressTab>('overview');
   const [range, setRange] = useState<ProgressRange>('8w'),
     [search, setSearch] = useState(''),
@@ -271,15 +272,19 @@ export default function ProgressScreen() {
                     accessibilityLabel={t('progress:search')}
                     value={search}
                     onChangeText={setSearch}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    selectionColor={ink.green}
                     maxLength={100}
                     style={{
                       minHeight: 48,
                       borderWidth: 1,
-                      borderColor: ink.border,
+                      borderColor: searchFocused ? ink.green : ink.border,
                       color: ink.charcoal,
                       padding: 12,
                       fontFamily: 'Inter_400Regular',
-                      borderRadius: 6,
+                      borderRadius: 18,
+                      backgroundColor: ink.card,
                       fontSize: 14,
                     }}
                   />

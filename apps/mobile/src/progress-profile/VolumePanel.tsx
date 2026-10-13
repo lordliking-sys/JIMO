@@ -88,7 +88,7 @@ export function VolumePanel({
                 paddingHorizontal: 12,
                 borderWidth: e.id === exercise.id ? 2 : 1,
                 borderColor: e.id === exercise.id ? ink.green : ink.border,
-                borderRadius: 8,
+                borderRadius: 18,
                 backgroundColor: ink.card,
               }}
             >

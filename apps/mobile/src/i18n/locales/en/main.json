@@ -34,5 +34,8 @@
     "6": "S",
     "7": "S"
   },
-  "dayNumber": "Day {{number}}"
+  "dayNumber": "Day {{number}}",
+  "todayPlan": "Today's plan",
+  "seeAll": "See all",
+  "yourPrograms": "YOUR PROGRAMS"
 }

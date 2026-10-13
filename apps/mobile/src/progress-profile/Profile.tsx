@@ -16,7 +16,7 @@ import { useOffline } from '../db/Provider';
 import { authErrorKey, logoutWarning } from '../auth/helpers';
 import { useProgressQuery, progressParams } from '../progress/queries';
 import { EditorialScreen, Copy, PaperCard } from './Surface';
-import { ProfileHero } from './Heroes';
+import { ProfileHero, ProfileIdentity } from './Heroes';
 import { ProfileStats } from './ProfileStats';
 import { ProfileChoice, ProfileMenu, ProfileMenuRow } from './ProfileMenu';
 import { Action, CacheNote, DataNotice } from './Controls';
@@ -29,6 +29,7 @@ export default function ProfileScreen() {
     account = useAccount(),
     session = useAuthSession(),
     { runtime } = useOffline();
+  const [nameFocused, setNameFocused] = useState(false);
   const [panel, setPanel] = useState<Panel | null>(null),
     [name, setName] = useState<string | null>(null),
     [busy, setBusy] = useState(false),
@@ -70,7 +71,11 @@ export default function ProfileScreen() {
     }, false);
   return (
     <EditorialScreen profile>
-      <ProfileHero name={profile?.displayName ?? null} />
+      <ProfileHero />
+      <ProfileIdentity
+        name={profile?.displayName ?? null}
+        email={session.email ?? null}
+      />
       <ProfileStats summary={summary.data?.payload} />
       <CacheNote
         stale={summary.data?.stale ?? false}
@@ -96,6 +101,9 @@ export default function ProfileScreen() {
                 accessibilityLabel={t('auth:name')}
                 value={name ?? profile.displayName ?? ''}
                 onChangeText={setName}
+                onFocus={() => setNameFocused(true)}
+                onBlur={() => setNameFocused(false)}
+                selectionColor={ink.green}
                 editable={!busy}
                 maxLength={120}
                 autoComplete="name"
@@ -104,9 +112,10 @@ export default function ProfileScreen() {
                   paddingHorizontal: 12,
                   paddingVertical: 10,
                   borderWidth: 1,
-                  borderColor: ink.border,
+                  borderColor: nameFocused ? ink.green : ink.border,
                   color: ink.charcoal,
-                  borderRadius: 7,
+                  borderRadius: 18,
+                  backgroundColor: ink.card,
                   fontSize: 16,
                   fontFamily: 'Inter_400Regular',
                 }}
@@ -242,7 +251,7 @@ export default function ProfileScreen() {
             flex: 1,
             justifyContent: 'center',
             padding: 24,
-            backgroundColor: 'rgba(8, 13, 9, .85)',
+            backgroundColor: 'rgba(15,8,18,0.55)',
           }}
         >
           <PaperCard accessibilityViewIsModal style={{ gap: 12 }}>

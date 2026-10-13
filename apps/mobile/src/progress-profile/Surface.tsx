@@ -12,11 +12,9 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -38,17 +36,12 @@ const MenuAnchor = createContext({
 });
 export const useProfileMenuAnchor = () => useContext(MenuAnchor);
 export function EditorialText({ style, ...props }: TextProps) {
-  const ready = useContext(Typeface);
   return (
     <Text
       {...props}
       style={[
         {
-          fontFamily: ready
-            ? 'JimoEditorialSerif'
-            : Platform.OS === 'ios'
-              ? 'Georgia'
-              : 'serif',
+          fontFamily: 'Inter_600SemiBold',
           fontSize: 22,
           color: ink.charcoal,
           fontVariant: ['lining-nums', 'tabular-nums'],
@@ -78,8 +71,12 @@ export function PaperCard({ style, ...props }: ViewProps) {
           backgroundColor: ink.card,
           borderColor: ink.border,
           borderWidth: 1,
-          borderRadius: 14,
+          borderRadius: 20,
           padding: 16,
+          shadowColor: ink.charcoal,
+          shadowOpacity: 0.035,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 3 },
           overflow: 'hidden',
         },
         style,
@@ -104,8 +101,8 @@ function EditorialSurface({
     focused = useIsFocused();
   const geometry = useSectionHeroGeometry();
   const status = useSectionStatusBar(
-    profile,
-    geometry.height + insets.top,
+    true,
+    geometry.height + insets.top - 24,
     insets.top,
   );
   const scroll = useRef<ScrollView>(null),
@@ -153,20 +150,6 @@ function EditorialSurface({
           }}
         >
           <View
-            pointerEvents="none"
-            style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}
-          >
-            <Image
-              accessible={false}
-              source={artwork.paper}
-              resizeMode="repeat"
-              style={[
-                StyleSheet.absoluteFill,
-                { width: '100%', height: '100%', opacity: 0.09 },
-              ]}
-            />
-          </View>
-          <View
             style={{
               paddingTop: insets.top,
               paddingLeft: insets.left + (width < 360 ? 16 : 22),
@@ -182,7 +165,7 @@ function EditorialSurface({
               width={width}
               topInset={insets.top}
               sideInset={insets.left + (width < 360 ? 16 : 22)}
-              dark={profile}
+              dark
               bodyColor={ink.paper}
             >
               <MenuAnchor.Provider value={anchor}>

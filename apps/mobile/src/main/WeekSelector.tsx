@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'react-native-reanimated';
 import { MainText } from './Surface';
-import { mainInk } from './theme';
+import { animePink } from '@jimo/ui';
 
 export function WeekSelector({
   total,
@@ -105,15 +105,15 @@ export function WeekSelector({
             }}
             style={({ pressed }) => ({
               minWidth: 130,
-              minHeight: 44,
+              minHeight: 48,
               paddingHorizontal: 18,
               paddingVertical: 8,
               borderRadius: 24,
               borderWidth: 1,
               borderColor:
-                selected === week ? mainInk.sage : 'rgba(183, 198, 155, 0.28)',
+                selected === week ? animePink.primaryAction : animePink.border,
               backgroundColor:
-                selected === week ? mainInk.sage : 'rgba(16, 19, 15, 0.52)',
+                selected === week ? animePink.primaryAction : animePink.surface,
               justifyContent: 'center',
               alignItems: 'center',
               opacity: pressed ? 0.8 : 1,
@@ -121,8 +121,9 @@ export function WeekSelector({
           >
             <MainText
               style={{
-                fontSize: 19,
-                color: selected === week ? mainInk.charcoal : mainInk.parchment,
+                fontSize: 14,
+                color:
+                  selected === week ? animePink.white : animePink.textPrimary,
               }}
             >
               {t('weekNumber', { number: week })}

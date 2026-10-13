@@ -1,16 +1,13 @@
-// Workout-only palette: the rest of the application keeps its existing tokens.
+import { animePink } from '@jimo/ui';
+import { animePinkAssets } from '../../themes/anime-pink/assets';
 export const ink = {
-  background: '#10130f',
-  parchment: '#f2e8d6',
-  secondary: '#bcb8ab',
-  sage: '#b7c69b',
-  sageDark: '#667757',
-  border: '#58604c',
-  surface: 'rgba(34, 41, 31, 0.70)',
-  pending: '#948351',
+  background: animePink.surfaceDark,
+  parchment: animePink.white,
+  secondary: animePink.darkMuted,
+  sage: animePink.primaryPink,
+  sageDark: animePink.primaryAction,
+  border: animePink.darkBorder,
+  surface: 'rgba(255,77,141,0.08)',
+  pending: animePink.darkMuted,
 };
-export const artwork = {
-  background: require('../../../assets/jimo/workout/workout-bg.png'),
-  enso: require('../../../assets/jimo/workout/timer-enso.png'),
-  divider: require('../../../assets/jimo/workout/brush-divider.png'),
-};
+export const artwork = { background: animePinkAssets['workout.hero'] };

@@ -76,7 +76,7 @@ export function NumberControl({
     borderRadius: 21,
     borderWidth: 1,
     borderColor: ink.border,
-    backgroundColor: 'rgba(60,64,52,0.45)',
+    backgroundColor: ink.surface,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
   };

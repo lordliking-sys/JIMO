@@ -20,7 +20,7 @@ async function fit(page: Page) {
         .locator(':scope > div')
         .first()
         .evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(16, 19, 15)');
+    ).toBe('rgb(255, 247, 250)');
   } else if (await screen.count()) {
     await expect(screen).toBeVisible();
     expect(
@@ -30,17 +30,17 @@ async function fit(page: Page) {
       await screen
         .getByTestId('program-management-body')
         .evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(16, 19, 15)');
+    ).toBe('rgb(255, 247, 250)');
     expect(
       await screen.evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(16, 19, 15)');
+    ).toBe('rgb(255, 247, 250)');
   } else {
     await expect(page.getByTestId('program-main-screen')).toBeVisible();
     expect(
       await page
         .getByTestId('program-tab-body')
         .evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(16, 19, 15)');
+    ).toBe('rgb(255, 247, 250)');
   }
   expect(
     await page.evaluate(

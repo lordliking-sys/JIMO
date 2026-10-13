@@ -165,7 +165,7 @@ test('Home week strip and resume, Workout hub start, finish confirmation and can
   const fixture = await workoutFixture(page);
   await page.clock.install({ time: new Date('2026-10-07T10:00:00Z') });
   await page.goto('/');
-  await expect(page.getByTestId('home-background')).toBeVisible();
+  await expect(page.getByTestId('section-hero-art')).toBeVisible();
   for (const day of ['Lunedì', 'Mercoledì', 'Venerdì'])
     await expect(
       page.getByLabel(new RegExp(`${day},.*programmato`)),

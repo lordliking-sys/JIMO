@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, View } from 'react-native';
+import { animePink } from '@jimo/ui';
+import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { progressRanges, type ProgressRange } from '@jimo/schemas';
@@ -20,6 +21,7 @@ export function ProgressTabs({
   onChange: (value: ProgressTab) => void;
 }) {
   const { t } = useTranslation('progressProfile');
+  const compact = useWindowDimensions().width < 360;
   return (
     <ScrollView
       horizontal
@@ -30,7 +32,7 @@ export function ProgressTabs({
       <View
         accessibilityRole="tablist"
         accessibilityLabel={t('sections')}
-        style={{ flexDirection: 'row', gap: 6, flexGrow: 1 }}
+        style={{ flexDirection: 'row', gap: compact ? 4 : 6, flexGrow: 1 }}
       >
         {progressTabs.map((tab) => (
           <Pressable
@@ -55,21 +57,27 @@ export function ProgressTabs({
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'stretch',
-                paddingHorizontal: 12,
+                paddingHorizontal: compact ? 6 : 10,
                 paddingVertical: 5,
                 borderRadius: 17,
                 borderWidth: 1,
-                backgroundColor: tab === value ? ink.sage : ink.charcoal,
-                borderColor: tab === value ? ink.green : '#5b6657',
+                backgroundColor:
+                  tab === value
+                    ? animePink.primaryAction
+                    : 'rgba(24,19,28,0.9)',
+                borderColor:
+                  tab === value
+                    ? animePink.primaryPinkSoft
+                    : animePink.darkBorder,
               }}
             >
               <EditorialText
                 numberOfLines={1}
                 style={{
-                  fontSize: 15,
+                  fontSize: compact ? 12 : 13,
                   lineHeight: 20,
                   textAlign: 'center',
-                  color: tab === value ? ink.charcoal : ink.paper,
+                  color: animePink.white,
                 }}
               >
                 {t(`tabs.${tab}`)}
@@ -81,7 +89,7 @@ export function ProgressTabs({
                   width: 20,
                   position: 'absolute',
                   bottom: 3,
-                  backgroundColor: tab === value ? ink.green : 'transparent',
+                  backgroundColor: 'transparent',
                 }}
               />
             </View>
@@ -125,13 +133,17 @@ export function PeriodSelector({
               paddingHorizontal: 4,
               alignItems: 'center',
               justifyContent: 'center',
-              borderBottomWidth: value === range ? 2 : 1,
-              borderColor: value === range ? ink.green : ink.border,
             }}
           >
             <Copy
               style={{
-                color: value === range ? ink.green : ink.secondary,
+                color: value === range ? animePink.white : ink.secondary,
+                backgroundColor:
+                  value === range ? animePink.primaryAction : 'transparent',
+                borderRadius: 18,
+                paddingVertical: 7,
+                paddingHorizontal: 6,
+                overflow: 'hidden',
                 fontSize: 11,
                 fontFamily:
                   value === range ? 'Inter_600SemiBold' : 'Inter_400Regular',
@@ -167,8 +179,9 @@ export function Action({
         paddingHorizontal: 14,
         paddingVertical: 10,
         borderWidth: 1,
-        borderColor: ink.border,
-        borderRadius: 8,
+        borderColor: ink.green,
+        borderRadius: 18,
+        backgroundColor: ink.card,
         opacity: disabled ? 0.5 : pressed ? 0.7 : 1,
       })}
     >
@@ -214,7 +227,7 @@ export function HistoryFilter({
             minHeight: 48,
             justifyContent: 'center',
             alignItems: 'center',
-            borderRadius: 6,
+            borderRadius: 18,
             borderWidth: value === status ? 2 : 1,
             borderColor: value === status ? ink.green : ink.border,
             paddingHorizontal: 4,

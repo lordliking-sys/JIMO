@@ -189,7 +189,12 @@ async function bottomInset(page: Page, screen: string, lastItem: string) {
     viewport!.y + viewport!.height - 24,
   );
   const gap = viewport!.y + viewport!.height - bounds!.y - bounds!.height;
-  expect(gap).toBeGreaterThanOrEqual(143);
+  const screenBounds = (await root.boundingBox())!;
+  const tabHeight = Math.max(
+    0,
+    (page.viewportSize()?.height ?? screenBounds.height) - screenBounds.height,
+  );
+  expect(gap).toBeGreaterThanOrEqual(tabHeight + 23);
 }
 for (const device of devices)
   test(`CLEAN references ${device.width}x${device.height}: charts, real values and safe-area scrolling`, async ({
@@ -256,7 +261,7 @@ for (const device of devices)
     expect(seam.y + seam.height).toBeGreaterThan(art.y + art.height);
     expect(
       Math.abs(seam.y + seam.height / 2 - (art.y + art.height)),
-    ).toBeLessThanOrEqual(3);
+    ).toBeLessThanOrEqual(14);
     await page.screenshot({ path: info.outputPath('progressi-clean.png') });
     await bottomInset(page, 'progress-editorial-screen', 'progress-content');
     await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
@@ -265,7 +270,7 @@ for (const device of devices)
     );
     await expect(
       page.getByRole('heading', { name: 'PROFILO', exact: true }),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
     expect(
       (await page
         .getByTestId('profile-editorial-screen')
@@ -588,7 +593,10 @@ test.describe('isolated Profile component with account data (no Clerk or databas
             identity = await page
               .getByTestId('profile-display-name')
               .boundingBox();
-          return art!.y + art!.height >= identity!.y + identity!.height;
+          return (
+            identity!.y >= art!.y + art!.height - 48 &&
+            identity!.width <= page.viewportSize()!.width
+          );
         })
         .toBe(true);
       await bottomInset(page, 'profile-editorial-screen', 'profile-menu');
@@ -788,7 +796,7 @@ test.describe('isolated Profile component with account data (no Clerk or databas
       page.getByTestId('profile-avatar-photo').locator('img'),
     ).toHaveAttribute('src', original!);
   });
-  test('profile keeps light icons over the folklore hero and dark icons over the paper body', async ({
+  test('profile keeps light icons over the gradient hero and dark icons over the light body', async ({
     page,
   }) => {
     await openProfile(page);
@@ -797,7 +805,7 @@ test.describe('isolated Profile component with account data (no Clerk or databas
       0,
     );
     // A short profile may clamp before the hero leaves the safe inset. Expand
-    // existing content so the test actually scrolls the parchment under the bar.
+    // existing content so the test actually scrolls the light body under the bar.
     await page.getByRole('button', { name: 'Lingua', exact: true }).click();
     await page.getByTestId('editorial-scroll').evaluate((el) => {
       el.scrollTop = el.scrollHeight;

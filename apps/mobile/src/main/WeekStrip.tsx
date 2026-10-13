@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { MainText } from './Surface';
-import { mainInk } from './theme';
+import { animePink } from '@jimo/ui';
 import type { weekSchedule } from '../workouts/helpers';
 
 export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
@@ -14,7 +14,12 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
       style={{
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginVertical: 12,
+        marginVertical: 0,
+        paddingVertical: 8,
+        borderWidth: 1,
+        borderColor: animePink.border,
+        borderRadius: 20,
+        backgroundColor: animePink.surface,
       }}
     >
       {week.map((day) => {
@@ -41,46 +46,54 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
               justifyContent: 'center',
             }}
           >
-            <MainText style={{ fontSize: 18 }}>
+            <MainText style={{ fontSize: 12, lineHeight: 16 }}>
               {t(`weekdayLetters.${day.weekday}`)}
             </MainText>
             <View
               style={{
-                width: 25,
-                height: 25,
-                borderRadius: 13,
+                width: 32,
+                minHeight: 44,
+                borderRadius: 17,
+                gap: 3,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: day.completed
-                  ? day.today
-                    ? mainInk.sage
-                    : mainInk.green
-                  : day.today
-                    ? mainInk.sage
+                backgroundColor: day.today
+                  ? animePink.primaryAction
+                  : day.days.length || day.completed
+                    ? animePink.primaryPinkPale
                     : 'transparent',
-                borderWidth: day.today || day.completed ? 2 : 1.5,
-                borderColor:
-                  day.days.length || day.completed || day.today
-                    ? mainInk.green
-                    : mainInk.darkMuted,
+                borderWidth: day.today ? 1 : 0,
+                borderColor: animePink.primaryPink,
               }}
             >
+              <MainText
+                style={{
+                  fontSize: 14,
+                  lineHeight: 18,
+                  color: day.today ? animePink.white : animePink.textPrimary,
+                }}
+              >
+                {day.date.getDate()}
+              </MainText>
               {day.completed ? (
                 <Check
-                  size={17}
-                  strokeWidth={2.2}
-                  color={day.today ? mainInk.charcoal : mainInk.parchment}
+                  size={12}
+                  color={day.today ? animePink.white : animePink.primaryText}
                 />
-              ) : day.days.length ? (
+              ) : (
                 <View
                   style={{
                     width: 5,
                     height: 5,
                     borderRadius: 3,
-                    backgroundColor: mainInk.green,
+                    backgroundColor: day.days.length
+                      ? day.today
+                        ? animePink.white
+                        : animePink.primaryPink
+                      : animePink.border,
                   }}
                 />
-              ) : null}
+              )}
             </View>
           </View>
         );

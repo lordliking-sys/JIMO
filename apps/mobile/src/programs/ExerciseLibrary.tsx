@@ -106,10 +106,8 @@ export function ExerciseLibrary({
             <ProgramRow
               key={e.id}
               title={e.displayName}
-              cardTone="dark"
-              leading={
-                <ExerciseThumbnail exercise={e} cardBackground={false} />
-              }
+              cardTone="light"
+              leading={<ExerciseThumbnail exercise={e} tone="light" />}
               label={e.displayName}
               subtitle={`${t(`trackingModes.${e.trackingMode}`)} · ${t(e.isCustom ? 'customExercises' : 'systemExercises')}`}
               onPress={() => onChoose(e)}

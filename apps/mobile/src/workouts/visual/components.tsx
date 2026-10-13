@@ -24,7 +24,8 @@ import { useApiLocale } from '../../api/queries';
 import { countdown, setSummary } from '../helpers';
 import { InkText, useWorkoutLayout } from './Surface';
 import { SafeBack } from '../../navigation/SafeBack';
-import { artwork, ink } from './theme';
+import { ink } from './theme';
+import { animePink } from '@jimo/ui';
 
 export function InkButton({
   label,
@@ -70,7 +71,7 @@ export function InkButton({
         <InkText
           style={{
             textAlign: 'center',
-            fontSize: primary ? 24 : 20,
+            fontSize: primary ? 17 : 18,
             letterSpacing: primary ? 1.6 : 0,
             textTransform: primary ? 'uppercase' : 'none',
           }}
@@ -83,15 +84,14 @@ export function InkButton({
 }
 export function BrushDivider({ width = 100 }: { width?: number }) {
   return (
-    <Image
-      source={artwork.divider}
+    <View
       accessible={false}
-      resizeMode="contain"
       style={{
         width,
-        height: width / 3,
+        height: 1,
         alignSelf: 'center',
-        marginVertical: -8,
+        backgroundColor: ink.border,
+        marginVertical: 8,
       }}
     />
   );
@@ -263,7 +263,7 @@ export function ExerciseHero({
       <InkText
         accessibilityRole="header"
         style={{
-          fontSize: compact ? 34 : 38,
+          fontSize: compact ? 25 : 28,
           textTransform: 'uppercase',
           textAlign: compact ? 'center' : 'left',
           letterSpacing: 1.2,
@@ -410,17 +410,6 @@ export function EnsoTimer({
         alignSelf: 'center',
       }}
     >
-      {brush ? (
-        <Image
-          source={artwork.enso}
-          accessible={false}
-          style={[
-            StyleSheet.absoluteFill,
-            { width: '100%', height: '100%', opacity: 0.65 },
-          ]}
-          resizeMode="contain"
-        />
-      ) : null}
       <Svg
         width="100%"
         height="100%"
@@ -429,21 +418,21 @@ export function EnsoTimer({
         pointerEvents="none"
       >
         <Defs>
-          <LinearGradient id="timerSage" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor="#d0d0a9" />
-            <Stop offset="1" stopColor="#879e6d" />
+          <LinearGradient id="timerPink" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#FF8DB5" />
+            <Stop offset="1" stopColor="#FF4D8D" />
           </LinearGradient>
         </Defs>
-        {!brush ? (
+        {
           <Circle
             cx="50"
             cy="50"
             r={r}
-            fill="rgba(8,13,9,0.35)"
-            stroke="#354631"
+            fill="rgba(24,19,28,0.35)"
+            stroke="rgba(255,141,181,0.24)"
             strokeWidth="4.8"
           />
-        ) : null}
+        }
         {deadline !== undefined && !reduced ? (
           <AnimatedTimerCircle
             animatedProps={animatedProps}
@@ -451,7 +440,7 @@ export function EnsoTimer({
             cy="50"
             r={r}
             fill="none"
-            stroke="url(#timerSage)"
+            stroke="url(#timerPink)"
             strokeWidth="4.8"
             strokeLinecap="round"
             strokeDasharray={`${circumference} ${circumference}`}
@@ -464,7 +453,7 @@ export function EnsoTimer({
             cy="50"
             r={r}
             fill="none"
-            stroke="url(#timerSage)"
+            stroke="url(#timerPink)"
             strokeWidth="4.8"
             strokeLinecap="round"
             strokeDasharray={`${circumference * fraction} ${circumference}`}
@@ -475,7 +464,7 @@ export function EnsoTimer({
       </Svg>
       <InkText
         style={{
-          fontSize: Math.min(94, (diameter * 0.31) / fontScale),
+          fontSize: Math.min(68, (diameter * 0.25) / fontScale),
           lineHeight: Math.min(110, diameter * 0.38),
         }}
       >
@@ -574,7 +563,7 @@ export const Arrow = () => <ArrowRight size={23} color={ink.parchment} />;
 const styles = StyleSheet.create({
   primary: {
     backgroundColor: ink.sageDark,
-    borderRadius: 32,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: ink.sage,
     minHeight: 54,
@@ -588,7 +577,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderWidth: 1,
     borderColor: ink.border,
-    borderRadius: 32,
+    borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: ink.surface,
@@ -598,7 +587,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#819769',
+    backgroundColor: animePink.primaryAction,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -162,12 +162,9 @@ export default function DayDetail() {
             <ProgramRow
               key={exercise.id}
               title={exercise.exercise.displayName}
-              cardTone="dark"
+              cardTone="light"
               leading={
-                <ExerciseThumbnail
-                  exercise={exercise.exercise}
-                  cardBackground={false}
-                />
+                <ExerciseThumbnail exercise={exercise.exercise} tone="light" />
               }
               label={`${t('editExercise')} ${exercise.exercise.displayName}`}
               subtitle={`${summary.primary}${summary.details ? `\n${summary.details}` : ''}${exercise.notes ? `\n${exercise.notes}` : ''}`}

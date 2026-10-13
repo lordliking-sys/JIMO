@@ -1,17 +1,53 @@
+import type { ImageSourcePropType } from 'react-native';
 import { View } from 'react-native';
-import { MainTabHero } from '../components/MainTabHero';
-
-/** Artwork owns the branding; no copy or workout controls cover the subject. */
-export function HomeHero() {
+import { useTranslation } from 'react-i18next';
+import { Text, animePink } from '@jimo/ui';
+import { SectionHeroFrame } from '../components/SectionHero';
+import { ThemeArtwork } from '../themes/anime-pink/Artwork';
+import { HeroTitle } from '../themes/anime-pink/HeroTitle';
+import { greetingPeriod } from '../home/greeting';
+import { useAccount } from '../auth/AccountProvider';
+/** Explicit external-asset slot, also available outside the shared tab frame. */
+export function HomeHeroArtwork({
+  source,
+}: {
+  source?: ImageSourcePropType | null;
+}) {
   return (
-    <MainTabHero testID="home-hero">
-      <View
+    <ThemeArtwork
+      source={source}
+      testID="home-hero-artwork"
+      bodyColor={animePink.background}
+    />
+  );
+}
+export function HomeHero() {
+  const { t } = useTranslation('common'),
+    { profile } = useAccount();
+  return (
+    <SectionHeroFrame
+      testID="home-hero"
+      style={{ paddingBottom: 50, justifyContent: 'flex-end' }}
+    >
+      <Text
         testID="home-brand"
-        accessible
+        variant="caption"
+        color={animePink.white}
+        style={{ letterSpacing: 3, marginBottom: 10 }}
+      >
+        JIMO
+      </Text>
+      <HeroTitle
         accessibilityRole="header"
-        accessibilityLabel="JIMO"
-        style={{ width: 1, height: 1 }}
-      />
-    </MainTabHero>
+        style={{ fontSize: 36, lineHeight: 39 }}
+      >
+        {t(`home.greetings.${greetingPeriod(new Date())}`)}
+        {profile?.displayName
+          ? `
+${profile.displayName}`
+          : ''}
+      </HeroTitle>
+      <View style={{ height: 12 }} />
+    </SectionHeroFrame>
   );
 }
