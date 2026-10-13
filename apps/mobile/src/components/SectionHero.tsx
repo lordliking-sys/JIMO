@@ -161,7 +161,7 @@ export function SectionHeroFrame({
 /** Illustration is bounded at the seam; all later content uses an opaque body. */
 export function SectionHeroArtwork({
   source,
-  width: _width,
+  width,
   height,
   bodyColor,
   dark = true,
@@ -190,6 +190,7 @@ export function SectionHeroArtwork({
         dark={dark}
         bodyColor={bodyColor}
         testID="section-hero-image"
+        size={{ width, height }}
       />
     </View>
   );

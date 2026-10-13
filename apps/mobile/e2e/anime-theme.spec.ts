@@ -17,7 +17,7 @@ for (const viewport of [
   { width: 393, height: 851 },
   { width: 430, height: 860 },
 ]) {
-  test(`anime theme: missing-art slots, calendar, navigation and 1.3x text at ${viewport.width}x${viewport.height}`, async ({
+  test(`anime theme: original artwork mapping, calendar, navigation and 1.3x text at ${viewport.width}x${viewport.height}`, async ({
     page,
   }, info) => {
     await page.setViewportSize(viewport);
@@ -38,10 +38,91 @@ for (const viewport of [
       expect(hero.width).toBeCloseTo(viewport.width, 0);
       expect(hero.height / viewport.height).toBeGreaterThanOrEqual(0.42);
       expect(hero.height / viewport.height).toBeLessThanOrEqual(0.48);
-      await expect(art.locator('img')).toHaveCount(0);
+      const original =
+        route === '/'
+          ? 'home-hero-reference'
+          : route === '/program'
+            ? 'scheda-hero-reference'
+            : route === '/progress'
+              ? 'progressi-hero-reference'
+              : 'profilo-terrace-background';
+      await expect(art.locator('img')).toHaveCount(1);
+      await expect(art.locator('img')).toHaveAttribute(
+        'src',
+        new RegExp(original),
+      );
+      await expect
+        .poll(() =>
+          art
+            .locator('img')
+            .evaluate(
+              (el: HTMLImageElement) => el.complete && el.naturalWidth > 0,
+            ),
+        )
+        .toBe(true);
       await expect(
         page.getByTestId('section-hero-image-placeholder'),
-      ).toHaveCount(1);
+      ).toHaveCount(0);
+      if (route === '/profile') {
+        const character = page.getByTestId('profile-character-overlay');
+        await expect(character.locator('img')).toHaveAttribute(
+          'src',
+          /profilo-character-overlay/,
+        );
+        await expect
+          .poll(() =>
+            character
+              .locator('img')
+              .evaluate(
+                (el: HTMLImageElement) =>
+                  el.complete && el.naturalWidth === 1024,
+              ),
+          )
+          .toBe(true);
+        const pose = (await character.boundingBox())!,
+          avatar = (await page.getByTestId('profile-avatar').boundingBox())!,
+          body = (await page.getByTestId('profile-body').boundingBox())!,
+          identity = (await page
+            .getByTestId('profile-display-name')
+            .boundingBox())!;
+        expect(pose.y + pose.height).toBeGreaterThan(
+          hero.y + hero.height + 120,
+        );
+        expect(
+          Math.abs(pose.y + (850 * pose.height) / 1536 - body.y),
+        ).toBeLessThanOrEqual(1);
+        expect(
+          Math.abs(
+            avatar.x + avatar.width / 2 - (pose.x + (512 * pose.width) / 1024),
+          ),
+        ).toBeLessThanOrEqual(1);
+        expect(
+          Math.abs(
+            avatar.y +
+              avatar.height / 2 -
+              (pose.y + (1250 * pose.height) / 1536),
+          ),
+        ).toBeLessThanOrEqual(1);
+        expect(avatar.y).toBeGreaterThan(hero.y + hero.height);
+        expect(identity.y).toBeGreaterThan(pose.y + pose.height + 12);
+        expect(
+          await page
+            .getByTestId('profile-avatar-dock')
+            .evaluate((el) => getComputedStyle(el).boxShadow),
+        ).toBe('none');
+        await page.getByTestId('profile-avatar').click();
+        await expect(
+          page.getByRole('button', { name: 'Annulla', exact: true }),
+        ).toBeVisible();
+        await page
+          .getByRole('button', { name: 'Annulla', exact: true })
+          .click();
+      }
+      await page.screenshot({
+        path: info.outputPath(
+          `${route === '/' ? 'home' : route!.slice(1)}-original-art.png`,
+        ),
+      });
       if (route === '/progress') {
         for (const name of ['Panoramica', 'Forza', 'Volume', 'Frequenza'])
           await expect(

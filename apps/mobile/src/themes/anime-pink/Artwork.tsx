@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -13,24 +13,70 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { animePink } from '@jimo/ui';
+import { animePinkAssets } from './assets';
+import { heroArtworkFrame, type ArtworkScene } from './artwork-geometry';
 /** Real artwork slot. Its code-only placeholder keeps the final composition without inventing a character. */
 export function ThemeArtwork({
   source,
   dark = true,
   testID = 'theme-artwork',
   bodyColor,
+  size,
 }: {
   source?: ImageSourcePropType | null | undefined;
   dark?: boolean;
   testID?: string;
   bodyColor?: string;
+  size?: { width: number; height: number };
 }) {
   const id = `anime-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const [measured, setMeasured] = useState({ width: 0, height: 0 });
+  const scenes: ArtworkScene[] = ['home', 'program', 'progress', 'profile'];
+  const scene = source
+    ? scenes.find((key) => animePinkAssets[`${key}.hero`] === source)
+    : undefined;
+  const dimensions = size ?? measured;
+  const frame =
+    scene && dimensions.width > 0 && dimensions.height > 0
+      ? heroArtworkFrame(scene, dimensions)
+      : null;
+  const shadeStops = [
+    { offset: 0, opacity: scene ? 0.66 : 0.35, color: animePink.surfaceDark },
+    { offset: scene ? 0.3 : 0.5, opacity: 0.05, color: animePink.surfaceDark },
+    ...(scene
+      ? [
+          { offset: 0.45, opacity: 0.05, color: animePink.surfaceDark },
+          {
+            offset: 0.55,
+            opacity: scene === 'home' ? 0.62 : 0.08,
+            color: animePink.surfaceDark,
+          },
+        ]
+      : []),
+    {
+      offset: 0.97,
+      opacity: scene === 'home' ? 0.8 : dark ? 0.48 : 0.2,
+      color: animePink.surfaceDark,
+    },
+    {
+      offset: 1,
+      opacity: bodyColor ? 1 : 0.5,
+      color: bodyColor ?? animePink.surfaceDark,
+    },
+  ];
   return (
     <View
       testID={testID}
       pointerEvents="none"
       accessible={false}
+      onLayout={(event) => {
+        const { width, height } = event.nativeEvent.layout;
+        setMeasured((current) =>
+          current.width === width && current.height === height
+            ? current
+            : { width, height },
+        );
+      }}
       style={[
         StyleSheet.absoluteFill,
         { overflow: 'hidden', backgroundColor: animePink.surfaceDark },
@@ -39,10 +85,14 @@ export function ThemeArtwork({
       {source ? (
         <Image
           testID={`${testID}-image`}
-          source={source}
+          source={typeof source === 'string' ? { uri: source } : source}
           resizeMode="cover"
           accessible={false}
-          style={{ width: '100%', height: '100%' }}
+          style={
+            frame
+              ? { position: 'absolute', ...frame }
+              : { width: '100%', height: '100%' }
+          }
         />
       ) : (
         <Svg
@@ -76,28 +126,19 @@ export function ThemeArtwork({
         </Svg>
       )}
       <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+        {scene === 'profile' ? (
+          <Rect width="100%" height="100%" fill="#352044" opacity={0.22} />
+        ) : null}
         <Defs>
           <LinearGradient id={`${id}-shade`} x1="0" y1="0" x2="0" y2="1">
-            <Stop
-              offset="0"
-              stopColor={animePink.surfaceDark}
-              stopOpacity="0.35"
-            />
-            <Stop
-              offset="0.5"
-              stopColor={animePink.surfaceDark}
-              stopOpacity="0.05"
-            />
-            <Stop
-              offset="0.97"
-              stopColor={animePink.surfaceDark}
-              stopOpacity={dark ? 0.48 : 0.2}
-            />
-            <Stop
-              offset="1"
-              stopColor={bodyColor ?? animePink.surfaceDark}
-              stopOpacity={bodyColor ? 1 : 0.5}
-            />
+            {shadeStops.map((stop) => (
+              <Stop
+                key={stop.offset}
+                offset={stop.offset}
+                stopColor={stop.color}
+                stopOpacity={stop.opacity}
+              />
+            ))}
           </LinearGradient>
         </Defs>
         <Rect width="100%" height="100%" fill={`url(#${id}-shade)`} />

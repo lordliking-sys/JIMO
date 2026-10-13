@@ -29,6 +29,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text as InterText } from '@jimo/ui';
 import { artwork, ink } from './theme';
+import { ProfileCharacter } from './ProfileArtwork';
 
 const Typeface = createContext(false);
 const MenuAnchor = createContext({
@@ -153,6 +154,7 @@ function EditorialSurface({
           onScroll={status.onScroll}
           scrollEventThrottle={32}
           showsVerticalScrollIndicator={false}
+          removeClippedSubviews={false}
           contentContainerStyle={{
             paddingBottom: tabHeight + 24,
             width: '100%',
@@ -173,16 +175,38 @@ function EditorialSurface({
               source={profile ? artwork.profile : artwork.progress}
               width={width}
               topInset={insets.top}
-              sideInset={insets.left + (width < 360 ? 16 : 22)}
+              sideInset={
+                Math.max(0, (width - 560) / 2) +
+                insets.left +
+                (width < 360 ? 16 : 22)
+              }
               dark
               bodyColor={ink.paper}
             >
               <MenuAnchor.Provider value={anchor}>
                 {children}
+                {profile ? <ProfileCharacter /> : null}
               </MenuAnchor.Provider>
             </SectionHeroCanvas>
           </View>
         </ScrollView>
+        {profile && insets.top > 0 ? (
+          <View
+            testID="profile-statusbar-scrim"
+            pointerEvents="none"
+            accessible={false}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: insets.top,
+              zIndex: 4,
+              backgroundColor:
+                status.style === 'light' ? 'rgba(23,13,31,0.66)' : ink.paper,
+            }}
+          />
+        ) : null}
       </KeyboardAvoidingView>
     </Typeface.Provider>
   );

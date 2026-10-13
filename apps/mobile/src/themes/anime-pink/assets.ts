@@ -4,6 +4,7 @@ export type AnimeAssetSlot =
   | 'program.hero'
   | 'progress.hero'
   | 'profile.hero'
+  | 'profile.character'
   | 'workout.hero'
   | 'workout.standard'
   | 'workout.emom'
@@ -13,10 +14,11 @@ export const animePinkAssets: Record<
   AnimeAssetSlot,
   ImageSourcePropType | null
 > = {
-  'home.hero': null,
-  'program.hero': null,
-  'progress.hero': null,
-  'profile.hero': null,
+  'home.hero': require('../../../assets/jimo/anime-theme/home-hero-reference.png'),
+  'program.hero': require('../../../assets/jimo/anime-theme/scheda-hero-reference.png'),
+  'progress.hero': require('../../../assets/jimo/anime-theme/progressi-hero-reference.png'),
+  'profile.hero': require('../../../assets/jimo/anime-theme/profilo-terrace-background.png'),
+  'profile.character': require('../../../assets/jimo/anime-theme/profilo-character-overlay.png'),
   'workout.hero': null,
   'workout.standard': null,
   'workout.emom': null,

@@ -6,12 +6,14 @@ import { HeroTitle } from '../themes/anime-pink/HeroTitle';
 import { animePink } from '@jimo/ui';
 import Settings from 'lucide-react-native/icons/settings';
 import { ProfileAvatar } from './ProfileAvatar';
+import { useProfileStage } from './ProfileArtwork';
+
 export function ProgressHero() {
   const { t } = useTranslation('progressProfile');
   return (
     <SectionHeroFrame
       testID="progress-tab-hero"
-      style={{ justifyContent: 'flex-start', paddingTop: 18 }}
+      style={{ justifyContent: 'flex-start', paddingTop: 14 }}
     >
       <HeroTitle testID="progress-hero-title" accessibilityRole="header">
         {t('progressTitle').toUpperCase()}
@@ -25,7 +27,11 @@ export function ProfileHero() {
   return (
     <SectionHeroFrame
       testID="profile-tab-hero"
-      style={{ justifyContent: 'flex-start', paddingTop: 18 }}
+      style={{
+        justifyContent: 'flex-start',
+        paddingTop: 18,
+        overflow: 'visible',
+      }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <HeroTitle accessibilityRole="header" style={{ flex: 1, fontSize: 28 }}>
@@ -56,27 +62,52 @@ export function ProfileIdentity({
   email: string | null;
 }) {
   const { t } = useTranslation('progressProfile');
+  const stage = useProfileStage();
+  // SectionBody starts 24 px above the hero's bottom and has 20 px of inner padding.
+  const identityTop = stage.bodyTop + 20;
+  const contentWidth =
+    stage.frameWidth -
+    stage.insets.left -
+    stage.insets.right -
+    stage.padding * 2;
   return (
     <View
       testID="profile-identity-card"
       style={{
-        paddingVertical: 4,
-        flexDirection: 'row',
+        paddingTop: stage.infoTop - identityTop,
         alignItems: 'center',
-        gap: 16,
+        gap: 4,
       }}
     >
-      <View style={{ width: 84 }}>
+      <View
+        testID="profile-avatar-dock"
+        style={{
+          position: 'absolute',
+          top: stage.avatar.centerY - stage.avatar.size / 2 - identityTop,
+          left:
+            stage.avatar.centerX -
+            stage.origin -
+            stage.insets.left -
+            stage.padding -
+            contentWidth / 2,
+          width: contentWidth,
+          alignItems: 'center',
+        }}
+      >
         <ProfileAvatar name={name} />
       </View>
-      <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+      <View
+        style={{ width: '100%', minWidth: 0, gap: 4, alignItems: 'center' }}
+      >
         <EditorialText
           testID="profile-display-name"
-          style={{ fontSize: 23, lineHeight: 29 }}
+          style={{ fontSize: 23, lineHeight: 29, textAlign: 'center' }}
         >
           {name || t('identityFallback')}
         </EditorialText>
-        {email ? <Copy style={{ fontSize: 13 }}>{email}</Copy> : null}
+        {email ? (
+          <Copy style={{ fontSize: 13, textAlign: 'center' }}>{email}</Copy>
+        ) : null}
       </View>
     </View>
   );

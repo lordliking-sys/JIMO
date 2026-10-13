@@ -17,6 +17,7 @@ import { useDayStart } from './useDayStart';
 import { WeekStrip } from './WeekStrip';
 import { ExerciseThumbnail } from '../programs/ExerciseThumbnail';
 import { HomeHero } from './HomeHero';
+import { SectionBody } from '../components/SectionBody';
 
 export function MainHome() {
   const { t, i18n } = useTranslation([
@@ -128,13 +129,9 @@ export function MainHome() {
   return (
     <MainScreen light>
       <HomeHero />
-      <View
+      <SectionBody
         testID="home-body"
         style={{
-          backgroundColor: animePink.background,
-          marginTop: -24,
-          borderTopLeftRadius: 28,
-          borderTopRightRadius: 28,
           paddingTop: 12,
           gap: 16,
         }}
@@ -323,7 +320,7 @@ export function MainHome() {
             {t('noUpcoming')}
           </Text>
         )}
-      </View>
+      </SectionBody>
     </MainScreen>
   );
 }
