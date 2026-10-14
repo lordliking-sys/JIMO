@@ -19,6 +19,7 @@ import {
   useSectionStatusBar,
 } from '../components/SectionHero';
 import { tabArtwork } from '../components/tab-artwork';
+import { SectionStatusFade } from '../components/SectionStatusFade';
 export const MainPresentation = createContext(true);
 export function MainText({ style, ...props }: TextProps) {
   useContext(MainPresentation);
@@ -95,6 +96,10 @@ function MainSurface({
           </SectionHeroCanvas>
         </View>
       </ScrollView>
+      <SectionStatusFade
+        topInset={insets.top}
+        lightIcons={status.style === 'light'}
+      />
     </View>
   );
 }

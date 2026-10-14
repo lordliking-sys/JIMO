@@ -1,10 +1,8 @@
 import { SectionHeroFrame } from '../components/SectionHero';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { EditorialText, Copy, useProfileMenuAnchor } from './Surface';
+import { EditorialText, Copy } from './Surface';
 import { HeroTitle } from '../themes/anime-pink/HeroTitle';
-import { animePink } from '@jimo/ui';
-import Settings from 'lucide-react-native/icons/settings';
 import { ProfileAvatar } from './ProfileAvatar';
 import { useProfileStage } from './ProfileArtwork';
 
@@ -23,7 +21,6 @@ export function ProgressHero() {
 }
 export function ProfileHero() {
   const { t } = useTranslation('progressProfile');
-  const { jumpToMenu } = useProfileMenuAnchor();
   return (
     <SectionHeroFrame
       testID="profile-tab-hero"
@@ -37,19 +34,6 @@ export function ProfileHero() {
         <HeroTitle accessibilityRole="header" style={{ flex: 1, fontSize: 28 }}>
           {t('profileTitle').toUpperCase()}
         </HeroTitle>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('settings')}
-          onPress={jumpToMenu}
-          style={{
-            width: 48,
-            height: 48,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Settings size={25} color={animePink.white} accessible={false} />
-        </Pressable>
       </View>
     </SectionHeroFrame>
   );

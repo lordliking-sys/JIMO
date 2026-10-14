@@ -13,7 +13,7 @@ const viewports = [
 ];
 const faces = {
   home: { left: 1010, top: 90, right: 1260, bottom: 345 },
-  program: { left: 1050, top: 85, right: 1310, bottom: 360 },
+  program: { left: 1050, top: 160, right: 1310, bottom: 400 },
   progress: { left: 1030, top: 190, right: 1310, bottom: 470 },
 };
 test('landscape hero crops preserve the supplied face landmarks on the four phone sizes', () => {
@@ -27,7 +27,12 @@ test('landscape hero crops preserve the supplied face landmarks on the four phon
       assert.ok(frame.left + face.right * scale <= viewport.width);
       assert.ok(frame.top + face.top * scale >= 0);
       assert.ok(frame.top + face.bottom * scale < height - 24);
-      assert.ok(Math.abs(frame.width / frame.height - 1469 / 1071) < 1e-9);
+      assert.ok(
+        Math.abs(
+          frame.width / frame.height -
+            (scene === 'program' ? 1468 : 1469) / 1071,
+        ) < 1e-9,
+      );
     }
 });
 test('terrace ledge, character seat and avatar dock form one composition without covering the identity', () => {

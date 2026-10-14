@@ -1,7 +1,24 @@
 import { programDetailSchema, type ProgramDetail } from '@jimo/schemas';
 import type { LocalDatabase, SqlExecutor } from '../database';
 export class ProgramCacheRepository {
+  private revisions = new Map<string, number>();
   constructor(private db: LocalDatabase) {}
+  revision(owner: string) {
+    return this.revisions.get(owner) ?? 0;
+  }
+  /** Apply the validated mutation response before background sync or navigation. */
+  async applyDetail(owner: string, input: ProgramDetail) {
+    const program = programDetailSchema.parse(input);
+    this.revisions.set(owner, this.revision(owner) + 1);
+    await this.db.transaction(async (sql) => {
+      if (program.status === 'active')
+        await sql.run(
+          "UPDATE cached_programs SET status='cached' WHERE owner_user_id=? AND status='active'",
+          [owner],
+        );
+      await this.save(sql, owner, program);
+    });
+  }
   async active(owner: string) {
     return this.db.access(async (sql) => {
       const row = (
@@ -24,9 +41,19 @@ export class ProgramCacheRepository {
       return row ? programDetailSchema.parse(JSON.parse(row.payload)) : null;
     });
   }
-  async replaceActive(owner: string, input: ProgramDetail | null) {
+  async replaceActive(
+    owner: string,
+    input: ProgramDetail | null,
+    expectedRevision?: number,
+  ) {
     const program = input ? programDetailSchema.parse(input) : null;
     await this.db.transaction(async (sql) => {
+      // A GET started before a successful edit/delete must not resurrect old data.
+      if (
+        expectedRevision !== undefined &&
+        expectedRevision !== this.revision(owner)
+      )
+        return;
       await sql.run(
         "UPDATE cached_programs SET status='cached' WHERE owner_user_id=? AND status='active'",
         [owner],
@@ -35,6 +62,7 @@ export class ProgramCacheRepository {
     });
   }
   async remove(owner: string, id: string) {
+    this.revisions.set(owner, this.revision(owner) + 1);
     await this.db.transaction(async (sql) => {
       await sql.run(
         'DELETE FROM cached_programs WHERE owner_user_id=? AND id=?',

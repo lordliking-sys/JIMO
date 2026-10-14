@@ -23,16 +23,16 @@ export function ProgressTabs({
   const { t } = useTranslation('progressProfile');
   const compact = useWindowDimensions().width < 360;
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      testID="progress-tabs-scroll"
-      contentContainerStyle={{ flexGrow: 1 }}
-    >
+    <View testID="progress-tabs-scroll" style={{ width: '100%' }}>
       <View
         accessibilityRole="tablist"
         accessibilityLabel={t('sections')}
-        style={{ flexDirection: 'row', gap: compact ? 4 : 6, flexGrow: 1 }}
+        style={{
+          flexDirection: 'row',
+          gap: compact ? 4 : 6,
+          width: '100%',
+          alignItems: 'stretch',
+        }}
       >
         {progressTabs.map((tab) => (
           <Pressable
@@ -42,8 +42,17 @@ export function ProgressTabs({
             accessibilityState={{ selected: tab === value }}
             onPress={() => onChange(tab)}
             style={{
-              flexGrow: 1,
-              flexShrink: 0,
+              flexBasis: 0,
+              flexGrow:
+                tab === 'overview'
+                  ? 1.35
+                  : tab === 'strength'
+                    ? 0.75
+                    : tab === 'volume'
+                      ? 0.9
+                      : 1.2,
+              flexShrink: 1,
+              minWidth: 0,
               minHeight: 48,
               alignItems: 'center',
               justifyContent: 'center',
@@ -57,7 +66,8 @@ export function ProgressTabs({
                 justifyContent: 'center',
                 alignItems: 'center',
                 alignSelf: 'stretch',
-                paddingHorizontal: compact ? 6 : 10,
+                flex: 1,
+                paddingHorizontal: compact ? 3 : 5,
                 paddingVertical: 5,
                 borderRadius: 17,
                 borderWidth: 1,
@@ -72,7 +82,6 @@ export function ProgressTabs({
               }}
             >
               <EditorialText
-                numberOfLines={1}
                 style={{
                   fontSize: compact ? 12 : 13,
                   lineHeight: 20,
@@ -96,7 +105,7 @@ export function ProgressTabs({
           </Pressable>
         ))}
       </View>
-    </ScrollView>
+    </View>
   );
 }
 export function PeriodSelector({

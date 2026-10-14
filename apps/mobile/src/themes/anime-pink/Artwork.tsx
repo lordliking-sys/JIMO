@@ -48,14 +48,14 @@ export function ThemeArtwork({
           { offset: 0.45, opacity: 0.05, color: animePink.surfaceDark },
           {
             offset: 0.55,
-            opacity: scene === 'home' ? 0.62 : 0.08,
+            opacity: 0.08,
             color: animePink.surfaceDark,
           },
         ]
       : []),
     {
       offset: 0.97,
-      opacity: scene === 'home' ? 0.8 : dark ? 0.48 : 0.2,
+      opacity: dark ? 0.48 : 0.2,
       color: animePink.surfaceDark,
     },
     {

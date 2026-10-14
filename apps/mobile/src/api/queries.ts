@@ -75,15 +75,25 @@ export function useProgramMutation<T>(
     submitting = useRef(false);
   const mutation = useMutation({
     mutationFn: action,
+    onMutate: () => ({ owner: runtime.owner }),
     onSettled: () => {
       submitting.current = false;
     },
-    onSuccess: async () => {
-      void runtime.engine.request(true);
+    onSuccess: async (program, _input, context) => {
+      const owner = context?.owner;
+      if (!owner || owner !== runtime.owner) return;
+      const key = ['local', owner, 'active-program'];
+      await cache.cancelQueries({ queryKey: key });
+      await runtime.programs.applyDetail(owner, program);
+      if (owner !== runtime.owner) return;
+      cache.setQueryData(key, await runtime.programs.active(owner));
+      runtime.changed();
       await Promise.all([
-        cache.invalidateQueries({ queryKey: ['programs'] }),
-        cache.invalidateQueries({ queryKey: ['program'] }),
+        cache.invalidateQueries({ queryKey: ['programs', owner] }),
+        cache.invalidateQueries({ queryKey: ['program', owner] }),
+        cache.invalidateQueries({ queryKey: ['local', owner] }),
       ]);
+      void runtime.engine.request(true);
     },
   });
   const mutate: typeof mutation.mutate = (...args) => {

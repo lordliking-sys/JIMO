@@ -130,9 +130,7 @@ for (const viewport of viewports) {
     await sheet
       .getByRole('button', { name: 'Ipertrofia, NON ATTIVA', exact: true })
       .click();
-    await page
-      .getByRole('button', { name: 'Imposta come attiva', exact: true })
-      .click();
+    expect(new URL(page.url()).pathname).toBe('/program');
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
     await expect(sheet).toHaveCount(0);
     await expect(page.getByTestId('active-plan-heading')).toContainText(
@@ -146,14 +144,11 @@ for (const viewport of viewports) {
     await page
       .getByLabel('Nome programma', { exact: true })
       .fill('Nuova bozza');
-    await page.getByRole('button', { name: 'Continua', exact: true }).click();
-    await expect(
-      sheet.getByRole('heading', { name: 'MODIFICA SCHEDA', exact: true }),
-    ).toBeVisible();
+    await page.getByRole('button', { name: 'Salva', exact: true }).click();
+    await expect(sheet).toHaveCount(0);
+    expect(new URL(page.url()).pathname).toBe('/program');
     const draft = [...f.plans.values()].find((p) => p.name === 'Nuova bozza')!;
     expect(draft.status).toBe('draft');
-    await back(page);
-    await expect(sheet).toHaveCount(0);
     await expect(page.getByTestId('active-plan-heading')).toContainText(
       'Ipertrofia',
     );
@@ -169,6 +164,7 @@ for (const viewport of viewports) {
     await sheet
       .getByRole('button', { name: 'FORZA, NON ATTIVA', exact: true })
       .click();
+    await page.getByRole('button', { name: 'Annulla', exact: true }).click();
     await page
       .getByRole('button', { name: 'Modifica questa scheda', exact: true })
       .click();

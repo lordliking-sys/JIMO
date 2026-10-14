@@ -243,6 +243,16 @@ export class WorkoutLocalRepository {
       return row ? read(sql, owner, row.id) : null;
     });
   }
+  /** Called only after an authenticated detail request returns 404. Never drop offline edits. */
+  removeMissing(owner: string, id: string) {
+    return this.db.transaction(async (sql) => {
+      await sql.run(
+        `DELETE FROM local_workout_sessions WHERE owner_user_id=? AND id=?
+         AND NOT EXISTS (SELECT 1 FROM sync_outbox WHERE owner_user_id=? AND session_id=?)`,
+        [owner, id, owner, id],
+      );
+    });
+  }
   history(
     owner: string,
     since?: string,

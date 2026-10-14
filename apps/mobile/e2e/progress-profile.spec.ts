@@ -309,24 +309,15 @@ for (const device of devices)
       .all())
       expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     await page.screenshot({ path: info.outputPath('profilo-clean.png') });
-    const settings = page.getByRole('button', {
-      name: 'Impostazioni',
-      exact: true,
-    });
-    expect((await settings.boundingBox())!.height).toBeGreaterThanOrEqual(48);
-    const menuBefore = (await page.getByTestId('profile-menu').boundingBox())!
-      .y;
-    await settings.click();
-    await expect
-      .poll(
-        async () => (await page.getByTestId('profile-menu').boundingBox())!.y,
-      )
-      .toBeGreaterThanOrEqual(24);
-    await expect
-      .poll(
-        async () => (await page.getByTestId('profile-menu').boundingBox())!.y,
-      )
-      .toBeLessThan(menuBefore);
+    await expect(
+      page.getByRole('button', { name: 'Impostazioni', exact: true }),
+    ).toHaveCount(0);
+    await page
+      .getByTestId('profile-editorial-screen')
+      .getByTestId('editorial-scroll')
+      .evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
     const menu = (await page.getByTestId('profile-menu').boundingBox())!,
       viewport = (await page
         .getByTestId('profile-editorial-screen')
@@ -470,14 +461,10 @@ test.describe('isolated Profile component with account data (no Clerk or databas
     page,
   }) => {
     await openProfile(page);
-    const settings = page.getByRole('button', {
-      name: 'Impostazioni',
-      exact: true,
-    });
-    await settings.click();
-    expect(
-      (await page.getByTestId('profile-menu').boundingBox())!.y,
-    ).toBeGreaterThanOrEqual(24);
+    await expect(
+      page.getByRole('button', { name: 'Impostazioni', exact: true }),
+    ).toHaveCount(0);
+    await page.getByTestId('profile-menu').scrollIntoViewIfNeeded();
     await expect(page.getByTestId('profile-stats')).toContainText('7');
     await expect(page.getByTestId('profile-stats')).not.toContainText('+5%');
     for (const name of [

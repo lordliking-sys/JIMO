@@ -107,13 +107,6 @@ export function MainProgram() {
         style={{ justifyContent: 'flex-start', paddingTop: 22 }}
       >
         <HeroTitle accessibilityRole="header">{t('title')}</HeroTitle>
-        <Text
-          variant="caption"
-          color={animePink.white}
-          style={{ letterSpacing: 2, marginTop: 6 }}
-        >
-          {t('yourPrograms')}
-        </Text>
       </SectionHeroFrame>
       <SectionBody testID="program-tab-body" color={animePink.surface}>
         <PendingReview />
@@ -237,7 +230,7 @@ export function MainProgram() {
               onManage={(id) => setSheet({ kind: 'manage', id })}
             />
           ) : sheet.kind === 'create' ? (
-            <CreatePlan onCreated={(id) => setSheet({ kind: 'manage', id })} />
+            <CreatePlan onCreated={close} />
           ) : (
             <ProgramManagement
               key={sheet.id}

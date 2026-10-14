@@ -278,6 +278,7 @@ export function MainHome() {
         </MainText>
         {upcoming ? (
           <Pressable
+            testID="home-upcoming-exercise"
             accessibilityRole="button"
             accessibilityLabel={t('nextExerciseAction', {
               name:

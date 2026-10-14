@@ -56,7 +56,18 @@ export function PlanSwitcher({
                 p.status === 'active' ? 'activePlan' : 'inactivePlan',
               )}
               label={`${p.name}, ${t(p.status === 'active' ? 'activePlan' : 'inactivePlan')}`}
-              onPress={() => select(p.id)}
+              onPress={() => {
+                select(p.id);
+                if (
+                  p.status !== 'active' &&
+                  runtime.online &&
+                  !activate.isPending
+                )
+                  confirmation.ask(
+                    t('confirmSetActive', { name: p.name }),
+                    () => activate.mutate(p.id, { onSuccess: onActivated }),
+                  );
+              }}
             />
           ))}
           {!programs.length ? (

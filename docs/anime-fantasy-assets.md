@@ -2,14 +2,14 @@
 
 Source of truth: `JIMO_anime_theme_assets.zip` e il suo `README_CODEX.txt`. I sei PNG sono copiati byte per byte in `apps/mobile/assets/jimo/anime-theme/`. Il confronto SHA-256 con lo ZIP originale conferma che nessun file è stato rigenerato, ritoccato, ricompresso o ridimensionato.
 
-| File originale                   | Uso                                                                                        |
-| -------------------------------- | ------------------------------------------------------------------------------------------ |
-| `home-hero-reference.png`        | Hero Home, catgirl al tramonto                                                             |
-| `scheda-hero-reference.png`      | Hero Scheda e presentazione programma, guerriera                                           |
-| `progressi-hero-reference.png`   | Hero Progressi, atmosfera crimson                                                          |
-| `profilo-terrace-background.png` | Sfondo del hero Profilo                                                                    |
-| `profilo-character-overlay.png`  | Personaggio trasparente che oltrepassa il bordo del hero Profilo                           |
-| `profilo-mood-reference.png`     | Riferimento di atmosfera viola/gotica, conservato nel pack; guida il contrasto del Profilo |
+| File originale                   | Uso                                                                                     |
+| -------------------------------- | --------------------------------------------------------------------------------------- |
+| `home-hero-reference.png`        | Hero Home, catgirl al tramonto                                                          |
+| `scheda-hero-reference.png`      | Artwork guerriera conservato nel pack originale                                         |
+| `progressi-hero-reference.png`   | Hero Progressi, atmosfera crimson                                                       |
+| `profilo-terrace-background.png` | Sfondo del hero Profilo                                                                 |
+| `profilo-character-overlay.png`  | Personaggio trasparente che oltrepassa il bordo del hero Profilo                        |
+| `profilo-mood-reference.png`     | Hero gotico della Scheda, su richiesta successiva; riferimento di atmosfera del Profilo |
 
 I PNG contengono artwork; titoli, pulsanti, calendari, avatar, schede e grafici rimangono componenti React Native interattivi.
 
@@ -25,7 +25,7 @@ Lo sfondo terrazza rimane dietro la superficie arrotondata. `ProfileCharacter` �
 
 `profileArtworkLayout` usa coordinate dell'originale 1024×1536: seduta a y=850 e centro del dock avatar a (512,1250). L'avatar circolare da 84 px occupa la zona trasparente tra le gambe. Nome ed email seguono il fondo del personaggio, senza sovrapporsi agli stivali. Le dimensioni si adattano allo spazio disponibile e alla safe area.
 
-`ProfileAvatar` e `useLocalAvatar` sono invariati: foto locale, monogramma, permessi, cambio/rimozione, persistenza e isolamento per account continuano a funzionare. Il dock non ha ombre o halo scuro. Una fascia limitata alla status bar mantiene il contrasto anche mentre le gambe scorrono sul body. Il clipping dei sottoelementi è disabilitato per conservare l'overflow del PNG durante lo scroll nativo.
+`ProfileAvatar` e `useLocalAvatar` sono invariati: foto locale, monogramma, permessi, cambio/rimozione, persistenza e isolamento per account continuano a funzionare. Il dock non ha ombre o halo scuro. Il fade condiviso della status bar mantiene il contrasto e sfuma nel hero, anche mentre le gambe scorrono sul body. Il clipping dei sottoelementi è disabilitato per conservare l'overflow del PNG durante lo scroll nativo.
 
 ## Funzionalità preservate
 

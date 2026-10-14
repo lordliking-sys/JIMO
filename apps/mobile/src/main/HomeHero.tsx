@@ -22,12 +22,12 @@ export function HomeHeroArtwork({
   );
 }
 export function HomeHero() {
-  const { t } = useTranslation('common'),
+  const { t } = useTranslation(['common', 'navigation']),
     { profile } = useAccount();
   return (
     <SectionHeroFrame
       testID="home-hero"
-      style={{ paddingBottom: 50, justifyContent: 'flex-end' }}
+      style={{ paddingTop: 22, justifyContent: 'flex-start' }}
     >
       <Text
         testID="home-brand"
@@ -35,7 +35,7 @@ export function HomeHero() {
         color={animePink.white}
         style={{ letterSpacing: 3, marginBottom: 10 }}
       >
-        JIMO
+        {t('navigation:home').toUpperCase()}
       </Text>
       <HeroTitle
         accessibilityRole="header"

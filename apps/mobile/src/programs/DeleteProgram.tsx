@@ -23,12 +23,19 @@ export function DeleteProgram({
     { runtime } = useOffline();
   const [open, setOpen] = useState(false);
   const mutation = useMutation({
+    onMutate: () => ({ owner: runtime.owner }),
     mutationFn: async () => {
       await runtime.prepareProgramDelete(id);
       return programsApi.remove(id, locale);
     },
-    onSuccess: async () => {
-      await runtime.programs.remove(runtime.identity(), id);
+    onSuccess: async (_data, _input, context) => {
+      const owner = context?.owner;
+      if (!owner || owner !== runtime.owner) return;
+      const key = ['local', owner, 'active-program'];
+      await cache.cancelQueries({ queryKey: key });
+      await runtime.programs.remove(owner, id);
+      if (owner !== runtime.owner) return;
+      cache.setQueryData(key, await runtime.programs.active(owner));
       runtime.changed();
       cache.removeQueries({ queryKey: ['program', runtime.owner, id] });
       await Promise.all([

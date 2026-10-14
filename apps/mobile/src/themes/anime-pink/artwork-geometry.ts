@@ -2,7 +2,7 @@ type Size = { width: number; height: number };
 export type ArtworkScene = 'home' | 'program' | 'progress' | 'profile';
 const originals = {
   home: { width: 1469, height: 1071, x: 0.78, y: 0.1 },
-  program: { width: 1469, height: 1071, x: 0.8, y: 0.1 },
+  program: { width: 1468, height: 1071, x: 0.8, y: 0.1 },
   progress: { width: 1469, height: 1071, x: 0.8, y: 0.2 },
   profile: { width: 1468, height: 1071, x: 0.45, y: 0 },
 };

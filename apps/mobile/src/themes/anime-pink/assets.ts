@@ -15,7 +15,7 @@ export const animePinkAssets: Record<
   ImageSourcePropType | null
 > = {
   'home.hero': require('../../../assets/jimo/anime-theme/home-hero-reference.png'),
-  'program.hero': require('../../../assets/jimo/anime-theme/scheda-hero-reference.png'),
+  'program.hero': require('../../../assets/jimo/anime-theme/profilo-mood-reference.png'),
   'progress.hero': require('../../../assets/jimo/anime-theme/progressi-hero-reference.png'),
   'profile.hero': require('../../../assets/jimo/anime-theme/profilo-terrace-background.png'),
   'profile.character': require('../../../assets/jimo/anime-theme/profilo-character-overlay.png'),

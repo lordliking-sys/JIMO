@@ -111,13 +111,14 @@ export class OfflineRuntime {
   }
   private async reconcile(owner: string) {
     if (owner !== this.owner) return;
+    const programRevision = this.programs.revision(owner);
     const programs = await programsApi.list(this.locale),
       active = programs.programs.find((p) => p.status === 'active');
     const detail = active
       ? await programsApi.detail(active.id, this.locale)
       : null;
     if (owner !== this.owner) return;
-    await this.programs.replaceActive(owner, detail);
+    await this.programs.replaceActive(owner, detail, programRevision);
     const local = await this.workouts.active(owner),
       server = await serverWorkouts.active();
     if (owner !== this.owner) return;
@@ -129,7 +130,7 @@ export class OfflineRuntime {
       if (server.workout) await this.workouts.import(owner, server.workout);
       else if (local) {
         // Server may have closed the same session on another device. Pending local
-        // edits always win until acknowledged; missing server rows are never deleted.
+        // edits always win until acknowledged; only a confirmed 404 can clear a cache.
         const queued = await this.outbox.list(owner);
         if (!queued.some((o) => o.session_id === local.id)) {
           try {
@@ -144,8 +145,7 @@ export class OfflineRuntime {
               'status' in error &&
               error.status === 404
             ) {
-              await this.metadata(owner, 'activeConflict', local.id);
-              this.syncError = 'WORKOUT_SYNC_CONFLICT';
+              await this.workouts.removeMissing(owner, local.id);
             } else throw error;
           }
         }
@@ -158,6 +158,30 @@ export class OfflineRuntime {
       'recentHistory',
       JSON.stringify(history.workouts),
     );
+    // Home's current-week completion markers must not retain deleted server workouts.
+    // A bounded history list alone cannot prove deletion: require a detail 404.
+    const weekStart = new Date();
+    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+    const recentLocal = await this.workouts.history(
+      owner,
+      weekStart.toISOString(),
+      undefined,
+      'completed',
+    );
+    const known = new Set(history.workouts.map((w) => w.id));
+    for (const row of recentLocal) {
+      if (owner !== this.owner) return;
+      if (known.has(row.id)) continue;
+      try {
+        await serverWorkouts.detail(row.id);
+      } catch (error) {
+        if (error instanceof ApiClientError && error.status === 404) {
+          if (owner !== this.owner) return;
+          await this.workouts.removeMissing(owner, row.id);
+        } else throw error;
+      }
+    }
     // Bound downloads; cache enough read-only recent detail for offline history.
     for (const summary of history.workouts.slice(0, 5))
       if (

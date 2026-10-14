@@ -42,7 +42,7 @@ for (const viewport of [
         route === '/'
           ? 'home-hero-reference'
           : route === '/program'
-            ? 'scheda-hero-reference'
+            ? 'profilo-mood-reference'
             : route === '/progress'
               ? 'progressi-hero-reference'
               : 'profilo-terrace-background';

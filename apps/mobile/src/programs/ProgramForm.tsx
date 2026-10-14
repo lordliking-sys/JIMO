@@ -23,6 +23,7 @@ export function ProgramForm({
   actions,
   fallback,
   children,
+  submitLabel,
 }: {
   initial?: ProgramSummary;
   save: (input: ProgramInput) => void;
@@ -31,6 +32,7 @@ export function ProgramForm({
   actions?: ReactNode;
   fallback?: Href;
   children?: ReactNode;
+  submitLabel?: string;
 }) {
   const { t, i18n } = useTranslation('programs');
   const [name, setName] = useState(initial?.name ?? ''),
@@ -73,7 +75,7 @@ export function ProgramForm({
       invalid={invalid}
       footer={
         <ProgramButton
-          label={t(initial ? 'save' : 'continue')}
+          label={submitLabel ?? t(initial ? 'save' : 'continue')}
           busy={pending}
           onPress={submit}
         />
