@@ -118,21 +118,24 @@ for (const viewport of viewports) {
       .getByRole('button', { name: 'Cambia scheda', exact: true })
       .click();
     await expect(
-      sheet.getByRole('button', { name: 'FORZA, ATTIVA', exact: true }),
+      page
+        .getByTestId('program-popup-overlay')
+        .getByRole('button', { name: 'FORZA, ATTIVA', exact: true }),
     ).toBeVisible();
     await expect(
-      sheet.getByRole('button', {
+      page.getByTestId('program-popup-overlay').getByRole('button', {
         name: 'Ipertrofia, NON ATTIVA',
         exact: true,
       }),
     ).toBeVisible();
     await page.screenshot({ path: info.outputPath('switch-plan.png') });
-    await sheet
+    await page
+      .getByTestId('program-popup-overlay')
       .getByRole('button', { name: 'Ipertrofia, NON ATTIVA', exact: true })
       .click();
     expect(new URL(page.url()).pathname).toBe('/program');
-    await page.getByRole('button', { name: 'Conferma', exact: true }).click();
-    await expect(sheet).toHaveCount(0);
+    await page.getByRole('button', { name: 'Attiva', exact: true }).click();
+    await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
     await expect(page.getByTestId('active-plan-heading')).toContainText(
       'Ipertrofia',
     );
@@ -141,11 +144,11 @@ for (const viewport of viewports) {
     await page
       .getByRole('button', { name: '+ Nuova scheda', exact: true })
       .click();
+    await page.getByLabel('Nome scheda', { exact: true }).fill('Nuova bozza');
     await page
-      .getByLabel('Nome programma', { exact: true })
-      .fill('Nuova bozza');
-    await page.getByRole('button', { name: 'Salva', exact: true }).click();
-    await expect(sheet).toHaveCount(0);
+      .getByRole('button', { name: 'Crea scheda', exact: true })
+      .click();
+    await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
     expect(new URL(page.url()).pathname).toBe('/program');
     const draft = [...f.plans.values()].find((p) => p.name === 'Nuova bozza')!;
     expect(draft.status).toBe('draft');
@@ -156,15 +159,15 @@ for (const viewport of viewports) {
       .getByRole('button', { name: 'Cambia scheda', exact: true })
       .click();
     await expect(
-      sheet.getByRole('button', {
+      page.getByTestId('program-popup-overlay').getByRole('button', {
         name: 'Nuova bozza, NON ATTIVA',
         exact: true,
       }),
     ).toBeVisible();
-    await sheet
+    await page
+      .getByTestId('program-popup-overlay')
       .getByRole('button', { name: 'FORZA, NON ATTIVA', exact: true })
       .click();
-    await page.getByRole('button', { name: 'Annulla', exact: true }).click();
     await page
       .getByRole('button', { name: 'Modifica questa scheda', exact: true })
       .click();
@@ -175,6 +178,7 @@ for (const viewport of viewports) {
       .getByRole('button', { name: 'Elimina programma', exact: true })
       .last()
       .click();
+    await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
     await expect(sheet).toHaveCount(0);
     expect(f.plans.has(f.source.program.id)).toBe(false);
     expect(f.source.workout.name).toBe('Storico originale');

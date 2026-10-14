@@ -17,13 +17,10 @@ import { WeekSelector } from './WeekSelector';
 import { HeroTitle } from '../themes/anime-pink/HeroTitle';
 import { ProgramOverlay } from '../programs/ProgramOverlay';
 import { ProgramManagement } from '../programs/ProgramManagement';
-import { PlanSwitcher } from '../programs/PlanSwitcher';
-import { CreatePlan } from '../programs/CreatePlan';
+import { QuickPlanPopup } from '../programs/QuickPlanPopups';
 
 type Sheet =
-  | { kind: 'switch'; selectedId?: string }
-  | { kind: 'create' }
-  | { kind: 'manage'; id: string };
+  { kind: 'switch' } | { kind: 'create' } | { kind: 'manage'; id: string };
 export function MainProgram() {
   const { t } = useTranslation(['main', 'programs']),
     router = useRouter();
@@ -76,6 +73,7 @@ export function MainProgram() {
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
   const nextDay = useRef<{ id: string; dayId: string } | null>(null);
+  const nextManagement = useRef<string | null>(null);
   const finishClose = () => {
     if (!closingRef.current) return;
     closingRef.current = false;
@@ -83,6 +81,9 @@ export function MainProgram() {
     setClosing(false);
     const next = nextDay.current;
     nextDay.current = null;
+    const manage = nextManagement.current;
+    nextManagement.current = null;
+    if (manage) setSheet({ kind: 'manage', id: manage });
     if (next)
       router.push({
         pathname: '/program/[id]/day-detail',
@@ -210,37 +211,34 @@ export function MainProgram() {
           />
         </View>
       </SectionBody>
-      {sheet ? (
+      {sheet?.kind === 'manage' ? (
         <ProgramOverlay
           visible={!closing}
           onDismiss={finishClose}
-          back={() =>
-            sheet.kind === 'switch' && sheet.selectedId
-              ? setSheet({ kind: 'switch' })
-              : close()
-          }
-          {...(sheet.kind === 'manage' ? { title: t('managePlan') } : {})}
+          back={close}
+          title={t('managePlan')}
         >
-          {sheet.kind === 'switch' ? (
-            <PlanSwitcher
-              {...(sheet.selectedId ? { selectedId: sheet.selectedId } : {})}
-              select={(selectedId) => setSheet({ kind: 'switch', selectedId })}
-              programs={list.data?.programs ?? []}
-              onActivated={close}
-              onManage={(id) => setSheet({ kind: 'manage', id })}
-            />
-          ) : sheet.kind === 'create' ? (
-            <CreatePlan onCreated={close} />
-          ) : (
-            <ProgramManagement
-              key={sheet.id}
-              id={sheet.id}
-              onSaved={close}
-              onDeleted={close}
-              onOpenDay={openDay}
-            />
-          )}
+          <ProgramManagement
+            key={sheet.id}
+            id={sheet.id}
+            onSaved={close}
+            onDeleted={close}
+            onOpenDay={openDay}
+          />
         </ProgramOverlay>
+      ) : sheet ? (
+        <QuickPlanPopup
+          mode={sheet.kind}
+          programs={list.data?.programs ?? []}
+          close={close}
+          visible={!closing}
+          onDismiss={finishClose}
+          onNew={() => setSheet({ kind: 'create' })}
+          onManage={(id) => {
+            nextManagement.current = id;
+            close();
+          }}
+        />
       ) : null}
     </MainScreen>
   );

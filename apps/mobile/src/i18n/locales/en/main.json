@@ -48,5 +48,22 @@
   "noActivePlanHint": "Create a plan or choose which one to use in Switch plan.",
   "setActive": "Set as active",
   "confirmSetActive": "Set {{name}} as the active plan?",
-  "manageSelected": "Edit this plan"
+  "manageSelected": "Edit this plan",
+  "popup": {
+    "newTitle": "New plan",
+    "switchTitle": "Switch plan",
+    "name": "Plan name",
+    "namePlaceholder": "E.g. Strength, Hypertrophy...",
+    "weeks": "Duration (weeks)",
+    "decreaseWeeks": "Decrease duration",
+    "increaseWeeks": "Increase duration",
+    "create": "Create plan",
+    "activate": "Activate",
+    "close": "Close popup",
+    "discardQuestion": "Discard unsaved changes?",
+    "discard": "Discard changes",
+    "keepEditing": "Keep editing",
+    "noDuration": "No duration",
+    "manageHint": "Tap to choose. Hold to edit the plan."
+  }
 }

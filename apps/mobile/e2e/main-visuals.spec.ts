@@ -346,15 +346,18 @@ test('Scheda management and creation are overlays; closing returns to the same h
     .getByRole('button', { name: '+ Nuova scheda', exact: true })
     .click();
   await page
-    .getByLabel('Nome programma', { exact: true })
+    .getByLabel('Nome scheda', { exact: true })
     .fill('Prova refinement');
   await page.locator('input[type="date"]').fill('2026-10-25');
   await expect(
     page.getByText('25 ottobre 2026', { exact: true }).last(),
   ).toBeVisible();
   expect(new URL(page.url()).pathname).toBe('/program');
-  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Chiudi popup', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Scarta modifiche', exact: true })
+    .click();
+  await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
 });
 test('Home stays full bleed with lateral insets and its last row clears the navbar', async ({
   page,

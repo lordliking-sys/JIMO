@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react';
 import type { AndroidNativeProps } from '@react-native-community/datetimepicker';
+export { animePink } from '../../../packages/ui/src/tokens';
 export const device: {
   picker: AndroidNativeProps | null;
   buttons: { accessibilityLabel?: string; onPress?: () => void }[];

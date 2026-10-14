@@ -9,7 +9,8 @@ import DateTimePicker, {
   DateTimePickerAndroid,
 } from '@react-native-community/datetimepicker';
 import CalendarDays from 'lucide-react-native/icons/calendar-days';
-import { Button, Card, colors, spacing, Text } from '@jimo/ui';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import { Button, Card, colors, spacing, Text, animePink } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import {
   calendarDateLabel,
@@ -21,9 +22,13 @@ import { styles } from './components';
 export function DateField({
   value,
   onChange,
+  compact = false,
+  disabled = false,
 }: {
   value: string;
   onChange: (value: string) => void;
+  compact?: boolean;
+  disabled?: boolean;
 }) {
   const { t, i18n } = useTranslation('programs');
   const visual = useProgramPresentation(),
@@ -66,6 +71,7 @@ export function DateField({
         accessibilityLabel={`${t('startsOn')}: ${value ? calendarDateLabel(value, i18n.language) : t('chooseDate')}`}
         accessibilityHint={t('chooseDate')}
         onPress={choose}
+        disabled={disabled}
         style={({ pressed }) => [
           styles.input,
           {
@@ -74,12 +80,20 @@ export function DateField({
             gap: spacing.md,
             borderColor: pressed ? palette.primary : palette.border,
             backgroundColor: palette.elevated,
+            ...(compact
+              ? {
+                  borderRadius: 22,
+                  minHeight: 48,
+                  gap: 10,
+                  backgroundColor: '#FFFFFF',
+                }
+              : {}),
           },
         ]}
       >
         <CalendarDays
           size={22}
-          color={palette.secondary}
+          color={compact ? animePink.primaryText : palette.secondary}
           accessibilityElementsHidden
           importantForAccessibility="no"
         />
@@ -89,12 +103,16 @@ export function DateField({
         >
           {value ? calendarDateLabel(value, i18n.language) : t('chooseDate')}
         </Text>
+        {compact ? (
+          <ChevronRight size={19} color={palette.text} accessible={false} />
+        ) : null}
       </Pressable>
       {value ? (
         <ActionButton
           variant="secondary"
           label={t('clearDate')}
           onPress={() => onChange('')}
+          disabled={disabled}
         />
       ) : null}
       <Modal

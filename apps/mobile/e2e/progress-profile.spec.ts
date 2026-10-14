@@ -252,16 +252,11 @@ for (const device of devices)
       .getByTestId('progress-editorial-screen')
       .getByTestId('section-hero-art')
       .boundingBox())!.height;
-    const art = (await page
-        .getByTestId('progress-editorial-screen')
-        .getByTestId('section-hero-art')
-        .boundingBox())!,
-      seam = (await page.getByTestId('progress-hero-seam').boundingBox())!;
-    expect(seam.y).toBeLessThan(art.y + art.height);
-    expect(seam.y + seam.height).toBeGreaterThan(art.y + art.height);
-    expect(
-      Math.abs(seam.y + seam.height / 2 - (art.y + art.height)),
-    ).toBeLessThanOrEqual(14);
+    const seam = (await page.getByTestId('progress-hero-seam').boundingBox())!;
+    const body = (await page.getByTestId('progress-body').boundingBox())!;
+    expect(seam.y).toBeGreaterThanOrEqual(body.y + 16);
+    expect(seam.x).toBeGreaterThanOrEqual(body.x);
+    expect(seam.x + seam.width).toBeLessThanOrEqual(body.x + body.width);
     await page.screenshot({ path: info.outputPath('progressi-clean.png') });
     await bottomInset(page, 'progress-editorial-screen', 'progress-content');
     await page.getByRole('tab', { name: 'Profilo', exact: true }).click();

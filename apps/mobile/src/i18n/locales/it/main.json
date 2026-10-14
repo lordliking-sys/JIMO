@@ -48,5 +48,22 @@
   "noActivePlanHint": "Crea una scheda o scegli quale usare da Cambia scheda.",
   "setActive": "Imposta come attiva",
   "confirmSetActive": "Impostare {{name}} come scheda attiva?",
-  "manageSelected": "Modifica questa scheda"
+  "manageSelected": "Modifica questa scheda",
+  "popup": {
+    "newTitle": "Nuova scheda",
+    "switchTitle": "Cambia scheda",
+    "name": "Nome scheda",
+    "namePlaceholder": "Es. Forza, Ipertrofia...",
+    "weeks": "Durata (settimane)",
+    "decreaseWeeks": "Riduci durata",
+    "increaseWeeks": "Aumenta durata",
+    "create": "Crea scheda",
+    "activate": "Attiva",
+    "close": "Chiudi popup",
+    "discardQuestion": "Scartare le modifiche non salvate?",
+    "discard": "Scarta modifiche",
+    "keepEditing": "Continua a modificare",
+    "noDuration": "Senza durata",
+    "manageHint": "Tocca per scegliere. Tieni premuto per modificare la scheda."
+  }
 }
