@@ -157,9 +157,7 @@ for (const device of devices)
         errors.push(message.text());
     });
     await page.goto('/');
-    await expect(page.getByTestId('home-workout-card')).toContainText(
-      'Push Pull Legs',
-    );
+    await expect(page.getByTestId('home-workout-card')).toContainText('Pull');
     await page.evaluate(() => document.fonts.ready);
     const background = (await page
       .getByTestId('section-hero-art')
@@ -196,7 +194,7 @@ for (const device of devices)
     await expect(
       page
         .getByTestId('home-week-strip')
-        .getByLabel(/Martedì, allenamento completato/),
+        .getByLabel(/Martedì,.*allenamento completato/),
     ).toBeVisible();
     await noOverflow(page);
     await page.screenshot({ path: info.outputPath('home-reference.png') });
@@ -224,9 +222,9 @@ for (const device of devices)
     const push = page.getByTestId(`program-day-${fixture.program.days[0]!.id}`),
       pull = page.getByTestId(`program-day-${fixture.program.days[1]!.id}`),
       legs = page.getByTestId(`program-day-${fixture.program.days[2]!.id}`);
-    await expect(push).toHaveAccessibleName(/Apri giornata Push, Completato/);
-    await expect(pull).toHaveAccessibleName(/Corrente/);
-    await expect(legs).toHaveAccessibleName(/Pianificato/);
+    await expect(push).toHaveAccessibleName(/Apri giornata Push/);
+    await expect(pull).toHaveAccessibleName(/Apri giornata Pull/);
+    await expect(legs).toHaveAccessibleName(/Apri giornata Gambe/);
     await expect(legs).toBeEnabled();
     for (const day of fixture.program.days) {
       const card = page.getByTestId(`program-day-${day.id}`);
@@ -234,7 +232,7 @@ for (const device of devices)
       await expect(card).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       await expect(card.locator('svg').last()).toHaveAttribute(
         'stroke',
-        '#FF4D8D',
+        '#C52A68',
       );
     }
     await expect(page.getByTestId('program-week-selector')).toHaveCount(0);

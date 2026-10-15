@@ -66,6 +66,12 @@
     "keepEditing": "Keep editing",
     "noDuration": "No duration",
     "manageHint": "Tap to choose. Hold to edit the plan.",
-    "moreActions": "More actions"
-  }
+    "moreActions": "More actions",
+    "back": "Back"
+  },
+  "goToProgram": "Go to Plan",
+  "editDayAction": "Edit",
+  "selectedPlan": "Plan for {{date}}",
+  "emptyDay": "No exercises configured.",
+  "noScheduledWorkout": "No workout scheduled."
 }

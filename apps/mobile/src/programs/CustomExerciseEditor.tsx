@@ -1,3 +1,4 @@
+import { useDialogForm } from '../components/JimoDialog';
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +48,10 @@ export function CustomExerciseEditor({
       onCreated(e);
     },
   });
+  useDialogForm(
+    name !== '' || tracking !== 'reps' || mode !== null,
+    mutation.isPending,
+  );
   return (
     <FormScreen
       header={<FormHeader title={t('customTitle')} />}

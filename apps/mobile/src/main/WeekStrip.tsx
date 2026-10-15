@@ -1,12 +1,22 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { zonedDateKey } from '@jimo/schemas';
 import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { MainText } from './Surface';
 import { animePink } from '@jimo/ui';
 import type { weekSchedule } from '../workouts/helpers';
 
-export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
+export function WeekStrip({
+  week,
+  selectedDate,
+  onSelect,
+}: {
+  week: ReturnType<typeof weekSchedule>;
+  selectedDate: Date;
+  onSelect(date: Date): void;
+}) {
   const { t } = useTranslation(['main', 'workouts', 'programs']);
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
   return (
     <View
       testID="home-week-strip"
@@ -23,6 +33,8 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
       }}
     >
       {week.map((day) => {
+        const selected =
+          zonedDateKey(day.date, zone) === zonedDateKey(selectedDate, zone);
         const state = [
           day.today ? t('workouts:weekState.today') : null,
           day.completed
@@ -34,10 +46,14 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
           .filter(Boolean)
           .join(', ');
         return (
-          <View
+          <Pressable
             key={day.weekday}
-            accessible
-            accessibilityLabel={`${t(`programs:weekdays.${day.weekday}`)}, ${state}`}
+            testID={`home-date-${day.weekday}`}
+            accessibilityRole="button"
+            accessibilityLabel={`${t(`programs:weekdays.${day.weekday}`)}, ${day.date.getDate()}, ${state}`}
+            accessibilityState={{ selected }}
+            aria-pressed={selected}
+            onPress={() => onSelect(day.date)}
             style={{
               flex: 1,
               minHeight: 52,
@@ -57,20 +73,20 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
                 gap: 3,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: day.today
+                backgroundColor: selected
                   ? animePink.primaryAction
                   : day.days.length || day.completed
                     ? animePink.primaryPinkPale
                     : 'transparent',
-                borderWidth: day.today ? 1 : 0,
-                borderColor: animePink.primaryPink,
+                borderWidth: day.today ? 2 : 0,
+                borderColor: selected ? animePink.white : animePink.primaryText,
               }}
             >
               <MainText
                 style={{
                   fontSize: 14,
                   lineHeight: 18,
-                  color: day.today ? animePink.white : animePink.textPrimary,
+                  color: selected ? animePink.white : animePink.textPrimary,
                 }}
               >
                 {day.date.getDate()}
@@ -78,7 +94,7 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
               {day.completed ? (
                 <Check
                   size={12}
-                  color={day.today ? animePink.white : animePink.primaryText}
+                  color={selected ? animePink.white : animePink.primaryText}
                 />
               ) : (
                 <View
@@ -87,7 +103,7 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
                     height: 5,
                     borderRadius: 3,
                     backgroundColor: day.days.length
-                      ? day.today
+                      ? selected
                         ? animePink.white
                         : animePink.primaryPink
                       : animePink.border,
@@ -95,7 +111,7 @@ export function WeekStrip({ week }: { week: ReturnType<typeof weekSchedule> }) {
                 />
               )}
             </View>
-          </View>
+          </Pressable>
         );
       })}
     </View>

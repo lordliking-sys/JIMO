@@ -65,6 +65,43 @@ export function homeDay(
     scheduledToday: scheduled.length > 0,
   };
 }
+/** Read a selected local calendar date from the current program, never from a UI/session snapshot. */
+export function homePlanForDate(
+  program: ProgramDetail | null | undefined,
+  date: Date,
+  history: WorkoutSummary[],
+  timeZone: string,
+) {
+  const key = zonedDateKey(date, timeZone),
+    completed = new Set(
+      history
+        .filter(
+          (w) =>
+            w.status === 'completed' &&
+            w.programId === program?.id &&
+            w.completedAt &&
+            zonedDateKey(w.completedAt, timeZone) === key,
+        )
+        .map((w) => w.programDayId),
+    );
+  const { day } = homeDay(
+    program,
+    date,
+    new Set([...completed].filter((id): id is string => !!id)),
+  );
+  return {
+    day,
+    completed: !!day && completed.has(day.id),
+    state:
+      program?.status !== 'active'
+        ? ('no-program' as const)
+        : !day
+          ? ('rest' as const)
+          : !day.exercises.length
+            ? ('empty' as const)
+            : ('workout' as const),
+  };
+}
 /** Calendar-week offsets use date keys rather than elapsed local hours (DST). */
 export function programWeek(
   program: ProgramDetail | null | undefined,

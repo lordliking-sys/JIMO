@@ -198,5 +198,6 @@
   "confirmDeleteProgram": "Eliminare definitivamente questo programma?",
   "deleteProgramExplanation": "Il programma e la sua struttura verranno rimossi. Lo storico degli allenamenti già eseguiti non verrà eliminato.",
   "daysHeading": "GIORNATE",
-  "deleteSyncPending": "Attendi la sincronizzazione degli allenamenti prima di eliminare il programma."
+  "deleteSyncPending": "Attendi la sincronizzazione degli allenamenti prima di eliminare il programma.",
+  "createWeekdayWorkout": "Crea allenamento per {{day}}"
 }

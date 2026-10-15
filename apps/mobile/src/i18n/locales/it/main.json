@@ -66,6 +66,12 @@
     "keepEditing": "Continua a modificare",
     "noDuration": "Senza durata",
     "manageHint": "Tocca per scegliere. Tieni premuto per modificare la scheda.",
-    "moreActions": "Altre azioni"
-  }
+    "moreActions": "Altre azioni",
+    "back": "Indietro"
+  },
+  "goToProgram": "Vai a Scheda",
+  "editDayAction": "Modifica",
+  "selectedPlan": "Piano di {{date}}",
+  "emptyDay": "Nessun esercizio configurato.",
+  "noScheduledWorkout": "Nessun allenamento programmato."
 }

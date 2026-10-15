@@ -1,17 +1,15 @@
-import { Image, Modal, Pressable, ScrollView, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { JimoDialog, PopupButton } from '../components/JimoDialog';
 import Camera from 'lucide-react-native/icons/camera';
 import { useLocalAvatar } from './useLocalAvatar';
-import { EditorialText, Copy, PaperCard } from './Surface';
-import { Action } from './Controls';
+import { EditorialText, Copy } from './Surface';
 import { monogram } from './chart';
 import { ink } from './theme';
 
 export function ProfileAvatar({ name }: { name: string | null }) {
   const avatar = useLocalAvatar(),
-    { t } = useTranslation('progressProfile'),
-    insets = useSafeAreaInsets();
+    { t } = useTranslation('progressProfile');
   return (
     <>
       <Pressable
@@ -89,71 +87,49 @@ export function ProfileAvatar({ name }: { name: string | null }) {
           {t(`avatarActions.errors.${avatar.error}`)}
         </Copy>
       ) : null}
-      <Modal
-        visible={avatar.open}
-        transparent
-        animationType="none"
-        onRequestClose={avatar.close}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            paddingTop: insets.top + 16,
-            paddingBottom: insets.bottom + 16,
-            paddingLeft: insets.left + 24,
-            paddingRight: insets.right + 24,
-            backgroundColor: 'rgba(15,8,18,0.55)',
-          }}
+      {avatar.open ? (
+        <JimoDialog
+          title={t('avatarActions.title')}
+          visible={avatar.open}
+          close={avatar.close}
+          onDismiss={() => {}}
+          busy={avatar.busy}
+          footer={
+            <PopupButton
+              label={t('avatarActions.cancel')}
+              outline
+              disabled={avatar.busy}
+              onPress={avatar.close}
+            />
+          }
         >
-          <PaperCard
-            accessibilityViewIsModal
-            style={{
-              maxHeight: '100%',
-              maxWidth: 480,
-              width: '100%',
-              alignSelf: 'center',
-            }}
-          >
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ gap: 12 }}
-            >
-              <EditorialText accessibilityRole="header">
-                {t('avatarActions.title')}
-              </EditorialText>
-              <Copy>{t('avatarActions.localOnly')}</Copy>
-              {avatar.error ? (
-                <Copy accessibilityRole="alert" style={{ color: ink.danger }}>
-                  {t(`avatarActions.errors.${avatar.error}`)}
-                </Copy>
-              ) : null}
-              <Action
-                label={t('avatarActions.camera')}
-                disabled={avatar.busy}
-                onPress={() => avatar.choose('camera')}
-              />
-              <Action
-                label={t('avatarActions.gallery')}
-                disabled={avatar.busy}
-                onPress={() => avatar.choose('gallery')}
-              />
-              {avatar.uri ? (
-                <Action
-                  label={t('avatarActions.remove')}
-                  disabled={avatar.busy}
-                  onPress={avatar.remove}
-                />
-              ) : null}
-              <Action
-                label={t('avatarActions.cancel')}
-                disabled={avatar.busy}
-                onPress={avatar.close}
-              />
-            </ScrollView>
-          </PaperCard>
-        </View>
-      </Modal>
+          <Copy>{t('avatarActions.localOnly')}</Copy>
+          {avatar.error ? (
+            <Copy accessibilityRole="alert" style={{ color: ink.danger }}>
+              {t(`avatarActions.errors.${avatar.error}`)}
+            </Copy>
+          ) : null}
+          <PopupButton
+            label={t('avatarActions.camera')}
+            disabled={avatar.busy}
+            onPress={() => avatar.choose('camera')}
+          />
+          <PopupButton
+            label={t('avatarActions.gallery')}
+            outline
+            disabled={avatar.busy}
+            onPress={() => avatar.choose('gallery')}
+          />
+          {avatar.uri ? (
+            <PopupButton
+              label={t('avatarActions.remove')}
+              outline
+              disabled={avatar.busy}
+              onPress={avatar.remove}
+            />
+          ) : null}
+        </JimoDialog>
+      ) : null}
     </>
   );
 }

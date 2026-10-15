@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -8,16 +9,22 @@ import { Text, animePink } from '@jimo/ui';
 import { zonedDateKey } from '@jimo/schemas';
 import { SyncStatus } from '../db/Status';
 import { useHistory } from '../workouts/queries';
-import { setSummary, weekBounds, weekSchedule } from '../workouts/helpers';
+import {
+  setSummary,
+  weekBounds,
+  weekSchedule,
+  localWeekday,
+} from '../workouts/helpers';
 import { exerciseSummary } from '../programs/summary';
 import { MainNotice, MainScreen, MainText } from './Surface';
-import { completedDay, completedExerciseCount, homeDay } from './helpers';
+import { completedExerciseCount, homePlanForDate } from './helpers';
 import { useTraining } from './useTraining';
 import { useDayStart } from './useDayStart';
 import { WeekStrip } from './WeekStrip';
 import { ExerciseThumbnail } from '../programs/ExerciseThumbnail';
 import { HomeHero } from './HomeHero';
 import { SectionBody } from '../components/SectionBody';
+import { parseCalendarDate } from '../programs/date';
 
 export function MainHome() {
   const { t, i18n } = useTranslation([
@@ -37,21 +44,23 @@ export function MainHome() {
   const { start, end } = weekBounds(now),
     history = useHistory(start.toISOString(), end.toISOString(), 'completed');
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-  const completedIds = new Set(
-    (program?.days ?? [])
-      .filter((day) =>
-        completedDay(
-          day,
-          program!.id,
-          history.data?.workouts ?? [],
-          start,
-          timeZone,
-        ),
-      )
-      .map((day) => day.id),
+  const todayKey = zonedDateKey(now, timeZone),
+    weekKey = zonedDateKey(start, timeZone);
+  const [selection, setSelection] = useState<{
+    week: string;
+    date: string;
+  } | null>(null);
+  const selectedKey = selection?.week === weekKey ? selection.date : todayKey;
+  const selectedDate = parseCalendarDate(selectedKey) ?? now;
+  const plan = homePlanForDate(
+    program,
+    selectedDate,
+    history.data?.workouts ?? [],
+    timeZone,
   );
-  const { day, scheduledToday } = homeDay(program, now, completedIds),
-    action = useDayStart(day?.id);
+  const day = plan.day,
+    scheduledToday = !!day;
+  const action = useDayStart(day?.id);
   const week = weekSchedule(
     program?.days ?? [],
     history.data?.workouts ?? [],
@@ -68,25 +77,31 @@ export function MainHome() {
     ),
   }));
   const canStart =
-    !!program &&
-    !!day?.exercises.length &&
-    scheduledToday &&
-    !completedIds.has(day.id);
+    !!program && !!day?.exercises.length && scheduledToday && !plan.completed;
   const label =
     active || action.conflict
       ? t('workouts:resume')
       : !program
-        ? t('common:home.create')
+        ? t('goToProgram')
         : canStart
           ? t('workouts:start')
-          : t('workouts:choose');
+          : t('editDayAction');
+  const editRequest = useRef(0);
   const openProgram = () => router.push('/program');
+  const editSelected = () =>
+    router.push({
+      pathname: '/program',
+      params: {
+        weekday: String(localWeekday(selectedDate)),
+        openDay: `${Date.now()}-${++editRequest.current}`,
+      },
+    });
   const open = () => {
     if (active)
       router.push({ pathname: '/workout/[id]', params: { id: active.id } });
     else if (action.conflict || canStart) action.start();
-    else if (!program) router.push('/program/manual');
-    else openProgram();
+    else if (!program) openProgram();
+    else editSelected();
   };
   const upcoming = active
     ? active.exercises.find((exercise) =>
@@ -119,7 +134,13 @@ export function MainHome() {
           gap: 16,
         }}
       >
-        <WeekStrip week={week} />
+        <WeekStrip
+          week={week}
+          selectedDate={selectedDate}
+          onSelect={(date) =>
+            setSelection({ week: weekKey, date: zonedDateKey(date, timeZone) })
+          }
+        />
         <View
           style={{
             flexDirection: 'row',
@@ -130,9 +151,16 @@ export function MainHome() {
         >
           <MainText
             accessibilityRole="header"
-            style={{ fontSize: 22, lineHeight: 28 }}
+            style={{ fontSize: 22, lineHeight: 28, flex: 1, minWidth: 0 }}
           >
-            {t('todayPlan')}
+            {selectedKey === todayKey
+              ? t('todayPlan')
+              : t('selectedPlan', {
+                  date: selectedDate.toLocaleDateString(
+                    i18n.resolvedLanguage ?? 'it',
+                    { weekday: 'long', day: 'numeric', month: 'short' },
+                  ),
+                })}
           </MainText>
           <Pressable
             accessibilityRole="button"
@@ -199,7 +227,7 @@ export function MainHome() {
                     ? t('workouts:offline.connect')
                     : program
                       ? scheduledToday
-                        ? program.name
+                        ? day!.name
                         : t('restDay')
                       : t('noActivePlan'))}
               </MainText>
@@ -211,28 +239,34 @@ export function MainHome() {
                     })
                   : program
                     ? scheduledToday
-                      ? `${day!.name} · ${t('programs:exerciseCount', { count: day!.exercises.length })}`
+                      ? t('programs:exerciseCount', {
+                          count: day!.exercises.length,
+                        })
                       : program.name
                     : dataUnavailable
                       ? t('offline')
                       : t('common:home.description')}
               </Text>
-              {!program && !dataUnavailable ? (
-                <Text variant="caption" color={animePink.primaryText}>
-                  {t('common:home.create')}
+              {!active &&
+              program &&
+              (!scheduledToday || !day!.exercises.length || plan.completed) ? (
+                <Text variant="caption" color={animePink.textSecondary}>
+                  {plan.completed
+                    ? t('workouts:workoutStatus.completed')
+                    : scheduledToday
+                      ? t('emptyDay')
+                      : t('noScheduledWorkout')}
                 </Text>
-              ) : program && !scheduledToday && !active ? (
+              ) : null}
+              {!dataUnavailable ? (
                 <Text variant="caption" color={animePink.primaryText}>
-                  {t(
-                    program.days.some((day) => day.dayOfWeek !== null)
-                      ? 'chooseDay'
-                      : 'unscheduled',
-                  )}
+                  {label}
                 </Text>
               ) : null}
             </View>
-            {!dataUnavailable ? (
+            {!dataUnavailable && (active || action.conflict || canStart) ? (
               <View
+                testID="home-start-affordance"
                 accessible={false}
                 style={{
                   width: 40,

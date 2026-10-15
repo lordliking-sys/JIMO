@@ -37,6 +37,7 @@ import {
   type programArtwork,
 } from './presentation';
 import { useProgramOverlay } from './overlay-context';
+import { useDialogFocus } from '../components/JimoDialog';
 /** Form sections use hierarchy and dividers instead of nested surfaces. */
 export function FormSection({ children }: { children: ReactNode }) {
   const visual = useProgramPresentation();
@@ -72,6 +73,19 @@ export function FormScreen({
 }) {
   const { t } = useTranslation('programs');
   const overlay = useProgramOverlay();
+  const dialog = useDialogFocus();
+  if (dialog)
+    return (
+      <View style={{ gap: 16 }}>
+        {children}
+        {invalid ? (
+          <Text color={programInk.danger} accessibilityRole="alert">
+            {t('invalidForm')}
+          </Text>
+        ) : null}
+        {footer}
+      </View>
+    );
   if (overlay)
     return (
       <Screen
@@ -141,7 +155,9 @@ export function FormScreen({
 }
 export function FocusInput(props: TextInputProps) {
   const input = useRef<TextInput>(null);
-  const focus = useFormFocus();
+  const formFocus = useFormFocus(),
+    dialogFocus = useDialogFocus(),
+    focus = dialogFocus ?? formFocus;
   const [focused, setFocused] = useState(false);
   const visual = useProgramPresentation();
   const { width, height } = useWindowDimensions();

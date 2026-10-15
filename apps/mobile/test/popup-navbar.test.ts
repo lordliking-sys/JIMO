@@ -27,10 +27,11 @@ test('central popup stays bounded on phones/tablets and above a keyboard without
   ]) {
     for (const keyboardTop of [height!, height! - 300]) {
       const g = popupGeometry(width!, height!, top!, bottom!, keyboardTop);
-      assert.ok(g.width <= 460);
+      assert.ok(g.width <= 370);
       assert.ok((width! - g.width) / 2 >= 16);
       assert.ok(g.maxHeight < height!);
-      assert.equal(g.maxHeight + top! + g.bottomInset + 32, g.availableHeight);
+      assert.ok(g.maxHeight + top! + g.bottomInset + 32 <= g.availableHeight);
+      assert.ok(g.maxHeight <= height! * 0.8);
       assert.ok(g.maxHeight >= 240);
     }
   }

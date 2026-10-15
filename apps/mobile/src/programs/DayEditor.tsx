@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { dayInputSchema, type DayDto, type DayInput } from '@jimo/schemas';
+import {
+  dayInputSchema,
+  type DayDto,
+  type DayInput,
+  type ProgramDetail,
+} from '@jimo/schemas';
+import { useDialogForm } from '../components/JimoDialog';
 import { Text } from '@jimo/ui';
 import { ProgramButton, programInk } from '../programs/presentation';
 import { useProgramMutation, useApiLocale } from '../api/queries';
@@ -20,11 +26,13 @@ export function DayEditor({
   day,
   onSaved,
   weekday,
+  fixedWeekday,
 }: {
   id: string;
   day?: DayDto;
-  onSaved(): void;
+  onSaved(program: ProgramDetail): void;
   weekday?: number;
+  fixedWeekday?: number | null;
 }) {
   const { t } = useTranslation('programs'),
     locale = useApiLocale();
@@ -36,6 +44,12 @@ export function DayEditor({
     [invalid, setInvalid] = useState(false);
   const mutation = useProgramMutation((input: DayInput) =>
     programsApi.saveDay(id, day?.id, input, locale),
+  );
+  useDialogForm(
+    name !== (day?.name ?? '') ||
+      notes !== (day?.notes ?? '') ||
+      selectedWeekday !== ((day?.dayOfWeek ?? weekday)?.toString() ?? ''),
+    mutation.isPending,
   );
   return (
     <FormScreen
@@ -52,7 +66,10 @@ export function DayEditor({
             try {
               const input = dayInputSchema.parse({
                 name,
-                dayOfWeek: weekdayValue(selectedWeekday),
+                dayOfWeek:
+                  fixedWeekday !== undefined
+                    ? fixedWeekday
+                    : weekdayValue(selectedWeekday),
                 notes: notes.trim() || null,
               });
               setInvalid(false);
@@ -75,28 +92,32 @@ export function DayEditor({
           placeholder={t('dayPlaceholder')}
           {...(invalid && !name.trim() ? { error: t('requiredName') } : {})}
         />
-        <Text variant="label" color={programInk.text}>
-          {t('weekday')}
-        </Text>
-        <View style={choiceStyles.row}>
-          {weekdayNumbers.map((number) => (
-            <Choice
-              key={number}
-              label={t(`weekdaysShort.${number}`)}
-              accessibilityLabel={t(`weekdays.${number}`)}
-              selected={selectedWeekday === String(number)}
-              onPress={() => setWeekday(String(number))}
-            />
-          ))}
-          <Choice
-            label={t('noWeekday')}
-            selected={!selectedWeekday}
-            onPress={() => setWeekday('')}
-          />
-        </View>
-        <Text variant="caption" color={programInk.secondary}>
-          {t('weekdayOptional')}
-        </Text>
+        {fixedWeekday === undefined ? (
+          <>
+            <Text variant="label" color={programInk.text}>
+              {t('weekday')}
+            </Text>
+            <View style={choiceStyles.row}>
+              {weekdayNumbers.map((number) => (
+                <Choice
+                  key={number}
+                  label={t(`weekdaysShort.${number}`)}
+                  accessibilityLabel={t(`weekdays.${number}`)}
+                  selected={selectedWeekday === String(number)}
+                  onPress={() => setWeekday(String(number))}
+                />
+              ))}
+              <Choice
+                label={t('noWeekday')}
+                selected={!selectedWeekday}
+                onPress={() => setWeekday('')}
+              />
+            </View>
+            <Text variant="caption" color={programInk.secondary}>
+              {t('weekdayOptional')}
+            </Text>
+          </>
+        ) : null}
         <Field
           label={t('notes')}
           value={notes}

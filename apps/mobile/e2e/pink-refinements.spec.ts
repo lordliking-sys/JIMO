@@ -49,9 +49,9 @@ for (const size of sizes) {
       .getByRole('button', { name: 'Rimuovi esercizio', exact: true })
       .click();
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
-    await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+    await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
     await page
-      .getByRole('button', { name: 'Indietro', exact: true })
+      .getByRole('button', { name: 'Chiudi popup', exact: true })
       .last()
       .click();
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
@@ -62,7 +62,7 @@ for (const size of sizes) {
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
     await page.getByTestId(`program-day-${day.id}`).click();
     await page
-      .getByRole('button', { name: `Azioni giornata ${day.name}`, exact: true })
+      .getByRole('button', { name: 'Altre azioni', exact: true })
       .click();
     await page
       .getByRole('button', { name: 'Elimina giorno', exact: true })
@@ -75,6 +75,9 @@ for (const size of sizes) {
       }),
     ).toHaveCount(0);
     await expect(page).toHaveURL(/\/program$/);
+    await page
+      .getByRole('button', { name: 'Chiudi popup', exact: true })
+      .click();
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
     await expect(upcoming).toHaveCount(0);
     await expect(
@@ -106,6 +109,12 @@ for (const size of sizes) {
     );
     await expect(upcoming).toHaveCount(0);
     expect(f.plans.has(f.source.program.id)).toBe(false);
+    await expect(page.getByTestId('home-workout-card')).toContainText(
+      'Nessuna scheda attiva',
+    );
+    await expect(
+      page.getByRole('button', { name: 'Vai a Scheda', exact: true }),
+    ).toBeEnabled();
   });
 
   test(`Home clears a server-deleted synced workout ${size.width}x${size.height}`, async ({

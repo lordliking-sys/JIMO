@@ -7,29 +7,27 @@ import { Text, IconButton, animePink } from '@jimo/ui';
 import type { ProgramSummary } from '@jimo/schemas';
 import Pencil from 'lucide-react-native/icons/pencil';
 import { usePrograms, useProgram } from '../api/queries';
-import { useHistory } from '../workouts/queries';
 import { PendingReview } from '../imports/PendingReview';
 import { MainButton, MainNotice, MainScreen, MainText } from './Surface';
-import { dayStates } from './helpers';
-import { weekBounds } from '../workouts/helpers';
 import { weekdayNumbers } from '../programs/weekdays';
 import { useTraining } from './useTraining';
 import { DayCard } from './DayCard';
 import { HeroTitle } from '../themes/anime-pink/HeroTitle';
-import { ProgramOverlay } from '../programs/ProgramOverlay';
 import { EditPlanPopup } from '../programs/EditPlanPopup';
-import { DayEditor } from '../programs/DayEditor';
+import { DayDialog } from '../programs/DayDialog';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import { useLocalSearchParams } from 'expo-router';
 import { QuickPlanPopup } from '../programs/QuickPlanPopups';
 
 type Sheet =
   | { kind: 'switch' }
   | { kind: 'create' }
   | { kind: 'edit'; program: ProgramSummary }
-  | { kind: 'day'; id: string; weekday: number };
+  | { kind: 'day'; weekday: number | null; dayId?: string };
 export function MainProgram() {
   const { t } = useTranslation(['main', 'programs', 'workouts']);
   const list = usePrograms(),
-    { program: cached, session, now, runtime } = useTraining();
+    { program: cached, runtime } = useTraining();
   const summary = list.data?.programs.find((p) => p.status === 'active');
   const cachedMatches =
     !!cached.data &&
@@ -38,22 +36,20 @@ export function MainProgram() {
   const detail = useProgram(cachedMatches ? '' : (summary?.id ?? '')),
     program = cachedMatches ? cached.data : detail.data;
   const [sheet, setSheet] = useState<Sheet | null>(null);
-  const bounds = weekBounds(now),
-    history = useHistory(
-      bounds.start.toISOString(),
-      bounds.end.toISOString(),
-      'completed',
-    );
-  const states = program
-    ? dayStates(
-        program,
-        history.data?.workouts ?? [],
-        session.data?.workout,
-        bounds.start,
-        true,
-        now,
-      )
-    : new Map();
+  const params = useLocalSearchParams<{ weekday?: string; openDay?: string }>();
+  const requestedWeekday = Number(params.weekday),
+    requestKey = `${program?.id}:${params.openDay}`;
+  const [handledRequest, setHandledRequest] = useState<string | null>(null);
+  const currentSheet: Sheet | null =
+    sheet ??
+    (program &&
+    params.openDay &&
+    handledRequest !== requestKey &&
+    Number.isInteger(requestedWeekday) &&
+    requestedWeekday >= 1 &&
+    requestedWeekday <= 7
+      ? { kind: 'day', weekday: requestedWeekday }
+      : null);
   const pending =
     !program &&
     (cached.isPending || list.isPending || (!!summary && detail.isPending));
@@ -70,6 +66,7 @@ export function MainProgram() {
     if (!closingRef.current) return;
     closingRef.current = false;
     setSheet(null);
+    setHandledRequest(requestKey);
     setClosing(false);
     const next = nextEdit.current;
     nextEdit.current = null;
@@ -144,9 +141,10 @@ export function MainProgram() {
                   days.map((day) => (
                     <DayCard
                       key={day.id}
-                      program={program}
                       day={day}
-                      state={states.get(day.id) ?? 'future'}
+                      onPress={() =>
+                        setSheet({ kind: 'day', weekday, dayId: day.id })
+                      }
                     />
                   ))
                 ) : (
@@ -156,24 +154,31 @@ export function MainProgram() {
                     accessibilityRole="button"
                     accessibilityLabel={`${t(`programs:weekdays.${weekday}`)}, ${t('restDay')}`}
                     accessibilityHint={t('programs:addDay')}
-                    onPress={() =>
-                      setSheet({ kind: 'day', id: program.id, weekday })
-                    }
+                    onPress={() => setSheet({ kind: 'day', weekday })}
                     style={({ pressed }) => ({
                       minHeight: 72,
                       paddingVertical: 12,
                       borderBottomWidth: 1,
                       borderColor: animePink.border,
                       opacity: pressed ? 0.7 : 1,
-                      gap: 4,
+                      gap: 12,
+                      flexDirection: 'row',
+                      alignItems: 'center',
                     })}
                   >
-                    <MainText style={{ fontSize: 18 }}>
-                      {t(`programs:weekdays.${weekday}`)}
-                    </MainText>
-                    <Text variant="caption" color={animePink.textSecondary}>
-                      {t('restDay')}
-                    </Text>
+                    <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                      <MainText style={{ fontSize: 18 }}>
+                        {t(`programs:weekdays.${weekday}`)}
+                      </MainText>
+                      <Text variant="caption" color={animePink.textSecondary}>
+                        {t('restDay')}
+                      </Text>
+                    </View>
+                    <ChevronRight
+                      size={22}
+                      color={animePink.primaryText}
+                      accessible={false}
+                    />
                   </Pressable>
                 );
               })}
@@ -182,9 +187,10 @@ export function MainProgram() {
                 .map((day) => (
                   <DayCard
                     key={day.id}
-                    program={program}
                     day={day}
-                    state={states.get(day.id) ?? 'future'}
+                    onPress={() =>
+                      setSheet({ kind: 'day', weekday: null, dayId: day.id })
+                    }
                   />
                 ))}
               {!program.days.length ? (
@@ -213,21 +219,31 @@ export function MainProgram() {
           />
         </View>
       </SectionBody>
-      {sheet?.kind === 'edit' ? (
+      {currentSheet?.kind === 'edit' ? (
         <EditPlanPopup
-          key={sheet.program.id}
-          program={sheet.program}
+          key={currentSheet.program.id}
+          program={currentSheet.program}
           visible={!closing}
           onDismiss={finishClose}
           close={close}
         />
-      ) : sheet?.kind === 'day' ? (
-        <ProgramOverlay visible={!closing} onDismiss={finishClose} back={close}>
-          <DayEditor id={sheet.id} weekday={sheet.weekday} onSaved={close} />
-        </ProgramOverlay>
-      ) : sheet ? (
+      ) : currentSheet?.kind === 'day' ? (
+        program ? (
+          <DayDialog
+            key={`${program.id}:${currentSheet.weekday}:${currentSheet.dayId ?? ''}`}
+            program={program}
+            weekday={currentSheet.weekday}
+            {...(currentSheet.dayId
+              ? { initialDayId: currentSheet.dayId }
+              : {})}
+            visible={!closing}
+            onDismiss={finishClose}
+            close={close}
+          />
+        ) : null
+      ) : currentSheet ? (
         <QuickPlanPopup
-          mode={sheet.kind}
+          mode={currentSheet.kind}
           programs={list.data?.programs ?? []}
           close={close}
           visible={!closing}

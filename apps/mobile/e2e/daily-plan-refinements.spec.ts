@@ -39,9 +39,7 @@ for (const phone of phones) {
     await page.getByRole('button', { name: 'Attiva', exact: true }).click();
     await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
-    await expect(page.getByTestId('home-workout-card')).toContainText(
-      'Ipertrofia',
-    );
+    await expect(page.getByTestId('home-workout-card')).toContainText(day.name);
     await expect(page.getByTestId('home-upcoming-exercise')).toHaveText(
       /Esercizio reale di oggi/,
     );
@@ -60,7 +58,7 @@ for (const phone of phones) {
       .getByRole('button', { name: 'Rimuovi esercizio', exact: true })
       .click();
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
-    await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+    await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
     await page
       .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
       .click();
@@ -70,9 +68,9 @@ for (const phone of phones) {
     await page
       .getByRole('button', { name: 'Salva esercizio', exact: true })
       .click();
-    await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+    await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
     await page
-      .getByRole('button', { name: 'Indietro', exact: true })
+      .getByRole('button', { name: 'Chiudi popup', exact: true })
       .last()
       .click();
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
@@ -85,13 +83,16 @@ for (const phone of phones) {
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
     await page.getByTestId(`program-day-${day.id}`).click();
     await page
-      .getByRole('button', { name: `Azioni giornata ${day.name}`, exact: true })
+      .getByRole('button', { name: 'Altre azioni', exact: true })
       .click();
     await page
       .getByRole('button', { name: 'Elimina giorno', exact: true })
       .click();
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
     await expect(page).toHaveURL(/\/program$/);
+    await page
+      .getByRole('button', { name: 'Chiudi popup', exact: true })
+      .click();
     await expect(page.getByTestId(`program-day-${day.id}`)).toHaveCount(0);
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
     await expect(page.getByTestId('home-workout-card')).toContainText(
@@ -122,7 +123,7 @@ for (const phone of phones) {
       .click();
     const popup = page.getByTestId('program-central-popup'),
       box = (await popup.boundingBox())!;
-    expect(box.width / phone.width).toBeCloseTo(0.84, 2);
+    expect(box.width / phone.width).toBeCloseTo(0.86, 2);
     expect(box.y).toBeGreaterThanOrEqual(phone.top + 16);
     expect(box.y + box.height).toBeLessThanOrEqual(
       phone.height - phone.bottom - 16 + 1,
@@ -183,19 +184,27 @@ for (const phone of phones) {
       'Forza essenziale',
     );
     await rest.click();
+    await page
+      .getByRole('button', {
+        name: 'Crea allenamento per Giovedì',
+        exact: true,
+      })
+      .click();
     await expect(
-      page.getByRole('button', { name: 'Giovedì', exact: true }),
-    ).toHaveAttribute('aria-pressed', 'true');
+      page.getByRole('button', {
+        name: 'Nessun giorno specifico',
+        exact: true,
+      }),
+    ).toHaveCount(0);
     await page.getByLabel('Nome giornata', { exact: true }).fill('Upper');
     await page
       .getByRole('button', { name: 'Salva giorno', exact: true })
       .click();
-    await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+    await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
     const day = f.plans.get(updated.id)!.days.find((d) => d.name === 'Upper')!;
     expect(day.dayOfWeek).toBe(4);
     expect(new URL(page.url()).pathname).toBe('/program');
-    await page.getByTestId(`program-day-${day.id}`).click();
-    await expect(page).toHaveURL(/day-detail/);
+    await expect(page).toHaveURL(/\/program$/);
     await expect(
       page.getByRole('button', { name: '+ Aggiungi esercizio', exact: true }),
     ).toBeVisible();

@@ -1,5 +1,6 @@
 import { ModePrescriptionEditor } from './ModePrescriptionEditor';
 import { RestControl } from './RestControl';
+import { useDialogForm } from '../components/JimoDialog';
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -91,6 +92,22 @@ export function PrescriptionEditor({
     [rest, setRest] = useState(initial?.restSeconds?.toString() ?? ''),
     [notes, setNotes] = useState(initial?.notes ?? ''),
     [invalid, setInvalid] = useState(false);
+  const formValues = {
+    seriesMode,
+    mode,
+    sets,
+    kind,
+    reps,
+    min,
+    max,
+    duration,
+    weight,
+    rpeValue,
+    rest,
+    notes,
+  };
+  const [originalForm] = useState(() => JSON.stringify(formValues));
+  useDialogForm(JSON.stringify(formValues) !== originalForm, pending);
   const integerControl = (
     label: string,
     value: string,

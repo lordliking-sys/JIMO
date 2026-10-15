@@ -9,7 +9,7 @@ const viewports = [
 ];
 async function back(page: Page) {
   await page
-    .getByRole('button', { name: 'Indietro', exact: true })
+    .getByRole('button', { name: 'Chiudi popup', exact: true })
     .last()
     .click();
 }
@@ -41,27 +41,20 @@ for (const viewport of viewports) {
     await page.screenshot({ path: info.outputPath('active-plan.png') });
     const day = f.source.program.days[0]!;
     await page.getByTestId(`program-day-${day.id}`).click();
-    await expect(page).toHaveURL(/day-detail/);
+    await expect(page).toHaveURL(/\/program$/);
     await expect(
-      page.getByRole('heading', { name: 'FORZA', exact: true }),
-    ).toBeVisible();
-    await expect(
-      page
-        .getByTestId('program-management-hero')
-        .last()
-        .getByText('Lunedì', { exact: true }),
+      page.getByRole('heading', { name: 'Lunedì', exact: true }),
     ).toBeVisible();
     await page
       .getByRole('button', { name: '+ Aggiungi esercizio', exact: true })
       .click();
-    const sheet = page.getByTestId('program-action-overlay');
+    const sheet = page.getByTestId('program-central-popup');
     for (const name of [
       'Tutti',
       'Esercizi JIMO',
       'I tuoi esercizi',
       'Ripetizioni',
       'Durata',
-      '+ Crea esercizio personalizzato',
     ])
       await expect(
         sheet.getByRole('button', { name, exact: true }),
@@ -93,7 +86,7 @@ for (const viewport of viewports) {
     await page
       .getByRole('button', { name: 'Salva esercizio', exact: true })
       .click();
-    await expect(sheet).toHaveCount(0);
+    await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
     await page
       .getByRole('button', { name: 'Modifica esercizio Dip', exact: true })
       .click();
@@ -106,7 +99,7 @@ for (const viewport of viewports) {
     await page
       .getByRole('button', { name: 'Salva modifiche', exact: true })
       .click();
-    await expect(sheet).toHaveCount(0);
+    await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
     expect(
       day.exercises.find((e) => e.exercise.displayName === 'Dip')?.targetReps,
     ).toBe(9);

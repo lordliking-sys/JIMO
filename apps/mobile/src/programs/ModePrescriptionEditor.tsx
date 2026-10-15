@@ -12,6 +12,7 @@ import { FormScreen, FormHeader, ErrorNotice, Field } from './components';
 import { ProgramButton, programInk } from './presentation';
 import { NumberControl, Choice, choiceStyles } from './NumberControl';
 import { RestControl } from './RestControl';
+import { useDialogForm } from '../components/JimoDialog';
 import {
   decimalDisplay,
   decimalInput,
@@ -72,6 +73,9 @@ export function ModePrescriptionEditor({
   );
   const [selected, setSelected] = useState(0),
     [invalid, setInvalid] = useState(false);
+  const formValues = { loadMode, notes, rounds, targets };
+  const [originalForm] = useState(() => JSON.stringify(formValues));
+  useDialogForm(JSON.stringify(formValues) !== originalForm, pending);
   const draft = targets[selected]!;
   const change = (key: keyof typeof draft, value: string) => {
     setTargets((old) =>

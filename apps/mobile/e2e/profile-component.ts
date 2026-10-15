@@ -25,7 +25,12 @@ export async function profileComponentFixture() {
       '.json',
     ],
     jsx: 'automatic',
-    define: { 'process.env.NODE_ENV': '"test"', __DEV__: 'false' },
+    define: {
+      'process.env.NODE_ENV': '"test"',
+      'process.env': '{}',
+      __DEV__: 'false',
+      global: 'globalThis',
+    },
     loader: { '.png': 'file', '.ttf': 'file' },
     assetNames: 'assets/[name]-[hash]',
     alias: {

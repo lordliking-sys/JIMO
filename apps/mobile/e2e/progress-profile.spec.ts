@@ -627,6 +627,44 @@ test.describe('isolated Profile component with account data (no Clerk or databas
     await page.getByRole('button', { name: title, exact: true }).click();
     await page.getByRole('button', { name: source, exact: true }).click();
   }
+  test('avatar: compact shared central dialog, backdrop, cancel and Escape across all phones', async ({
+    page,
+  }, info) => {
+    for (const phone of devices) {
+      await page.setViewportSize(phone);
+      await openProfile(page);
+      await page.getByTestId('profile-avatar').click();
+      const panel = page.getByTestId('program-central-popup');
+      await expect(panel).toBeVisible();
+      const b = (await panel.boundingBox())!;
+      expect(b.width).toBeLessThanOrEqual(370);
+      expect(b.height).toBeLessThan(phone.height * 0.8);
+      expect(b.x).toBeGreaterThanOrEqual(16);
+      expect(b.y).toBeGreaterThanOrEqual(24);
+      await expect(
+        panel.getByRole('button', { name: 'Scatta foto', exact: true }),
+      ).toBeEnabled();
+      await expect(
+        panel.getByRole('button', {
+          name: 'Scegli dalla galleria',
+          exact: true,
+        }),
+      ).toBeEnabled();
+      await page.screenshot({
+        path: info.outputPath(`avatar-dialog-${phone.width}.png`),
+      });
+      await panel.getByRole('button', { name: 'Annulla', exact: true }).click();
+      await expect(panel).toHaveCount(0);
+      await page.getByTestId('profile-avatar').click();
+      await page
+        .getByTestId('program-popup-backdrop')
+        .click({ position: { x: 4, y: 4 } });
+      await expect(panel).toHaveCount(0);
+      await page.getByTestId('profile-avatar').click();
+      await page.keyboard.press('Escape');
+      await expect(panel).toHaveCount(0);
+    }
+  });
   test('avatar: monogram, permission timing, circular photo, replacement, persistent restart and removal', async ({
     page,
   }) => {

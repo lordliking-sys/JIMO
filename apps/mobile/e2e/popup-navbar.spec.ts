@@ -84,6 +84,13 @@ for (const size of phones) {
         .locator('#root')
         .evaluate((el) => el instanceof HTMLElement && el.inert),
     ).toBe(true);
+    await expect(
+      page.getByRole('button', { name: 'Scarta modifiche', exact: true }),
+    ).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(
+      page.getByRole('button', { name: 'Scarta modifiche', exact: true }),
+    ).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(
       page.getByRole('button', { name: 'Scarta modifiche', exact: true }),

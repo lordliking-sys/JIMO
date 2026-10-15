@@ -106,6 +106,20 @@ for (const phone of phones)
     expect(
       Math.abs(lifter.y - passwordPill.y - passwordPill.height),
     ).toBeLessThanOrEqual(2);
+    const lifterImage = (await page
+      .getByTestId('login-lifter-image')
+      .boundingBox())!;
+    // Original PNG landmark: the upper abdomen starts around source y=850.
+    expect(
+      (lifter.height * 941) / lifterImage.width + 62,
+    ).toBeGreaterThanOrEqual(849);
+    const backgroundImage = (await page
+      .getByTestId('login-background')
+      .locator('img')
+      .boundingBox())!;
+    expect(backgroundImage.y + backgroundImage.height).toBeGreaterThanOrEqual(
+      phone.height,
+    );
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,

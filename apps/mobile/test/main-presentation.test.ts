@@ -9,9 +9,80 @@ import {
   dayArtworkKey,
   dayStates,
   homeDay,
+  homePlanForDate,
   programWeek,
   selectedWeekBounds,
 } from '../src/main/helpers';
+
+test('selected Home date uses live weekday data and date-specific completions, including DST', () => {
+  const original = process.env.TZ;
+  process.env.TZ = 'Europe/Rome';
+  try {
+    const program = cachedProgram();
+    program.days[0]!.dayOfWeek = 1;
+    const monday = new Date('2026-10-26T12:00:00+01:00'),
+      tuesday = new Date('2026-10-27T12:00:00+01:00');
+    program.days = program.days.slice(0, 1);
+    assert.equal(
+      homePlanForDate(program, monday, [], 'Europe/Rome').state,
+      'workout',
+    );
+    assert.equal(
+      homePlanForDate(program, tuesday, [], 'Europe/Rome').state,
+      'rest',
+    );
+    const done = {
+      programId: program.id,
+      programDayId: program.days[0]!.id,
+      status: 'completed',
+      completedAt: '2026-10-26T22:30:00Z',
+    } as WorkoutSummary;
+    assert.equal(
+      homePlanForDate(program, monday, [done], 'Europe/Rome').completed,
+      true,
+    );
+    assert.equal(
+      homePlanForDate(
+        program,
+        monday,
+        [{ ...done, completedAt: '2026-10-26T23:30:00Z' }],
+        'Europe/Rome',
+      ).completed,
+      false,
+    );
+    assert.equal(
+      homePlanForDate(
+        program,
+        monday,
+        [{ ...done, status: 'cancelled' }],
+        'Europe/Rome',
+      ).completed,
+      false,
+    );
+    program.days[0]!.exercises = [];
+    assert.equal(
+      homePlanForDate(program, monday, [], 'Europe/Rome').state,
+      'empty',
+    );
+    program.days = [];
+    assert.equal(
+      homePlanForDate(program, monday, [], 'Europe/Rome').state,
+      'rest',
+    );
+    program.status = 'draft';
+    assert.equal(
+      homePlanForDate(program, monday, [], 'Europe/Rome').state,
+      'no-program',
+    );
+    assert.equal(
+      homePlanForDate(null, monday, [], 'Europe/Rome').state,
+      'no-program',
+    );
+  } finally {
+    if (original === undefined) delete process.env.TZ;
+    else process.env.TZ = original;
+  }
+});
 
 test('decorative day artwork follows known names and unknown days have no invented category', () => {
   for (const name of ['Push', 'Spinta A'])

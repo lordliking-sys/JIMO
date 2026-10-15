@@ -67,7 +67,14 @@ const LoginBackground = memo(function LoginBackground({
         source={sources.background}
         resizeMode="cover"
         accessible={false}
-        style={{ position: 'absolute', top: 0, left: 0, width, height }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          minHeight: height,
+        }}
       />
       <Svg width="100%" height="250" style={StyleSheet.absoluteFill}>
         <Defs>
@@ -344,7 +351,7 @@ export function LoginScreen({
           keyboardAware
           dismissKeyboardLabel={t('keyboardDone')}
           surfaceStyle={{ backgroundColor: 'transparent' }}
-          footerStyle={{ backgroundColor: 'rgba(255,247,250,0.92)' }}
+          footerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0 }}
           contentStyle={{
             padding: 0,
             paddingTop: insets.top,
@@ -374,8 +381,8 @@ export function LoginScreen({
                       accessible={false}
                       style={{
                         fontFamily: 'Inter_700Bold',
-                        fontSize: geometry.headingFont,
-                        lineHeight: geometry.headingLine,
+                        fontSize: geometry.logoFont,
+                        lineHeight: geometry.logoLine,
                         letterSpacing: -1.5,
                         color: animePink.ink,
                       }}

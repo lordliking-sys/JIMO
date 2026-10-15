@@ -17,8 +17,10 @@ import {
 } from '../programs/presentation';
 export function ExerciseLibrary({
   onChoose,
+  onCustom,
 }: {
   onChoose(exercise: import('@jimo/schemas').ExerciseDto): void;
+  onCustom?: () => void;
 }) {
   const { t } = useTranslation('programs');
   const [search, setSearch] = useState(''),
@@ -89,6 +91,13 @@ export function ExerciseLibrary({
           ) : null}
         </View>
       )}
+      {onCustom ? (
+        <ProgramButton
+          variant="text"
+          label={t('createCustom')}
+          onPress={onCustom}
+        />
+      ) : null}
     </FormScreen>
   );
 }
