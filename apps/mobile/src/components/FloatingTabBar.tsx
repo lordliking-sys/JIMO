@@ -14,7 +14,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { animePink } from '@jimo/ui';
+import { animePink, SoftHighlight } from '@jimo/ui';
 import { floatingNavGeometry } from './floating-nav-geometry';
 
 function TabContent({
@@ -132,9 +132,9 @@ export function FloatingTabBar({
           height: geometry.height,
           padding: 6,
           borderRadius: 34,
-          backgroundColor: 'rgba(255,250,254,0.96)',
+          backgroundColor: 'rgba(255,247,251,0.94)',
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.85)',
+          borderColor: 'rgba(239,178,204,0.52)',
           shadowColor: animePink.primaryPink,
           shadowOpacity: 0.2,
           shadowRadius: 18,
@@ -142,6 +142,7 @@ export function FloatingTabBar({
           elevation: 10,
         }}
       >
+        <SoftHighlight radius={34} />
         <Animated.View
           testID="floating-navbar-pill"
           pointerEvents="none"
@@ -153,7 +154,7 @@ export function FloatingTabBar({
               width: geometry.slot,
               height: geometry.height - 12,
               borderRadius: 30,
-              backgroundColor: '#FFF4FA',
+              backgroundColor: '#FFE5F1',
               opacity: selected < 0 ? 0 : 1,
               shadowColor: animePink.primaryPink,
               shadowOpacity: 0.2,

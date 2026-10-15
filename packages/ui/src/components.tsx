@@ -34,6 +34,7 @@ import {
   sizes,
   spacing,
   typography,
+  uiDepth,
 } from './tokens';
 import type { TextVariant } from './tokens';
 import { scrollToReveal } from './keyboard';
@@ -208,7 +209,31 @@ type ButtonProps = {
   disabled?: boolean;
   busy?: boolean;
   style?: StyleProp<ViewStyle>;
+  labelStyle?: StyleProp<import('react-native').TextStyle>;
 };
+/** Code-only top light. It never intercepts taps or adds an accessibility element. */
+export function SoftHighlight({ radius: corner = 18 }: { radius?: number }) {
+  return (
+    <View
+      pointerEvents="none"
+      accessible={false}
+      style={[
+        StyleSheet.absoluteFill,
+        { borderRadius: corner, overflow: 'hidden' },
+      ]}
+    >
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 12,
+          backgroundColor: 'rgba(255,255,255,0.45)',
+        }}
+      />
+      <View style={{ height: 5, backgroundColor: 'rgba(255,255,255,0.10)' }} />
+      <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.04)' }} />
+    </View>
+  );
+}
 export function Button({
   label,
   onPress,
@@ -216,6 +241,7 @@ export function Button({
   disabled = false,
   busy = false,
   style,
+  labelStyle,
 }: ButtonProps) {
   const primary = variant === 'primary';
   return (
@@ -234,12 +260,24 @@ export function Button({
             ? colors.primary
             : variant === 'text'
               ? 'transparent'
-              : colors.surface,
-          opacity: disabled ? 0.55 : pressed ? 0.8 : 1,
+              : colors.elevated,
+          opacity: disabled ? 0.55 : pressed ? 0.9 : 1,
         },
+        primary && uiDepth.action,
+        primary &&
+          pressed && {
+            shadowOpacity: 0.12,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 1,
+          },
         variant === 'secondary' && {
           borderWidth: 1,
           borderColor: colors.primary,
+          shadowColor: '#B6517E',
+          shadowOpacity: 0.035,
+          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 1 },
+          elevation: 1,
         },
         variant === 'text' && {
           paddingVertical: spacing.sm,
@@ -249,13 +287,14 @@ export function Button({
         style,
       ]}
     >
+      {primary ? <SoftHighlight /> : null}
       {busy ? (
         <ActivityIndicator color={primary ? animePink.white : colors.primary} />
       ) : (
         <Text
           variant="bodyMedium"
           color={primary ? animePink.white : colors.primary}
-          style={styles.center}
+          style={[styles.center, labelStyle]}
         >
           {label}
         </Text>
@@ -341,11 +380,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.large,
     padding: spacing.xl,
     gap: spacing.lg,
-    shadowColor: animePink.ink,
-    shadowOpacity: 0.035,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 1,
+    ...uiDepth.card,
   },
   iconButton: {
     width: sizes.touch,

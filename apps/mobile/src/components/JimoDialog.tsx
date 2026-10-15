@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from 'react';
 import {
-  ActivityIndicator,
   Keyboard,
   Modal,
   Platform,
@@ -31,7 +30,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import X from 'lucide-react-native/icons/x';
 import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import { Text, animePink } from '@jimo/ui';
+import { Button, Text, animePink } from '@jimo/ui';
 import { popupGeometry } from '../programs/popup-geometry';
 
 const Focus = createContext<((input: TextInput | null) => void) | null>(null);
@@ -63,42 +62,24 @@ export function PopupButton({
   disabled?: boolean;
 }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: busy || disabled, busy }}
-      disabled={busy || disabled}
+    <Button
+      label={label}
       onPress={onPress}
-      style={({ pressed }) => ({
+      busy={busy}
+      disabled={disabled}
+      variant={outline ? 'secondary' : 'primary'}
+      style={{
         minHeight: 52,
-        padding: 12,
         borderRadius: 26,
-        borderWidth: outline ? 1 : 0,
-        borderColor: animePink.primaryPink,
-        backgroundColor: outline ? 'transparent' : animePink.primaryAction,
-        alignItems: 'center',
-        justifyContent: 'center',
-        opacity: busy || disabled ? 0.5 : pressed ? 0.8 : 1,
-      })}
-    >
-      {busy ? (
-        <ActivityIndicator
-          color={outline ? animePink.primaryText : animePink.white}
-        />
-      ) : (
-        <Text
-          style={{
-            fontFamily: 'Inter_600SemiBold',
-            fontSize: 15,
-            lineHeight: 21,
-            textAlign: 'center',
-            color: outline ? animePink.primaryText : animePink.white,
-          }}
-        >
-          {label}
-        </Text>
-      )}
-    </Pressable>
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+      }}
+      labelStyle={{
+        fontFamily: 'Inter_600SemiBold',
+        fontSize: 15,
+        lineHeight: 21,
+      }}
+    />
   );
 }
 
@@ -308,7 +289,9 @@ export function JimoDialog({
                   width: geometry.width,
                   maxHeight: geometry.maxHeight,
                   flexShrink: 1,
-                  backgroundColor: '#FFF9FC',
+                  backgroundColor: animePink.surfaceRaised,
+                  borderWidth: 1,
+                  borderColor: 'rgba(242,179,206,0.7)',
                   borderRadius: 30,
                   padding: width < 360 ? 20 : 24,
                   shadowColor: '#382135',
@@ -388,7 +371,10 @@ export function JimoDialog({
                   ref={scroll}
                   testID="program-popup-scroll"
                   keyboardShouldPersistTaps="handled"
-                  keyboardDismissMode="on-drag"
+                  // RN Web dismisses on every scroll, including automatic field reveal.
+                  keyboardDismissMode={
+                    Platform.OS === 'web' ? 'none' : 'on-drag'
+                  }
                   contentInsetAdjustmentBehavior="never"
                   showsVerticalScrollIndicator={false}
                   onScroll={(e) => {

@@ -118,6 +118,26 @@ for (const phone of phones) {
       'aria-pressed',
       'true',
     );
+    const control = button(page, 'Aumenta Serie');
+    const before = (await control.boundingBox())!;
+    await button(page, 'Modifica manualmente Serie').click();
+    await page.getByLabel('Serie', { exact: true }).fill('5');
+    await bounded(page);
+    const after = (await control.boundingBox())!;
+    expect(after.x).toBeCloseTo(before.x, 0);
+    expect(after.width).toBeGreaterThanOrEqual(48);
+    await page.setViewportSize({
+      width: phone.width,
+      height: phone.height - 280,
+    });
+    await expect(page.getByLabel('Serie', { exact: true })).toBeInViewport({
+      ratio: 1,
+    });
+    await expect(page.getByLabel('Serie', { exact: true })).toBeFocused();
+    await expect(control).toBeInViewport({ ratio: 1 });
+    await bounded(page);
+    await page.setViewportSize(phone);
+    await button(page, 'Conferma Serie').click();
     await button(page, 'Aumenta Serie').click();
     await button(page, 'Range reps').click();
     await button(page, 'Zavorra').click();
@@ -128,7 +148,7 @@ for (const phone of phones) {
     await expect(page.getByTestId('day-dialog-detail')).toContainText('Dip');
     const created = f.source.program.days.find((d) => d.dayOfWeek === 2)!;
     expect(created.dayOfWeek).toBe(2);
-    expect(created.exercises[0]!.targetSets).toBe(4);
+    expect(created.exercises[0]!.targetSets).toBe(6);
     expect(created.exercises[0]!.targetRepMin).toBe(8);
     expect(created.exercises[0]!.targetRepMax).toBe(12);
     expect(created.exercises[0]!.loadMode).toBe('weighted');
@@ -140,7 +160,7 @@ for (const phone of phones) {
     await button(page, 'Aumenta Serie').click();
     await button(page, 'Salva modifiche').click();
     await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
-    expect(created.exercises[0]!.targetSets).toBe(5);
+    expect(created.exercises[0]!.targetSets).toBe(7);
     await button(page, 'Chiudi popup').click();
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
     await page.getByTestId('home-date-2').click();
@@ -210,8 +230,9 @@ test('Internal steps preserve custom duration, pyramid targets, EMOM, ordering a
   await button(page, '+ Aggiungi esercizio').click();
   await button(page, 'Dip').click();
   await button(page, 'Piramidale').click();
+  await expect(button(page, 'Aumenta Ripetizioni')).toHaveCount(0);
   await button(page, 'Target serie 2').click();
-  await button(page, 'Aumenta Ripetizioni').click();
+  await button(page, 'Aumenta Ripetizioni serie 2').click();
   await page
     .getByLabel('Note (opzionali)', { exact: true })
     .fill('Piramide reale');
@@ -243,14 +264,14 @@ test('Internal steps preserve custom duration, pyramid targets, EMOM, ordering a
   await expect(button(page, 'EMOM')).toHaveAttribute('aria-pressed', 'true');
   await button(page, 'Salva modifiche').click();
   await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
-  await button(page, 'Altre azioni').click();
+  await button(page, 'Riordina').click();
   await page
     .getByTestId(`day-dialog-exercise-${emom.id}`)
     .locator('..')
     .getByRole('button', { name: 'Sposta su Dip', exact: true })
     .click();
   await expect.poll(() => day.exercises.at(-2)!.id).toBe(emom.id);
-  await button(page, 'Elimina giorno').click();
+  await button(page, 'Elimina').click();
   await button(page, 'Conferma').click();
   await expect(page.getByTestId('day-dialog-detail')).toContainText(
     'Giorno di riposo',

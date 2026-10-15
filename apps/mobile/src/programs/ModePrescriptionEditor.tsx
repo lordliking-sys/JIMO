@@ -296,7 +296,11 @@ export function ModePrescriptionEditor({
         </View>
       )}
       {number(
-        t(exercise.trackingMode === 'reps' ? 'reps' : 'duration'),
+        seriesMode === 'pyramid'
+          ? t(exercise.trackingMode === 'reps' ? 'setReps' : 'setDuration', {
+              set: selected + 1,
+            })
+          : t(exercise.trackingMode === 'reps' ? 'reps' : 'duration'),
         exercise.trackingMode === 'reps' ? 'reps' : 'duration',
       )}
       {loadMode !== 'bodyweight'

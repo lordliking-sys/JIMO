@@ -14,6 +14,7 @@ import { Text, Button, animePink } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import {
   SectionHeroScope,
+  SectionHeroProvider,
   SectionHeroCanvas,
   useSectionHeroGeometry,
   useSectionStatusBar,
@@ -104,10 +105,12 @@ function MainSurface({
   );
 }
 export function MainScreen(props: { children: ReactNode; light?: boolean }) {
+  // The supplied portrait needs a taller crop; it must not resize the other tab heroes.
+  const Scope = props.light ? SectionHeroProvider : SectionHeroScope;
   return (
-    <SectionHeroScope>
+    <Scope>
       <MainSurface {...props} />
-    </SectionHeroScope>
+    </Scope>
   );
 }
 export function MainButton({
@@ -127,7 +130,6 @@ export function MainButton({
       onPress={onPress}
       disabled={disabled}
       variant={subtle ? 'secondary' : 'primary'}
-      {...(subtle ? { style: { backgroundColor: 'transparent' } } : {})}
     />
   );
 }

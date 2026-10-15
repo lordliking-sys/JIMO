@@ -37,10 +37,12 @@ for (const viewport of [
       expect(hero.x).toBeCloseTo(0, 0);
       expect(hero.width).toBeCloseTo(viewport.width, 0);
       expect(hero.height / viewport.height).toBeGreaterThanOrEqual(0.42);
-      expect(hero.height / viewport.height).toBeLessThanOrEqual(0.48);
+      if (route === '/')
+        expect(hero.height).toBeCloseTo(viewport.width * 1.02 + 24, 0);
+      else expect(hero.height / viewport.height).toBeLessThanOrEqual(0.48);
       const original =
         route === '/'
-          ? 'home-hero-reference'
+          ? 'hero_home'
           : route === '/program'
             ? 'profilo-mood-reference'
             : route === '/progress'

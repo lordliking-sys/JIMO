@@ -12,13 +12,12 @@ const viewports = [
   { width: 851, height: 393 },
 ];
 const faces = {
-  home: { left: 1010, top: 90, right: 1260, bottom: 345 },
   program: { left: 1050, top: 160, right: 1310, bottom: 400 },
   progress: { left: 1030, top: 190, right: 1310, bottom: 470 },
 };
 test('landscape hero crops preserve the supplied face landmarks on the four phone sizes', () => {
   for (const viewport of viewports)
-    for (const scene of ['home', 'program', 'progress'] as const) {
+    for (const scene of ['program', 'progress'] as const) {
       const height = Math.max(280, Math.min(480, viewport.height * 0.46)),
         frame = heroArtworkFrame(scene, { width: viewport.width, height }),
         face = faces[scene],
@@ -53,6 +52,7 @@ test('terrace ledge, character seat and avatar dock form one composition without
     assert.equal(stage.avatar.centerX, viewport.width / 2);
     assert.ok(stage.avatar.centerY - stage.avatar.size / 2 > height);
     assert.ok(stage.character.top > 47);
+    assert.ok(stage.character.width <= viewport.width * 0.8);
     assert.ok(stage.character.left >= 0);
     assert.ok(stage.character.left + stage.character.width <= viewport.width);
     assert.ok(
@@ -62,5 +62,28 @@ test('terrace ledge, character seat and avatar dock form one composition without
     assert.ok(
       stage.infoTop >= stage.character.top + stage.character.height + 16,
     );
+  }
+});
+
+test('portrait Home preserves the original seated pose without mirroring or stretching', () => {
+  for (const viewport of viewports) {
+    const height = Math.max(
+      Math.max(280, Math.min(480, viewport.height * 0.46)),
+      viewport.width * 1.02 + 24,
+    );
+    const frame = heroArtworkFrame('home', { width: viewport.width, height });
+    const scale = frame.width / 1024;
+    assert.ok(Math.abs(frame.width / frame.height - 1024 / 1536) < 1e-9);
+    // Crown, left hand and right shoe in the supplied portrait, relative to the rounded body.
+    for (const point of [
+      { x: 540, y: 540 },
+      { x: 20, y: 1390 },
+      { x: 1000, y: 1510 },
+    ]) {
+      assert.ok(frame.left + point.x * scale >= 0);
+      assert.ok(frame.left + point.x * scale <= viewport.width);
+      assert.ok(frame.top + point.y * scale >= 0);
+      assert.ok(frame.top + point.y * scale <= height - 24);
+    }
   }
 });

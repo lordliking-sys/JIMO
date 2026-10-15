@@ -7,13 +7,22 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import type { KeyboardTypeOptions } from 'react-native';
 import Minus from 'lucide-react-native/icons/minus';
 import Plus from 'lucide-react-native/icons/plus';
 import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
-import { colors, IconButton, radius, sizes, spacing, Text } from '@jimo/ui';
+import {
+  colors,
+  IconButton,
+  radius,
+  sizes,
+  spacing,
+  Text,
+  uiDepth,
+} from '@jimo/ui';
 import { FocusInput } from './components';
 import { useProgramPresentation, programInk } from './presentation';
 
@@ -118,6 +127,7 @@ export function NumberControl({
 }) {
   const { t } = useTranslation('programs');
   const [editing, setEditing] = useState(false);
+  const controlWidth = useWindowDimensions().width < 360 ? 152 : 164;
   const visual = useProgramPresentation(),
     controlColor = visual ? programInk.text : colors.text;
   useEffect(() => {
@@ -177,7 +187,7 @@ export function NumberControl({
     ) : (
       chipsBody
     );
-  const compact = visual && (!editing || fillRow);
+  const compact = visual;
   return (
     <View style={{ gap: spacing.sm }}>
       {!compact ? (
@@ -189,16 +199,12 @@ export function NumberControl({
       <View
         style={{
           flexDirection: compact ? 'row' : 'column',
-          alignItems: compact
-            ? labelAccessory
-              ? 'flex-start'
-              : 'center'
-            : 'stretch',
+          alignItems: compact ? 'center' : 'stretch',
           gap: 8,
         }}
       >
         {compact && labelAccessory ? (
-          <View style={{ flex: 1, minWidth: 0, paddingTop: 15 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
             <Text
               variant="label"
               color={programInk.text}
@@ -206,7 +212,6 @@ export function NumberControl({
             >
               {displayLabel ?? label}
             </Text>
-            {labelAccessory}
           </View>
         ) : compact ? (
           <Text
@@ -227,9 +232,12 @@ export function NumberControl({
                 borderColor: programInk.border,
                 borderRadius: 14,
                 backgroundColor: programInk.field,
+                ...uiDepth.input,
               },
               compact &&
-                (fillRow ? { flex: 1, minWidth: 164 } : { width: 164 }),
+                (fillRow
+                  ? { flex: 1, minWidth: controlWidth }
+                  : { width: controlWidth }),
             ]}
           >
             <IconButton
@@ -246,8 +254,18 @@ export function NumberControl({
                 onChangeText={onChange}
                 keyboardType={keyboardType}
                 placeholder="—"
-                style={styles.value}
+                style={[
+                  styles.value,
+                  visual && {
+                    borderWidth: 0,
+                    backgroundColor: 'transparent',
+                    paddingHorizontal: 2,
+                    fontSize: 18,
+                    minHeight: 48,
+                  },
+                ]}
                 autoFocus
+                onBlur={() => setEditing(false)}
                 onSubmitEditing={finish}
               />
             ) : (
@@ -301,7 +319,7 @@ export function NumberControl({
               disabled={valid && max !== undefined && current >= max}
               onPress={() => onStep(1)}
             />
-            {editing ? (
+            {editing && !visual ? (
               <IconButton
                 label={t('confirmValue', { label })}
                 icon={
@@ -316,6 +334,18 @@ export function NumberControl({
           </View>
         )}
       </View>
+      {visual && labelAccessory ? (
+        <View style={{ alignSelf: 'flex-start' }}>{labelAccessory}</View>
+      ) : null}
+      {visual && editing ? (
+        <View style={{ alignSelf: 'flex-end' }}>
+          <IconButton
+            label={t('confirmValue', { label })}
+            icon={<Check color={programInk.sage} size={sizes.icon} />}
+            onPress={finish}
+          />
+        </View>
+      ) : null}
       {hint && !visual ? (
         <Text variant="caption" color={colors.secondary}>
           {hint}

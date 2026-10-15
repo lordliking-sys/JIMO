@@ -82,12 +82,8 @@ for (const phone of phones) {
     );
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
     await page.getByTestId(`program-day-${day.id}`).click();
-    await page
-      .getByRole('button', { name: 'Altre azioni', exact: true })
-      .click();
-    await page
-      .getByRole('button', { name: 'Elimina giorno', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Riordina', exact: true }).click();
+    await page.getByRole('button', { name: 'Elimina', exact: true }).click();
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
     await expect(page).toHaveURL(/\/program$/);
     await page

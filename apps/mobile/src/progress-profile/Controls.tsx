@@ -1,4 +1,4 @@
-import { animePink } from '@jimo/ui';
+import { animePink, uiDepth, SoftHighlight } from '@jimo/ui';
 import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +41,8 @@ export function ProgressTabs({
             aria-selected={tab === value}
             accessibilityState={{ selected: tab === value }}
             onPress={() => onChange(tab)}
-            style={{
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.85 : 1,
               flexBasis: 0,
               flexGrow:
                 tab === 'overview'
@@ -57,7 +58,7 @@ export function ProgressTabs({
               alignItems: 'center',
               justifyContent: 'center',
               paddingVertical: 5,
-            }}
+            })}
           >
             <View
               pointerEvents="none"
@@ -71,6 +72,7 @@ export function ProgressTabs({
                 paddingVertical: 5,
                 borderRadius: 17,
                 borderWidth: 1,
+                ...(tab === value ? uiDepth.action : uiDepth.card),
                 backgroundColor:
                   tab === value
                     ? animePink.primaryAction
@@ -81,6 +83,7 @@ export function ProgressTabs({
                     : animePink.darkBorder,
               }}
             >
+              <SoftHighlight radius={17} />
               <EditorialText
                 style={{
                   fontSize: compact ? 12 : 13,

@@ -199,5 +199,9 @@
   "deleteProgramExplanation": "The program and its structure will be removed. Your past workouts and their snapshots will be preserved.",
   "daysHeading": "DAYS",
   "deleteSyncPending": "Wait for your workouts to sync before deleting this program.",
-  "createWeekdayWorkout": "Create workout for {{day}}"
+  "createWeekdayWorkout": "Create workout for {{day}}",
+  "delete": "Delete",
+  "reorder": "Reorder",
+  "setReps": "Set {{set}} reps",
+  "setDuration": "Set {{set}} duration"
 }

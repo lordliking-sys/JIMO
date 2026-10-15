@@ -42,6 +42,13 @@ export function Pressable(
   nativePopup.buttons.push(props);
   return <View>{props.children}</View>;
 }
+export function Button({ label, onPress }: { label: string; onPress(): void }) {
+  return (
+    <Pressable accessibilityLabel={label} onPress={onPress}>
+      {label}
+    </Pressable>
+  );
+}
 export function Modal(
   props: NonNullable<typeof nativePopup.modal> & { children?: ReactNode },
 ) {

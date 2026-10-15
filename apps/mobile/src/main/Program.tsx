@@ -158,6 +158,7 @@ export function MainProgram() {
                     style={({ pressed }) => ({
                       minHeight: 72,
                       paddingVertical: 12,
+                      paddingHorizontal: 14,
                       borderBottomWidth: 1,
                       borderColor: animePink.border,
                       opacity: pressed ? 0.7 : 1,
@@ -176,7 +177,7 @@ export function MainProgram() {
                     </View>
                     <ChevronRight
                       size={22}
-                      color={animePink.primaryText}
+                      color={animePink.textSecondary}
                       accessible={false}
                     />
                   </Pressable>

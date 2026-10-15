@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
-import { Text, animePink } from '@jimo/ui';
+import ArrowDownUp from 'lucide-react-native/icons/arrow-down-up';
+import { Text, IconButton, Button, animePink } from '@jimo/ui';
 import type { ExerciseDto, Prescription, ProgramDetail } from '@jimo/schemas';
 import { useApiLocale, useProgramMutation } from '../api/queries';
 import { programsApi } from '../api/programs';
@@ -134,6 +135,14 @@ export function DayDialog({
           disabled={mutate.isPending || save.isPending}
           onPress={() => go('edit')}
         />
+        <Button
+          label={t('delete')}
+          variant="text"
+          disabled={mutate.isPending || save.isPending}
+          onPress={() => setConfirm('day')}
+          style={{ alignSelf: 'center', paddingVertical: 8 }}
+          labelStyle={{ fontSize: 14, color: animePink.danger }}
+        />
       </>
     ) : (
       <PopupButton
@@ -166,9 +175,19 @@ export function DayDialog({
               {day.notes ? (
                 <Text color={animePink.textSecondary}>{day.notes}</Text>
               ) : null}
-              <Text color={animePink.textSecondary}>
-                {t('exerciseCount', { count: day.exercises.length })}
-              </Text>
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
+                <Text color={animePink.textSecondary} style={{ flex: 1 }}>
+                  {t('exerciseCount', { count: day.exercises.length })}
+                </Text>
+                <IconButton
+                  icon={<ArrowDownUp size={20} color={animePink.primaryText} />}
+                  label={t('reorder')}
+                  disabled={mutate.isPending || save.isPending}
+                  onPress={() => setMore(!more)}
+                />
+              </View>
               {day.exercises.map((item, index) => (
                 <View key={item.id} style={{ gap: 4 }}>
                   <Pressable
@@ -244,12 +263,6 @@ export function DayDialog({
                   {t('noDayExercises')}
                 </Text>
               ) : null}
-              <PopupButton
-                outline
-                label={t('main:popup.moreActions')}
-                disabled={mutate.isPending || save.isPending}
-                onPress={() => setMore(!more)}
-              />
               {more ? (
                 <>
                   {([-1, 1] as const).map((direction) => {
@@ -280,12 +293,6 @@ export function DayDialog({
                       />
                     );
                   })}
-                  <PopupButton
-                    outline
-                    label={t('deleteDay')}
-                    disabled={mutate.isPending || save.isPending}
-                    onPress={() => setConfirm('day')}
-                  />
                 </>
               ) : null}
             </>

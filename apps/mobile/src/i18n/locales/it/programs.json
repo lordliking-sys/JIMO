@@ -199,5 +199,9 @@
   "deleteProgramExplanation": "Il programma e la sua struttura verranno rimossi. Lo storico degli allenamenti già eseguiti non verrà eliminato.",
   "daysHeading": "GIORNATE",
   "deleteSyncPending": "Attendi la sincronizzazione degli allenamenti prima di eliminare il programma.",
-  "createWeekdayWorkout": "Crea allenamento per {{day}}"
+  "createWeekdayWorkout": "Crea allenamento per {{day}}",
+  "delete": "Elimina",
+  "reorder": "Riordina",
+  "setReps": "Ripetizioni serie {{set}}",
+  "setDuration": "Durata serie {{set}}"
 }

@@ -2,7 +2,8 @@ import type { TextStyle } from 'react-native';
 /** Active presentation palette. Dark surfaces are reserved for immersive workouts/heroes. */
 export const animePink = {
   background: '#FFF7FA',
-  surface: '#FFFFFF',
+  surface: '#FFF7FA',
+  surfaceRaised: '#FFF9FC',
   surfaceSoft: '#FFF0F5',
   surfaceDark: '#18131C',
   ink: '#1D1723',
@@ -15,12 +16,40 @@ export const animePink = {
   primaryAction: '#D92D73',
   primaryText: '#C52A68',
   white: '#FFFFFF',
-  border: 'rgba(90,50,75,0.12)',
+  border: 'rgba(193,100,142,0.22)',
   darkOverlay: 'rgba(15,8,18,0.25)',
   danger: '#B4233C',
   darkBorder: 'rgba(255,141,181,0.24)',
   darkMuted: '#C9BACB',
 } as const;
+/** Restrained depth shared by light surfaces; immersive workout surfaces keep their palette. */
+export const uiDepth = {
+  card: {
+    shadowColor: '#B6517E',
+    shadowOpacity: 0.09,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 2,
+  },
+  action: {
+    shadowColor: '#C53473',
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
+  },
+  input: {
+    boxShadow: [
+      {
+        offsetX: 0,
+        offsetY: 2,
+        blurRadius: 4,
+        color: 'rgba(147,67,103,0.08)',
+        inset: true,
+      },
+    ],
+  },
+} satisfies Record<string, import('react-native').ViewStyle>;
 export const colors = {
   background: animePink.background,
   surface: animePink.surface,

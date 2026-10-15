@@ -32,7 +32,7 @@ import {
   SectionHeroFrame,
   useSectionStatusBar,
 } from '../components/SectionHero';
-import { Screen, Text, animePink } from '@jimo/ui';
+import { Screen, Text, Button, animePink } from '@jimo/ui';
 import { useTranslation } from 'react-i18next';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import KeyboardIcon from 'lucide-react-native/icons/keyboard';
@@ -95,43 +95,17 @@ export function ProgramButton({
   style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: disabled || busy, busy }}
-      disabled={disabled || busy}
+    <Button
+      label={label}
       onPress={onPress}
-      style={({ pressed }) => [
-        {
-          minHeight: 54,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRadius: 18,
-          borderWidth: variant === 'outline' ? 1 : 0,
-          borderColor: programInk.primary,
-          backgroundColor:
-            variant === 'primary'
-              ? programInk.primary
-              : variant === 'outline' || variant === 'secondary'
-                ? programInk.surface
-                : 'transparent',
-          opacity: disabled || busy ? 0.5 : pressed ? 0.75 : 1,
-        },
-        style,
-      ]}
-    >
-      <Text
-        variant="bodyMedium"
-        color={
-          variant === 'primary' ? programInk.primaryText : programInk.primary
-        }
-        style={{ textAlign: 'center', fontSize: 14 }}
-      >
-        {label}
-      </Text>
-    </Pressable>
+      busy={busy}
+      disabled={disabled}
+      variant={
+        variant === 'outline' || variant === 'secondary' ? 'secondary' : variant
+      }
+      labelStyle={{ fontSize: 14 }}
+      style={style}
+    />
   );
 }
 export function ProgramRow({

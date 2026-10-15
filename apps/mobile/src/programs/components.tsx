@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   animePink,
+  uiDepth,
   Card,
   Screen,
   Text,
@@ -190,6 +191,7 @@ export function FocusInput(props: TextInputProps) {
       style={[
         styles.input,
         visual && {
+          ...uiDepth.input,
           backgroundColor: programInk.field,
           borderColor: programInk.border,
           color: programInk.text,

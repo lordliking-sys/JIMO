@@ -34,7 +34,7 @@ export function ProgressDepth({
     >
       <Image
         source={typeof source === 'string' ? { uri: source } : source}
-        blurRadius={2}
+        blurRadius={3}
         resizeMode="cover"
         accessible={false}
         style={{ position: 'absolute', ...frame }}
@@ -53,13 +53,13 @@ export function ProgressDepth({
             rx="36%"
             ry="62%"
           >
-            <Stop offset="0" stopColor="#150D1C" stopOpacity={0.25} />
+            <Stop offset="0" stopColor="#150D1C" stopOpacity={0.3} />
             <Stop offset="0.8" stopColor="#150D1C" stopOpacity={0.12} />
             <Stop offset="1" stopColor="#150D1C" stopOpacity={0} />
           </RadialGradient>
           <RadialGradient id={`${id}-haze`} cx="76%" cy="43%" rx="36%" ry="64%">
             <Stop offset="0.5" stopColor="#FF9AB9" stopOpacity={0} />
-            <Stop offset="0.79" stopColor="#FF9AB9" stopOpacity={0.09} />
+            <Stop offset="0.79" stopColor="#FF9AB9" stopOpacity={0.13} />
             <Stop offset="1" stopColor="#FF9AB9" stopOpacity={0} />
           </RadialGradient>
           <RadialGradient

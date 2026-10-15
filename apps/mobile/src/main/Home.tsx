@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Play from 'lucide-react-native/icons/play';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import Dumbbell from 'lucide-react-native/icons/dumbbell';
-import { Text, animePink } from '@jimo/ui';
+import { Text, animePink, uiDepth, SoftHighlight } from '@jimo/ui';
 import { zonedDateKey } from '@jimo/schemas';
 import { SyncStatus } from '../db/Status';
 import { useHistory } from '../workouts/queries';
@@ -200,7 +200,8 @@ export function MainHome() {
               borderRadius: 20,
               borderWidth: 1,
               borderColor: animePink.border,
-              backgroundColor: animePink.surface,
+              backgroundColor: animePink.surfaceSoft,
+              ...uiDepth.card,
               opacity: pressed ? 0.8 : 1,
             })}
           >
@@ -273,10 +274,12 @@ export function MainHome() {
                   height: 40,
                   borderRadius: 20,
                   backgroundColor: animePink.primaryAction,
+                  ...uiDepth.action,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
+                <SoftHighlight radius={20} />
                 <Play
                   size={18}
                   color={animePink.white}
@@ -348,6 +351,7 @@ export function MainHome() {
                     borderWidth: 1,
                     borderColor: animePink.border,
                     backgroundColor: animePink.surface,
+                    ...uiDepth.card,
                     opacity: pressed ? 0.8 : 1,
                   })}
                 >
