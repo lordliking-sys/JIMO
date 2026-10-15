@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Modal, View } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@jimo/ui';
@@ -12,9 +12,15 @@ import { ErrorNotice } from './components';
 export function DeleteProgram({
   id,
   onDeleted,
+  inline = false,
+  disabled = false,
+  onBusyChange,
 }: {
   id: string;
   onDeleted?: () => void;
+  inline?: boolean;
+  disabled?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const { t } = useTranslation('programs'),
     locale = useApiLocale(),
@@ -48,15 +54,53 @@ export function DeleteProgram({
       else router.dismissTo('/program');
     },
   });
+  useEffect(() => {
+    onBusyChange?.(mutation.isPending);
+  }, [mutation.isPending, onBusyChange]);
+  const content = (
+    <View
+      accessibilityViewIsModal
+      style={{
+        padding: inline ? 0 : 20,
+        gap: 16,
+        borderRadius: 20,
+        backgroundColor: programInk.background,
+      }}
+    >
+      <Text variant="h3" color={programInk.text}>
+        {t('confirmDeleteProgram')}
+      </Text>
+      <Text color={programInk.secondary}>{t('deleteProgramExplanation')}</Text>
+      {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
+      <ProgramButton
+        variant="outline"
+        label={t('cancel')}
+        disabled={mutation.isPending || disabled}
+        onPress={() => setOpen(false)}
+      />
+      <ProgramButton
+        label={t('deleteProgram')}
+        busy={mutation.isPending}
+        disabled={disabled}
+        style={{ backgroundColor: programInk.danger }}
+        onPress={() => {
+          if (!mutation.isPending && !disabled) mutation.mutate();
+        }}
+      />
+    </View>
+  );
   return (
     <>
       <ProgramButton
         variant="text"
         label={t('deleteProgram')}
+        disabled={disabled || mutation.isPending}
         onPress={() => setOpen(true)}
         style={{ borderWidth: 1, borderColor: programInk.danger }}
       />
-      {open ? (
+      {open && inline ? (
+        content
+      ) : open ? (
         <Modal
           transparent
           animationType="none"
@@ -72,37 +116,7 @@ export function DeleteProgram({
               backgroundColor: 'rgba(0,0,0,0.7)',
             }}
           >
-            <View
-              accessibilityViewIsModal
-              style={{
-                padding: 20,
-                gap: 16,
-                borderRadius: 20,
-                backgroundColor: programInk.background,
-              }}
-            >
-              <Text variant="h3" color={programInk.text}>
-                {t('confirmDeleteProgram')}
-              </Text>
-              <Text color={programInk.secondary}>
-                {t('deleteProgramExplanation')}
-              </Text>
-              {mutation.error ? <ErrorNotice error={mutation.error} /> : null}
-              <ProgramButton
-                variant="outline"
-                label={t('cancel')}
-                disabled={mutation.isPending}
-                onPress={() => setOpen(false)}
-              />
-              <ProgramButton
-                label={t('deleteProgram')}
-                busy={mutation.isPending}
-                style={{ backgroundColor: programInk.danger }}
-                onPress={() => {
-                  if (!mutation.isPending) mutation.mutate();
-                }}
-              />
-            </View>
+            {content}
           </View>
         </Modal>
       ) : null}

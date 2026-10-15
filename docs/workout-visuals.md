@@ -122,6 +122,8 @@ safe-area viewport. Existing tests exercise last set → exercise completed →
 continue without changing the workout route or losing actual data.
 
 Native Android/iOS exports validate bundling; actual Expo Go/device rendering
-still needs a device check, including physical Android hardware Back. Open
-Workout → **Anteprima EMOM** or **Anteprima
-piramidale** for the samples. Start/resume a real session for standard and rest.
+still needs a device check, including physical Android hardware Back. The old
+EMOM/Pyramid mockup component and all preview navigation have been removed.
+Configure the corresponding mode in a real program exercise and start/resume
+the real workout to verify standard, rest, EMOM and Pyramid. Current verification
+is documented in [daily-plan-refinements.md](daily-plan-refinements.md).

@@ -11,6 +11,7 @@
   "cachedSessions": "workouts · saved data",
   "nextExercises": "Next exercises",
   "noUpcoming": "Your exercises will appear here.",
+  "restDay": "Rest day",
   "nextExerciseAction": "Open {{name}}",
   "chooseDay": "Choose a day",
   "unscheduled": "Days not scheduled",
@@ -64,6 +65,7 @@
     "discard": "Discard changes",
     "keepEditing": "Keep editing",
     "noDuration": "No duration",
-    "manageHint": "Tap to choose. Hold to edit the plan."
+    "manageHint": "Tap to choose. Hold to edit the plan.",
+    "moreActions": "More actions"
   }
 }

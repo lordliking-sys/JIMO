@@ -127,6 +127,7 @@ export function MainButton({
       onPress={onPress}
       disabled={disabled}
       variant={subtle ? 'secondary' : 'primary'}
+      {...(subtle ? { style: { backgroundColor: 'transparent' } } : {})}
     />
   );
 }

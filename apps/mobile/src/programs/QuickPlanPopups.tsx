@@ -20,34 +20,39 @@ import { integerInput, stepInteger } from './helpers';
 import { PopupButton, ProgramPopup, usePopupFocus } from './ProgramPopup';
 
 type ModalControls = { close(): void; visible: boolean; onDismiss(): void };
-function QuickPlanFields({
+export function QuickPlanFields({
   name,
+  description,
   weeks,
   starts,
   setName,
+  setDescription,
   setWeeks,
   setStarts,
   busy,
   invalid,
 }: {
   name: string;
+  description: string;
   weeks: string;
-  starts: string;
+  starts?: string;
   setName(value: string): void;
+  setDescription(value: string): void;
   setWeeks(value: string): void;
-  setStarts(value: string): void;
+  setStarts?: (value: string) => void;
   busy: boolean;
   invalid: boolean;
 }) {
   const { t } = useTranslation(['main', 'programs']),
     focus = usePopupFocus();
   const nameRef = useRef<TextInput>(null),
+    descriptionRef = useRef<TextInput>(null),
     weeksRef = useRef<TextInput>(null);
   const field = {
     minHeight: 48,
     borderWidth: 1,
     borderColor: animePink.border,
-    backgroundColor: animePink.surface,
+    backgroundColor: animePink.surfaceSoft,
     borderRadius: 22,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -77,11 +82,31 @@ function QuickPlanFields({
           maxLength={160}
           autoCapitalize="sentences"
           returnKeyType="next"
-          onSubmitEditing={() => weeksRef.current?.focus()}
+          onSubmitEditing={() => descriptionRef.current?.focus()}
           placeholder={t('popup.namePlaceholder')}
           placeholderTextColor={animePink.textSecondary}
           selectionColor={animePink.primaryPink}
           style={field}
+        />
+      </View>
+      <View style={{ gap: 6 }}>
+        <Text style={label}>{t('programs:description')}</Text>
+        <TextInput
+          ref={descriptionRef}
+          accessibilityLabel={t('programs:description')}
+          value={description}
+          editable={!busy}
+          onChangeText={setDescription}
+          onFocus={() => focus(descriptionRef.current)}
+          maxLength={2000}
+          multiline
+          placeholder={t('programs:descriptionPlaceholder')}
+          placeholderTextColor={animePink.textSecondary}
+          selectionColor={animePink.primaryPink}
+          style={[
+            field,
+            { minHeight: 72, maxHeight: 96, textAlignVertical: 'top' },
+          ]}
         />
       </View>
       <View style={{ gap: 6 }}>
@@ -146,7 +171,14 @@ function QuickPlanFields({
           })}
         </View>
       </View>
-      <DateField compact disabled={busy} value={starts} onChange={setStarts} />
+      {setStarts ? (
+        <DateField
+          compact
+          disabled={busy}
+          value={starts ?? ''}
+          onChange={setStarts}
+        />
+      ) : null}
       {invalid ? (
         <Text
           accessibilityRole="alert"
@@ -176,18 +208,20 @@ export function QuickPlanPopup({
   const { t } = useTranslation(['main', 'programs']),
     locale = useApiLocale();
   const [name, setName] = useState(''),
+    [description, setDescription] = useState(''),
     [weeks, setWeeks] = useState('8'),
     [starts, setStarts] = useState(''),
     [invalid, setInvalid] = useState(false);
   const mutation = useProgramMutation((input: ProgramInput) =>
     programsApi.create(input, locale),
   );
-  const dirty = name !== '' || weeks !== '8' || starts !== '';
+  const dirty =
+    name !== '' || description !== '' || weeks !== '8' || starts !== '';
   const submit = () => {
     try {
       const input = programInputSchema.parse({
         name,
-        description: null,
+        description: description.trim() || null,
         durationWeeks: weeks.trim() ? integerInput(weeks) : null,
         startsOn: starts || null,
       });
@@ -244,10 +278,15 @@ export function QuickPlanPopup({
         <>
           <QuickPlanFields
             name={name}
+            description={description}
             weeks={weeks}
             starts={starts}
             setName={(value) => {
               setName(value);
+              setInvalid(false);
+            }}
+            setDescription={(value) => {
+              setDescription(value);
               setInvalid(false);
             }}
             setWeeks={(value) => {

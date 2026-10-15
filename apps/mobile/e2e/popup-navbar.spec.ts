@@ -278,6 +278,23 @@ test.describe('animation enabled', () => {
     await open(page, phones[1]!);
     const pill = page.getByTestId('floating-navbar-pill');
     await expect(pill).toBeVisible();
+    const nav = page.getByTestId('floating-navbar');
+    const settled = (name: string) =>
+      expect
+        .poll(async () => {
+          const p = (await pill.boundingBox())!,
+            tab = (await nav
+              .getByRole('tab', { name, exact: true })
+              .boundingBox())!;
+          return Math.abs(p.x + p.width / 2 - tab.x - tab.width / 2);
+        })
+        .toBeLessThan(1);
+    // Warm both scenes before measuring animation rather than cold artwork/JS initialization.
+    await nav.getByRole('tab', { name: 'Progressi', exact: true }).click();
+    await expect(page.getByTestId('progress-tabs-scroll')).toBeVisible();
+    await settled('Progressi');
+    await nav.getByRole('tab', { name: 'Scheda', exact: true }).click();
+    await settled('Scheda');
     const samples = await page.evaluate(async () => {
       const capsule = document.querySelector(
         '[data-testid="floating-navbar"]',
@@ -298,11 +315,12 @@ test.describe('animation enabled', () => {
     });
     const start = samples[0]!,
       end = samples.at(-1)!;
-    expect(end - start).toBeGreaterThan(40);
+    expect(end - start, JSON.stringify(samples)).toBeGreaterThan(40);
     expect(samples.some((x) => x > start + 2 && x < end - 2)).toBe(true);
-    expect(samples.every((x, i) => i === 0 || x >= samples[i - 1]! - 1)).toBe(
-      true,
-    );
+    expect(
+      samples.every((x, i) => i === 0 || x >= samples[i - 1]! - 1),
+      JSON.stringify(samples),
+    ).toBe(true);
     await expect(
       page
         .getByTestId('floating-navbar')

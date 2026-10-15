@@ -72,15 +72,10 @@ export function PaperCard({ style, ...props }: ViewProps) {
       {...props}
       style={[
         {
-          backgroundColor: ink.card,
+          backgroundColor: ink.paper,
           borderColor: ink.border,
-          borderWidth: 1,
-          borderRadius: 20,
-          padding: 16,
-          shadowColor: ink.charcoal,
-          shadowOpacity: 0.035,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 3 },
+          borderBottomWidth: 1,
+          paddingVertical: 16,
           overflow: 'hidden',
         },
         style,
@@ -225,7 +220,7 @@ export function EditorialBody({
     <SectionBody
       testID={profile ? 'profile-body' : 'progress-body'}
       padding={width < 360 ? 16 : 22}
-      color={profile ? ink.card : ink.paper}
+      color={ink.paper}
       style={{ gap: profile ? 16 : 10 }}
       onLayout={(event) => anchor.rememberBody(event.nativeEvent.layout.y)}
     >

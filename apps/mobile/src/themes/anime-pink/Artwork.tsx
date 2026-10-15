@@ -15,6 +15,7 @@ import Svg, {
 import { animePink } from '@jimo/ui';
 import { animePinkAssets } from './assets';
 import { heroArtworkFrame, type ArtworkScene } from './artwork-geometry';
+import { ProgressDepth } from './ProgressDepth';
 /** Real artwork slot. Its code-only placeholder keeps the final composition without inventing a character. */
 export function ThemeArtwork({
   source,
@@ -82,7 +83,9 @@ export function ThemeArtwork({
         { overflow: 'hidden', backgroundColor: animePink.surfaceDark },
       ]}
     >
-      {source ? (
+      {source && scene === 'progress' && frame ? (
+        <ProgressDepth source={source} size={dimensions} />
+      ) : source ? (
         <Image
           testID={`${testID}-image`}
           source={typeof source === 'string' ? { uri: source } : source}

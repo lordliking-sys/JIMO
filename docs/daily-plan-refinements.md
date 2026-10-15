@@ -1,0 +1,25 @@
+# Scheda quotidiana e superfici blush
+
+La Home dà precedenza a una sessione realmente `in_progress`. Senza sessione attiva, usa esclusivamente una giornata della scheda attiva assegnata al giorno locale corrente: non prende più gli esercizi dal prossimo giorno o da una giornata senza giorno fisso. Nei giorni di riposo non mostra esercizi. Senza scheda attiva mostra «Nessuna scheda attiva». Le prescrizioni di oggi e le snapshot della sessione in corso restano distinte; un allenamento già completato non viene riavviato dalla Home.
+
+Il percorso di invalidazione, applicazione dei DTO in SQLite e protezione contro risposte GET tardive già documentato in `anime-pink-refinements.md` rimane invariato. Le verifiche comprendono cambio scheda, aggiunta/rimozione esercizio, aggiunta/rimozione giornata, eliminazione programma con sync indisponibile, completamento workout e sessione cancellata sul server. Le scritture dei test sono esclusivamente su fixture HTTP locali e database SQLite di test.
+
+La Scheda mostra nome e badge della scheda attiva, giorni da lunedì a domenica, esercizi realmente assegnati e riposo dove non ci sono giornate. Le giornate senza giorno fisso restano accessibili con il loro nome. I selettori delle settimane e i conteggi della durata sono rimossi dalla superficie principale; durata e data esistenti restano nei dati. Il tap su una giornata apre direttamente il suo editor. Il tap su un giorno libero permette di aggiungere una giornata con quel giorno preselezionato, senza generare esercizi.
+
+Nuova, Cambia e Modifica scheda sono popup centrali nativi al 84% della larghezza, con limiti per safe area e tastiera, backdrop, fade/scale, touch target di almeno 48 px e reduced motion. Modifica contiene soltanto nome, descrizione e durata: preserva la data iniziale nascosta. Archivio ed eliminazione restano sotto «Altre azioni», con conferma. La conferma di eliminazione è interna al popup per evitare una seconda presentazione modale su iOS. Nuova scheda supporta la descrizione opzionale e conserva la data opzionale già presente; crea una bozza senza cambiare la scheda attiva. Il salvataggio usa schemi Zod e mutation esistenti, inclusa la protezione dal doppio tap.
+
+La gestione di giornate, ordine e rimozione si trova nella giornata stessa. La libreria Aggiungi esercizio contiene back, titolo, ricerca e righe semplici con artwork `contain` su sfondo trasparente, senza filtri o menu aggiuntivi. Gli esercizi custom restano accessibili dalla gestione della giornata.
+
+Scheda, Progressi e Profilo condividono il body `#FFF7FA` della Home. Le sezioni metriche sono delimitate da separatori, senza pannelli bianchi annidati. L'hero Scheda resta il PNG originale `profilo-mood-reference.png`, con il solo titolo SCHEDA. L'hero Progressi usa lo stesso PNG originale con sfocatura leggera della base, ombra e haze delicati e maschere SVG morbide che ricompongono i pixel nitidi del soggetto: non viene creato né modificato alcun asset e non si simula un nuovo cutout. Profilo conserva terrazza, overlay, posa e avatar, senza gear.
+
+L'engine EMOM, il prep di 10 secondi, l'avanzamento automatico, il ring animato e la griglia centrata rimangono invariati. La correzione degli actual è disponibile nel riepilogo finale, non durante i round. Il vecchio componente mockup di anteprima non referenziato è rimosso; non esistono route demo EMOM/Piramidale. Il Piramidale reale resta invariato.
+
+La navbar flottante a quattro tab, la pill animata di 240 ms, gli inset e la continuità della status bar restano quelli approvati. Il colore della navigation bar di sistema Android configurato nel progetto è allineato al blush; l'aspetto della barra di sistema in Expo Go dipende anche dall'host e va verificato sul dispositivo. Nessuna modifica ad API, database, Auth, sync, offline o analytics. Nessuna migration e nessun contatto con production, Neon o OpenAI.
+
+## Verifiche
+
+Viewport browser: 320×740, 390×780, 393×851 e 430×860, con safe area Android/iOS simulate. La verifica su telefono fisico con Expo Go rimane distinta dai test browser.
+
+`pnpm lint`, `pnpm typecheck` e `pnpm test` superati: 192 test unitari complessivi, di cui 152 mobile. Superati 78 casi browser selezionati sui quattro viewport: 69 nel pass ampio, cinque controlli Home dedicati, due controlli di gestione alla riesecuzione e due controlli finali di animazione/assenza di preview. Le asserzioni restano complete. Le riesecuzioni di gestione attendono la chiusura dell'editor dopo il DTO; la misura dell'animazione parte da due schermate già caricate e dalla pill ferma, senza includere il caricamento iniziale dell'artwork.
+
+Confronto SHA-256 dei 218 file protetti superato, inclusi engine, schema, Auth, API, sync e asset. Nessun test contatta servizi remoti. `pnpm build` superato: sei task ed export Android, iOS e web con auth di test disattivata e AI disabilitata, senza APK/IPA. `pnpm format:check` superato. Scansione delle credenziali nei sorgenti e nei bundle superata senza mostrare valori riservati. Production e Neon non sono stati contattati; nessuna migration.

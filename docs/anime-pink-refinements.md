@@ -1,5 +1,7 @@
 # Refinement anime/pink
 
+Questo documento descrive il pass iniziale di cache e tema. I popup centrali, i giorni diretti, la selezione esclusiva degli esercizi di oggi e le superfici uniformi sono aggiornati in [daily-plan-refinements.md](daily-plan-refinements.md); i risultati numerici sotto si riferiscono al pass iniziale.
+
 ## Home: dati correnti
 
 La Home legge il programma attivo da SQLite. In precedenza le mutation di giorni/esercizi invalidavano solo le query API e avviavano il sync in background: il vecchio payload locale restava visibile fino alla riconciliazione.
@@ -18,7 +20,7 @@ Le modifiche effettuate nell'app aggiornano Home dal risultato della mutation, s
 - Il contenuto di Home, Scheda, Progressi e Profilo resta sotto la safe area superiore. `SectionStatusFade` usa un gradiente non interattivo esteso di 28 px oltre l'inset, senza lo stacco del vecchio scrim Profilo. Gli indicatori della status bar cambiano contrasto quando si scorre sul body chiaro.
 - I quattro tab Progressi usano una riga vincolata alla larghezza disponibile, con spazio proporzionato alle label, pill pink/dark e target di almeno 48 px. Il testo può andare a capo con caratteri ingranditi senza ellissi o overflow orizzontale.
 - La Scheda usa il PNG originale `profilo-mood-reference.png`; il titolo nell'hero è soltanto `SCHEDA`. Nessun asset è rigenerato o modificato.
-- `+ Nuova scheda` resta un overlay sulla Scheda: nome, descrizione, durata e data opzionale, pulsante `Salva`. Il risultato è una bozza; il modal si chiude e il programma attivo resta invariato.
+- `+ Nuova scheda` resta un popup centrale sulla Scheda: nome, descrizione, durata e data opzionale, pulsante `Crea scheda`. Il risultato è una bozza; il modal si chiude e il programma attivo resta invariato.
 - `Cambia scheda` mostra ATTIVA/NON ATTIVA. Il tap su una scheda non attiva chiede subito conferma. Dopo l'attivazione il modal si chiude, la Scheda e la Home si aggiornano. Annullando rimangono disponibili le azioni di modifica già esistenti.
 - Il Profilo non mostra ingranaggi nell'hero o nel body. Le righe Account, Lingua, Unità, Privacy, Informazioni e Logout mantengono i loro comandi.
 

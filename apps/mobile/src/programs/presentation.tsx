@@ -260,7 +260,7 @@ function ProgramSurface({
               gap: 0,
             }}
             footerStyle={{
-              backgroundColor: animePink.surface,
+              backgroundColor: animePink.background,
               borderTopWidth: 0,
               paddingLeft: insets.left + (width < 360 ? 16 : 20),
               paddingRight: insets.right + (width < 360 ? 16 : 20),

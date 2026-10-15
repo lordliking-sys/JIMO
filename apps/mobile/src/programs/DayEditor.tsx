@@ -19,15 +19,19 @@ export function DayEditor({
   id,
   day,
   onSaved,
+  weekday,
 }: {
   id: string;
   day?: DayDto;
   onSaved(): void;
+  weekday?: number;
 }) {
   const { t } = useTranslation('programs'),
     locale = useApiLocale();
   const [name, setName] = useState(day?.name ?? ''),
-    [weekday, setWeekday] = useState(day?.dayOfWeek?.toString() ?? ''),
+    [selectedWeekday, setWeekday] = useState(
+      (day?.dayOfWeek ?? weekday)?.toString() ?? '',
+    ),
     [notes, setNotes] = useState(day?.notes ?? ''),
     [invalid, setInvalid] = useState(false);
   const mutation = useProgramMutation((input: DayInput) =>
@@ -48,7 +52,7 @@ export function DayEditor({
             try {
               const input = dayInputSchema.parse({
                 name,
-                dayOfWeek: weekdayValue(weekday),
+                dayOfWeek: weekdayValue(selectedWeekday),
                 notes: notes.trim() || null,
               });
               setInvalid(false);
@@ -80,13 +84,13 @@ export function DayEditor({
               key={number}
               label={t(`weekdaysShort.${number}`)}
               accessibilityLabel={t(`weekdays.${number}`)}
-              selected={weekday === String(number)}
+              selected={selectedWeekday === String(number)}
               onPress={() => setWeekday(String(number))}
             />
           ))}
           <Choice
             label={t('noWeekday')}
-            selected={!weekday}
+            selected={!selectedWeekday}
             onPress={() => setWeekday('')}
           />
         </View>

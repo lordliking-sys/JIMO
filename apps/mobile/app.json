@@ -46,7 +46,7 @@
     },
     "androidNavigationBar": {
       "barStyle": "dark-content",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#FFF7FA"
     },
     "locales": {
       "en": "./src/i18n/permissions/en.json",

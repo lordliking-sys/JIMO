@@ -5,7 +5,7 @@ import { ProgramOverlay } from '../../../src/programs/ProgramOverlay';
 import type { ProgramExerciseDto } from '@jimo/schemas';
 import { ExerciseThumbnail } from '../../../src/programs/ExerciseThumbnail';
 import { View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@jimo/ui';
 import EllipsisVertical from 'lucide-react-native/icons/ellipsis-vertical';
@@ -48,17 +48,24 @@ export default function DayDetail() {
     locale = useApiLocale(),
     { t } = useTranslation('programs'),
     confirmation = useConfirmation();
+  const router = useRouter();
   const [userAction, setAction] = useState<
       ProgramExerciseDto | 'new' | 'custom' | null
     >(null),
-    [editDay, setEditDay] = useState(false);
+    [editDay, setEditDay] = useState(false),
+    [newDay, setNewDay] = useState(false);
   const mutation = useProgramMutation(
     (action: () => ReturnType<typeof programsApi.detail>) => action(),
   );
-  const run = (action: () => ReturnType<typeof programsApi.detail>) => {
-    if (!mutation.isPending) mutation.mutate(action);
+  const run = (
+    action: () => ReturnType<typeof programsApi.detail>,
+    onSuccess?: () => void,
+  ) => {
+    if (!mutation.isPending)
+      mutation.mutate(action, { ...(onSuccess ? { onSuccess } : {}) });
   };
   const day = query.data?.days.find((d) => d.id === dayId);
+  const dayIndex = query.data?.days.findIndex((d) => d.id === dayId) ?? -1;
   const selected = useExercise(exerciseId ?? '');
   const [handled, setHandled] = useState<string | null>(null);
   const key = `${id}:${dayId}:${overlay}:${exerciseId}:${prescriptionId}`;
@@ -113,6 +120,41 @@ export default function DayDetail() {
             title={day.name}
             actions={[
               { label: t('editDay'), action: () => setEditDay(true) },
+              { label: t('addDay'), action: () => setNewDay(true) },
+              {
+                label: t('moveUp'),
+                disabled: dayIndex === 0,
+                action: () =>
+                  run(() =>
+                    programsApi.reorderDays(
+                      id,
+                      moved(query.data!.days, dayIndex, -1).map((d) => d.id),
+                      locale,
+                    ),
+                  ),
+              },
+              {
+                label: t('moveDown'),
+                disabled: dayIndex === query.data.days.length - 1,
+                action: () =>
+                  run(() =>
+                    programsApi.reorderDays(
+                      id,
+                      moved(query.data!.days, dayIndex, 1).map((d) => d.id),
+                      locale,
+                    ),
+                  ),
+              },
+              {
+                label: t('deleteDay'),
+                action: () =>
+                  confirmation.ask(t('confirmDeleteDay'), () =>
+                    run(
+                      () => programsApi.removeDay(day.id, locale),
+                      () => router.dismissTo('/program'),
+                    ),
+                  ),
+              },
               { label: t('createCustom'), action: () => setAction('custom') },
             ]}
           />
@@ -136,6 +178,11 @@ export default function DayDetail() {
       {editingDay ? (
         <ProgramOverlay back={closeDay}>
           <DayEditor id={id} day={day} onSaved={closeDay} />
+        </ProgramOverlay>
+      ) : null}
+      {newDay ? (
+        <ProgramOverlay back={() => setNewDay(false)}>
+          <DayEditor id={id} onSaved={() => setNewDay(false)} />
         </ProgramOverlay>
       ) : null}
       {action ? (

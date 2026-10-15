@@ -1,29 +1,33 @@
 import { SectionHeroFrame } from '../components/SectionHero';
 import { SectionBody } from '../components/SectionBody';
 import { useState, useRef } from 'react';
-import { View, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Platform, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, IconButton, animePink } from '@jimo/ui';
+import type { ProgramSummary } from '@jimo/schemas';
 import Pencil from 'lucide-react-native/icons/pencil';
 import { usePrograms, useProgram } from '../api/queries';
 import { useHistory } from '../workouts/queries';
 import { PendingReview } from '../imports/PendingReview';
 import { MainButton, MainNotice, MainScreen, MainText } from './Surface';
-import { programWeek, selectedWeekBounds, dayStates } from './helpers';
+import { dayStates } from './helpers';
+import { weekBounds } from '../workouts/helpers';
+import { weekdayNumbers } from '../programs/weekdays';
 import { useTraining } from './useTraining';
 import { DayCard } from './DayCard';
-import { WeekSelector } from './WeekSelector';
 import { HeroTitle } from '../themes/anime-pink/HeroTitle';
 import { ProgramOverlay } from '../programs/ProgramOverlay';
-import { ProgramManagement } from '../programs/ProgramManagement';
+import { EditPlanPopup } from '../programs/EditPlanPopup';
+import { DayEditor } from '../programs/DayEditor';
 import { QuickPlanPopup } from '../programs/QuickPlanPopups';
 
 type Sheet =
-  { kind: 'switch' } | { kind: 'create' } | { kind: 'manage'; id: string };
+  | { kind: 'switch' }
+  | { kind: 'create' }
+  | { kind: 'edit'; program: ProgramSummary }
+  | { kind: 'day'; id: string; weekday: number };
 export function MainProgram() {
-  const { t } = useTranslation(['main', 'programs']),
-    router = useRouter();
+  const { t } = useTranslation(['main', 'programs', 'workouts']);
   const list = usePrograms(),
     { program: cached, session, now, runtime } = useTraining();
   const summary = list.data?.programs.find((p) => p.status === 'active');
@@ -33,31 +37,20 @@ export function MainProgram() {
     (!list.data || cached.data.id === summary?.id);
   const detail = useProgram(cachedMatches ? '' : (summary?.id ?? '')),
     program = cachedMatches ? cached.data : detail.data;
-  const [sheet, setSheet] = useState<Sheet | null>(null),
-    [selection, setSelection] = useState<{
-      programId: string;
-      week: number;
-    } | null>(null);
-  const weeks = programWeek(program, now),
-    selected =
-      selection && selection.programId === program?.id
-        ? Math.min(weeks.total, selection.week)
-        : weeks.current;
-  const bounds = selectedWeekBounds(program, selected, now),
+  const [sheet, setSheet] = useState<Sheet | null>(null);
+  const bounds = weekBounds(now),
     history = useHistory(
       bounds.start.toISOString(),
       bounds.end.toISOString(),
       'completed',
     );
-  const currentWeek =
-    now >= bounds.start && now < bounds.end && program?.status === 'active';
   const states = program
     ? dayStates(
         program,
         history.data?.workouts ?? [],
         session.data?.workout,
         bounds.start,
-        currentWeek,
+        true,
         now,
       )
     : new Map();
@@ -72,34 +65,21 @@ export function MainProgram() {
   };
   const [closing, setClosing] = useState(false);
   const closingRef = useRef(false);
-  const nextDay = useRef<{ id: string; dayId: string } | null>(null);
-  const nextManagement = useRef<string | null>(null);
+  const nextEdit = useRef<ProgramSummary | null>(null);
   const finishClose = () => {
     if (!closingRef.current) return;
     closingRef.current = false;
     setSheet(null);
     setClosing(false);
-    const next = nextDay.current;
-    nextDay.current = null;
-    const manage = nextManagement.current;
-    nextManagement.current = null;
-    if (manage) setSheet({ kind: 'manage', id: manage });
-    if (next)
-      router.push({
-        pathname: '/program/[id]/day-detail',
-        params: { ...next, backTo: 'scheda' },
-      });
+    const next = nextEdit.current;
+    nextEdit.current = null;
+    if (next) setSheet({ kind: 'edit', program: next });
   };
   const close = () => {
     if (closingRef.current) return;
     closingRef.current = true;
     setClosing(true);
     if (Platform.OS !== 'ios') requestAnimationFrame(finishClose);
-  };
-  const openDay = (dayId: string) => {
-    if (sheet?.kind !== 'manage') return;
-    nextDay.current = { id: sheet.id, dayId };
-    close();
   };
   return (
     <MainScreen>
@@ -109,7 +89,7 @@ export function MainProgram() {
       >
         <HeroTitle accessibilityRole="header">{t('title')}</HeroTitle>
       </SectionHeroFrame>
-      <SectionBody testID="program-tab-body" color={animePink.surface}>
+      <SectionBody testID="program-tab-body">
         <PendingReview />
         {pending ? (
           <MainNotice loading />
@@ -130,7 +110,7 @@ export function MainProgram() {
                 <IconButton
                   label={t('managePlan')}
                   icon={<Pencil size={20} color={animePink.primaryText} />}
-                  onPress={() => setSheet({ kind: 'manage', id: program.id })}
+                  onPress={() => setSheet({ kind: 'edit', program })}
                 />
               </View>
               <View
@@ -153,38 +133,60 @@ export function MainProgram() {
                     {t('activePlan')}
                   </Text>
                 </View>
-                <Text variant="caption" color={animePink.textSecondary}>
-                  {t('programs:dayCount', { count: program.days.length })}
-                  {program.durationWeeks
-                    ? ` · ${t('programs:weekCount', { count: program.durationWeeks })}`
-                    : ''}
-                </Text>
               </View>
             </View>
-            {weeks.anchored ? (
-              <WeekSelector
-                key={program.id}
-                total={weeks.total}
-                selected={selected}
-                onSelect={(week) =>
-                  setSelection({ programId: program.id, week })
-                }
-              />
-            ) : (
-              <Text variant="label">{t('currentWeek')}</Text>
-            )}
-            {history.error ? (
-              <MainNotice retry={() => void history.refetch()} />
-            ) : null}
             <View style={{ gap: 8 }}>
-              {program.days.map((day) => (
-                <DayCard
-                  key={day.id}
-                  program={program}
-                  day={day}
-                  state={states.get(day.id) ?? 'future'}
-                />
-              ))}
+              {weekdayNumbers.map((weekday) => {
+                const days = program.days.filter(
+                  (day) => day.dayOfWeek === weekday,
+                );
+                return days.length ? (
+                  days.map((day) => (
+                    <DayCard
+                      key={day.id}
+                      program={program}
+                      day={day}
+                      state={states.get(day.id) ?? 'future'}
+                    />
+                  ))
+                ) : (
+                  <Pressable
+                    key={weekday}
+                    testID={`program-rest-${weekday}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t(`programs:weekdays.${weekday}`)}, ${t('restDay')}`}
+                    accessibilityHint={t('programs:addDay')}
+                    onPress={() =>
+                      setSheet({ kind: 'day', id: program.id, weekday })
+                    }
+                    style={({ pressed }) => ({
+                      minHeight: 72,
+                      paddingVertical: 12,
+                      borderBottomWidth: 1,
+                      borderColor: animePink.border,
+                      opacity: pressed ? 0.7 : 1,
+                      gap: 4,
+                    })}
+                  >
+                    <MainText style={{ fontSize: 18 }}>
+                      {t(`programs:weekdays.${weekday}`)}
+                    </MainText>
+                    <Text variant="caption" color={animePink.textSecondary}>
+                      {t('restDay')}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+              {program.days
+                .filter((day) => day.dayOfWeek === null)
+                .map((day) => (
+                  <DayCard
+                    key={day.id}
+                    program={program}
+                    day={day}
+                    state={states.get(day.id) ?? 'future'}
+                  />
+                ))}
               {!program.days.length ? (
                 <Text color={animePink.textSecondary}>
                   {t('programs:noDaysHint')}
@@ -211,20 +213,17 @@ export function MainProgram() {
           />
         </View>
       </SectionBody>
-      {sheet?.kind === 'manage' ? (
-        <ProgramOverlay
+      {sheet?.kind === 'edit' ? (
+        <EditPlanPopup
+          key={sheet.program.id}
+          program={sheet.program}
           visible={!closing}
           onDismiss={finishClose}
-          back={close}
-          title={t('managePlan')}
-        >
-          <ProgramManagement
-            key={sheet.id}
-            id={sheet.id}
-            onSaved={close}
-            onDeleted={close}
-            onOpenDay={openDay}
-          />
+          close={close}
+        />
+      ) : sheet?.kind === 'day' ? (
+        <ProgramOverlay visible={!closing} onDismiss={finishClose} back={close}>
+          <DayEditor id={sheet.id} weekday={sheet.weekday} onSaved={close} />
         </ProgramOverlay>
       ) : sheet ? (
         <QuickPlanPopup
@@ -235,8 +234,11 @@ export function MainProgram() {
           onDismiss={finishClose}
           onNew={() => setSheet({ kind: 'create' })}
           onManage={(id) => {
-            nextManagement.current = id;
-            close();
+            const selected = list.data?.programs.find((p) => p.id === id);
+            if (selected) {
+              nextEdit.current = selected;
+              close();
+            }
           }}
         />
       ) : null}

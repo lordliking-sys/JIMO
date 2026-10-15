@@ -55,6 +55,9 @@ export function useSafeAreaInsets() {
 }
 
 export function useFocusEffect() {}
+export function useIsFocused() {
+  return true;
+}
 export function useFonts() {
   return [true];
 }

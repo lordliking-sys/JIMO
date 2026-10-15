@@ -8,6 +8,7 @@ import { Field } from '../programs/components';
 import { Wordmark } from '../components/Wordmark';
 import { useAuthSession } from './SessionProvider';
 import { authErrorKey, authErrorParams } from './helpers';
+import { LoginScreen, LoginEmail } from './login/LoginScreen';
 import {
   PasswordField,
   PasswordRequirements,
@@ -135,6 +136,54 @@ export function AuthForm({
   const showPassword =
     (stage === 'credentials' && mode !== 'forgot-password') ||
     stage === 'reset';
+  if (mode === 'sign-in' && stage === 'credentials')
+    return (
+      <LoginScreen
+        title={title}
+        loaded={auth.loaded}
+        busy={busy}
+        submit={submit}
+        submitLabel={auth.needsAuth ? t('signInAgain') : title}
+        onCreate={() => router.push('/auth/sign-up')}
+        onForgot={() => router.push('/auth/forgot-password')}
+        sessionAlert={
+          auth.needsAuth ? (
+            <Text accessibilityRole="alert">{t('errors.session')}</Text>
+          ) : null
+        }
+        error={
+          error ? (
+            <Text color={colors.danger} accessibilityRole="alert">
+              {t(error, errorParams)}
+            </Text>
+          ) : null
+        }
+        email={
+          <LoginEmail
+            label={t('email')}
+            value={email}
+            onChangeText={setEmail}
+            editable={!busy}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+          />
+        }
+        password={
+          <PasswordField
+            key={mode}
+            label={t('password')}
+            value={password}
+            onChangeText={changePassword}
+            disabled={busy}
+            current
+            appearance="login"
+          />
+        }
+      />
+    );
   return (
     <Screen
       keyboardAware

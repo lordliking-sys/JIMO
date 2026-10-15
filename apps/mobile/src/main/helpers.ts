@@ -53,18 +53,15 @@ export function homeDay(
   now: Date,
   completedIds: Set<string>,
 ) {
-  if (!program?.days.length) return { day: null, scheduledToday: false };
+  if (program?.status !== 'active' || !program.days.length)
+    return { day: null, scheduledToday: false };
   const today = localWeekday(now),
     scheduled = program.days.filter((day) => day.dayOfWeek === today);
-  const candidates = scheduled.length
-    ? scheduled
-    : [...program.days].sort((a, b) => {
-        const distance = (day: DayDto) =>
-          day.dayOfWeek === null ? 7 : (day.dayOfWeek - today + 7) % 7;
-        return distance(a) - distance(b) || a.position - b.position;
-      });
   return {
-    day: candidates.find((day) => !completedIds.has(day.id)) ?? candidates[0]!,
+    day:
+      scheduled.find((day) => !completedIds.has(day.id)) ??
+      scheduled[0] ??
+      null,
     scheduledToday: scheduled.length > 0,
   };
 }

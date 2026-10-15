@@ -11,6 +11,7 @@
   "cachedSessions": "allenamenti · dati salvati",
   "nextExercises": "Prossimi esercizi",
   "noUpcoming": "I tuoi esercizi appariranno qui.",
+  "restDay": "Giorno di riposo",
   "nextExerciseAction": "Apri {{name}}",
   "chooseDay": "Scegli un giorno",
   "unscheduled": "Giorni non programmati",
@@ -64,6 +65,7 @@
     "discard": "Scarta modifiche",
     "keepEditing": "Continua a modificare",
     "noDuration": "Senza durata",
-    "manageHint": "Tocca per scegliere. Tieni premuto per modificare la scheda."
+    "manageHint": "Tocca per scegliere. Tieni premuto per modificare la scheda.",
+    "moreActions": "Altre azioni"
   }
 }

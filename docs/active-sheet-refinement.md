@@ -8,7 +8,7 @@ Il refinement mantiene il tema anime/pink e i placeholder esistenti. Non introdu
 
 ## Flusso quotidiano
 
-Scheda mostra esclusivamente il programma `active`: nome, badge ATTIVA, informazioni reali, selettore settimane esistente e tutte le giornate. Il tap su una giornata apre il relativo editor; l'avvio workout resta un'azione esplicita nell'editor.
+Scheda mostra esclusivamente il programma `active`: nome, badge ATTIVA e giornate con esercizi assegnati. Il refinement successivo in [daily-plan-refinements.md](daily-plan-refinements.md) sostituisce il selettore settimane con i giorni della settimana e introduce il popup essenziale di modifica. Il tap su una giornata apre il relativo editor; l'avvio workout resta un'azione esplicita nell'editor.
 
 La navigazione percepita è Scheda → Giornata → editor esercizio in overlay. La libreria contiene back, titolo, ricerca su tutto il catalogo e lista paginata, senza filtri per origine o tracking. La creazione di esercizi personalizzati rimane disponibile nel menu della giornata.
 
@@ -24,7 +24,7 @@ Il hub e il menu della sessione non espongono più le anteprime EMOM/Piramidale.
 
 ## Verifica
 
-I test browser usano fixture locali e verificano il flusso A–P, incluse attivazione, bozza, modifica di un esercizio e storico dopo eliminazione. Le dimensioni verificate sono 320×740, 390×780, 393×851 e 430×860, con controlli su safe area, font al 130%, tab bar, settimane e layout dei workout reali.
+I test browser usano fixture locali e verificano il flusso A–P, incluse attivazione, bozza, modifica di un esercizio e storico dopo eliminazione. Le dimensioni verificate sono 320×740, 390×780, 393×851 e 430×860, con controlli su safe area, font al 130%, tab bar, giorni della settimana, popup e layout dei workout reali.
 
 Gli screenshot web verificano il layout React Native Web. Il comportamento nativo del picker avatar, della tastiera e della chiusura dei modal su iOS richiede anche una prova su Expo Go; non viene dichiarata una verifica fisica del telefono.
 

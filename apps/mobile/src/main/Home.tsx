@@ -30,7 +30,10 @@ export function MainHome() {
     router = useRouter();
   const { program: query, session, runtime, refresh, now } = useTraining(),
     program = query.data,
-    active = session.data?.workout;
+    active =
+      session.data?.workout?.status === 'in_progress'
+        ? session.data.workout
+        : null;
   const { start, end } = weekBounds(now),
     history = useHistory(start.toISOString(), end.toISOString(), 'completed');
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
@@ -89,38 +92,18 @@ export function MainHome() {
     ? active.exercises.find((exercise) =>
         exercise.sets.some((set) => set.status === 'pending'),
       )
-    : day?.exercises[0];
-  const prescription =
-    !active && day?.exercises[0]
-      ? exerciseSummary(
-          day.exercises[0],
-          i18n.resolvedLanguage ?? 'en',
-          i18n.getFixedT(null, 'programs'),
-        )
+    : scheduledToday
+      ? day?.exercises[0]
       : null;
   const dataUnavailable =
     !active && !program && (!runtime.online || !runtime.owner);
-  const nextSet =
-    upcoming && 'sets' in upcoming
-      ? upcoming.sets.find((set) => set.status === 'pending')
-      : null;
-  const snapshot =
-    nextSet && upcoming && 'sets' in upcoming
-      ? setSummary(upcoming, nextSet, i18n.resolvedLanguage ?? 'en')
-      : null;
-  const activePrescription =
-    snapshot && upcoming && 'sets' in upcoming
-      ? {
-          target: `${upcoming.sets.length} × ${snapshot.target}`,
-          load:
-            upcoming.loadModeSnapshot === 'bodyweight'
-              ? t('workouts:bodyweight')
-              : upcoming.loadModeSnapshot === 'assisted'
-                ? `${t('workouts:assisted')} ${snapshot.load || '—'} kg`
-                : `${upcoming.loadModeSnapshot === 'weighted' ? '+' : ''}${snapshot.load || '—'} kg`,
-        }
-      : null;
-  const upcomingPrescription = prescription ?? activePrescription;
+  const exercises = active
+    ? upcoming
+      ? [upcoming]
+      : []
+    : scheduledToday
+      ? (day?.exercises ?? [])
+      : [];
   const thumb = upcoming
     ? 'exercise' in upcoming
       ? upcoming.exercise
@@ -168,9 +151,9 @@ export function MainHome() {
             <ChevronRight size={18} color={animePink.primaryPink} />
           </Pressable>
         </View>
-        {query.isPending || session.isPending ? (
+        {(!active && query.isPending) || session.isPending ? (
           <MainNotice loading />
-        ) : !program && (query.error || session.error) ? (
+        ) : !active && !program && (query.error || session.error) ? (
           <MainNotice retry={refresh} />
         ) : (
           <Pressable
@@ -217,8 +200,8 @@ export function MainHome() {
                     : program
                       ? scheduledToday
                         ? program.name
-                        : t('workouts:restDay')
-                      : t('common:home.empty'))}
+                        : t('restDay')
+                      : t('noActivePlan'))}
               </MainText>
               <Text variant="caption" color={animePink.textSecondary}>
                 {active
@@ -226,9 +209,9 @@ export function MainHome() {
                       completed: completedExerciseCount(active),
                       total: active.exercises.length,
                     })
-                  : program && day
+                  : program
                     ? scheduledToday
-                      ? `${day.name} · ${t('programs:exerciseCount', { count: day.exercises.length })}`
+                      ? `${day!.name} · ${t('programs:exerciseCount', { count: day!.exercises.length })}`
                       : program.name
                     : dataUnavailable
                       ? t('offline')
@@ -276,46 +259,84 @@ export function MainHome() {
         >
           {t('nextExercises')}
         </MainText>
-        {upcoming ? (
-          <Pressable
-            testID="home-upcoming-exercise"
-            accessibilityRole="button"
-            accessibilityLabel={t('nextExerciseAction', {
-              name:
-                'exerciseNameSnapshot' in upcoming
-                  ? upcoming.exerciseNameSnapshot
-                  : upcoming.exercise.displayName,
+        {exercises.length ? (
+          <View testID="home-upcoming-exercise" style={{ gap: 8 }}>
+            {exercises.map((exercise) => {
+              const snapshot = 'sets' in exercise ? exercise : null;
+              const next = snapshot?.sets.find(
+                (set) => set.status === 'pending',
+              );
+              const brief =
+                snapshot && next
+                  ? setSummary(snapshot, next, i18n.resolvedLanguage ?? 'en')
+                  : null;
+              const prescription =
+                'exercise' in exercise
+                  ? exerciseSummary(
+                      exercise,
+                      i18n.resolvedLanguage ?? 'en',
+                      i18n.getFixedT(null, 'programs'),
+                    )
+                  : null;
+              const load = snapshot
+                ? snapshot.loadModeSnapshot === 'bodyweight'
+                  ? t('workouts:bodyweight')
+                  : snapshot.loadModeSnapshot === 'assisted'
+                    ? `${t('workouts:assisted')} ${brief?.load || '—'} kg`
+                    : `${snapshot.loadModeSnapshot === 'weighted' ? '+' : ''}${brief?.load || '—'} kg`
+                : '';
+              const thumbnail =
+                'exercise' in exercise
+                  ? exercise.exercise
+                  : {
+                      canonicalName: exercise.exerciseNameSnapshot,
+                      isCustom: false,
+                    };
+              return (
+                <Pressable
+                  key={exercise.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('nextExerciseAction', {
+                    name:
+                      'exerciseNameSnapshot' in exercise
+                        ? exercise.exerciseNameSnapshot
+                        : exercise.exercise.displayName,
+                  })}
+                  disabled={action.pending || dataUnavailable}
+                  onPress={open}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    gap: 12,
+                    alignItems: 'center',
+                    minHeight: 78,
+                    padding: 12,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: animePink.border,
+                    backgroundColor: animePink.surface,
+                    opacity: pressed ? 0.8 : 1,
+                  })}
+                >
+                  <ExerciseThumbnail exercise={thumbnail} tone="light" />
+                  <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                    <MainText style={{ fontSize: 16, lineHeight: 21 }}>
+                      {'exerciseNameSnapshot' in exercise
+                        ? exercise.exerciseNameSnapshot
+                        : exercise.exercise.displayName}
+                    </MainText>
+                    <Text variant="caption" color={animePink.textSecondary}>
+                      {prescription
+                        ? prescription.primary
+                        : brief
+                          ? `${snapshot!.sets.length} × ${brief.target} ${load}`
+                          : t('workouts:resume')}
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={animePink.primaryPink} />
+                </Pressable>
+              );
             })}
-            disabled={action.pending || dataUnavailable}
-            onPress={open}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              gap: 12,
-              alignItems: 'center',
-              minHeight: 78,
-              padding: 12,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderColor: animePink.border,
-              backgroundColor: animePink.surface,
-              opacity: pressed ? 0.8 : 1,
-            })}
-          >
-            {thumb ? <ExerciseThumbnail exercise={thumb} tone="light" /> : null}
-            <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-              <MainText style={{ fontSize: 16, lineHeight: 21 }}>
-                {'exerciseNameSnapshot' in upcoming
-                  ? upcoming.exerciseNameSnapshot
-                  : upcoming.exercise.displayName}
-              </MainText>
-              <Text variant="caption" color={animePink.textSecondary}>
-                {upcomingPrescription
-                  ? `${upcomingPrescription.target} ${upcomingPrescription.load}`
-                  : t('workouts:resume')}
-              </Text>
-            </View>
-            <ChevronRight size={20} color={animePink.primaryPink} />
-          </Pressable>
+          </View>
         ) : (
           <Text variant="caption" color={animePink.textSecondary}>
             {t('noUpcoming')}

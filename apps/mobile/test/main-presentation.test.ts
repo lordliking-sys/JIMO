@@ -120,3 +120,67 @@ test('Home exercise progress counts finished exercises rather than completed set
   } as WorkoutDetail;
   assert.equal(completedExerciseCount(workout), 1);
 });
+
+test('Home never borrows exercises from another weekday or an unscheduled day', () => {
+  const program = cachedProgram(),
+    now = new Date('2026-10-08T12:00:00');
+  program.days[0]!.dayOfWeek = 1;
+  assert.deepEqual(homeDay(program, now, new Set()), {
+    day: null,
+    scheduledToday: false,
+  });
+  program.days[0]!.dayOfWeek = null;
+  assert.deepEqual(homeDay(program, now, new Set()), {
+    day: null,
+    scheduledToday: false,
+  });
+  program.days[0]!.dayOfWeek = 4;
+  assert.equal(homeDay(program, now, new Set()).day?.id, program.days[0]!.id);
+  program.status = 'archived';
+  assert.deepEqual(homeDay(program, now, new Set()), {
+    day: null,
+    scheduledToday: false,
+  });
+});
+
+test('Home selects an unfinished session only among today’s real days', () => {
+  const program = cachedProgram(),
+    now = new Date('2026-10-08T12:00:00');
+  const first = program.days[0]!;
+  first.dayOfWeek = 4;
+  program.days.push({
+    ...structuredClone(first),
+    id: randomUUID(),
+    position: 1,
+  });
+  const second = program.days[1]!;
+  assert.equal(homeDay(program, now, new Set([first.id])).day?.id, second.id);
+  assert.equal(
+    homeDay(program, now, new Set([first.id, second.id])).day?.id,
+    first.id,
+  );
+  assert.equal(
+    homeDay(program, new Date('2026-10-09T12:00:00'), new Set()).day,
+    null,
+  );
+});
+
+test('Home uses the device’s local date near midnight and across daylight saving time', () => {
+  const original = process.env.TZ;
+  process.env.TZ = 'Europe/Rome';
+  try {
+    const program = cachedProgram();
+    program.days[0]!.dayOfWeek = 1;
+    assert.equal(
+      homeDay(program, new Date('2026-10-25T23:30:00Z'), new Set()).day?.id,
+      program.days[0]!.id,
+    );
+    assert.equal(
+      homeDay(program, new Date('2026-10-25T00:30:00Z'), new Set()).day,
+      null,
+    );
+  } finally {
+    if (original === undefined) delete process.env.TZ;
+    else process.env.TZ = original;
+  }
+});

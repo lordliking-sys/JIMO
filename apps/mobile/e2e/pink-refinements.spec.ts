@@ -60,9 +60,7 @@ for (const size of sizes) {
       page.getByTestId('home-body').getByText('Panca piana', { exact: true }),
     ).toHaveCount(0);
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
-    await page
-      .getByRole('button', { name: 'Modifica scheda', exact: true })
-      .click();
+    await page.getByTestId(`program-day-${day.id}`).click();
     await page
       .getByRole('button', { name: `Azioni giornata ${day.name}`, exact: true })
       .click();
@@ -76,10 +74,7 @@ for (const size of sizes) {
         exact: true,
       }),
     ).toHaveCount(0);
-    await page
-      .getByRole('button', { name: 'Indietro', exact: true })
-      .last()
-      .click();
+    await expect(page).toHaveURL(/\/program$/);
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
     await expect(upcoming).toHaveCount(0);
     await expect(
@@ -90,13 +85,16 @@ for (const size of sizes) {
       .getByRole('button', { name: 'Modifica scheda', exact: true })
       .click();
     await page
+      .getByRole('button', { name: 'Altre azioni', exact: true })
+      .click();
+    await page
       .getByRole('button', { name: 'Elimina programma', exact: true })
       .click();
     await page
       .getByRole('button', { name: 'Elimina programma', exact: true })
       .last()
       .click();
-    await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+    await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
     await expect(page.getByTestId('home-workout-card')).not.toContainText(
       'FORZA',
@@ -193,6 +191,14 @@ for (const size of sizes) {
         ).toHaveAttribute('src', /profilo-mood-reference/);
       }
       if (route === '/progress') {
+        await expect(page.getByTestId('progress-artwork-depth')).toHaveCount(1);
+        await expect(
+          page.getByTestId('progress-focused-original'),
+        ).toHaveAttribute('mask', /^url\(#depth-/);
+        await expect(page.getByTestId('progress-body')).toHaveCSS(
+          'background-color',
+          'rgb(255, 247, 250)',
+        );
         const tabs = page.getByTestId('progress-tabs-scroll');
         const row = (await tabs.boundingBox())!;
         expect(
@@ -208,10 +214,19 @@ for (const size of sizes) {
           await expect(tab).toHaveAttribute('aria-selected', 'true');
         }
       }
-      if (route === '/profile')
+      if (route === '/profile') {
         await expect(
           page.getByRole('button', { name: 'Impostazioni', exact: true }),
         ).toHaveCount(0);
+        await expect(page.getByTestId('profile-body')).toHaveCSS(
+          'background-color',
+          'rgb(255, 247, 250)',
+        );
+        await expect(page.getByTestId('profile-editorial-screen')).toHaveCSS(
+          'background-color',
+          'rgb(255, 247, 250)',
+        );
+      }
       await page.screenshot({
         path: info.outputPath(
           `${route === '/' ? 'home' : route!.slice(1)}.png`,

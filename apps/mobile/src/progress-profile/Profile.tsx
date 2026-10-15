@@ -255,7 +255,10 @@ export default function ProfileScreen() {
               backgroundColor: 'rgba(15,8,18,0.55)',
             }}
           >
-            <PaperCard accessibilityViewIsModal style={{ gap: 12 }}>
+            <PaperCard
+              accessibilityViewIsModal
+              style={{ gap: 12, padding: 20, borderRadius: 20 }}
+            >
               <Copy accessibilityRole="alert" style={{ fontSize: 14 }}>
                 {warning ? t(`auth:${warning}`) : ''}
               </Copy>

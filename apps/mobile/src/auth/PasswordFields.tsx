@@ -7,6 +7,7 @@ import EyeOff from 'lucide-react-native/icons/eye-off';
 import Check from 'lucide-react-native/icons/check';
 import Circle from 'lucide-react-native/icons/circle';
 import { Field } from '../programs/components';
+import { LoginField } from './login/LoginField';
 import { mainInk } from '../main/theme';
 import {
   passwordConfirmation,
@@ -21,6 +22,7 @@ export function PasswordField({
   disabled = false,
   current = false,
   confirmation = false,
+  appearance,
 }: {
   label: string;
   value: string;
@@ -28,11 +30,13 @@ export function PasswordField({
   disabled?: boolean;
   current?: boolean;
   confirmation?: boolean;
+  appearance?: 'login';
 }) {
   const [visible, setVisible] = useState(false),
     { t } = useTranslation('auth');
+  const InputField = appearance === 'login' ? LoginField : Field;
   return (
-    <Field
+    <InputField
       label={label}
       value={value}
       onChangeText={onChangeText}

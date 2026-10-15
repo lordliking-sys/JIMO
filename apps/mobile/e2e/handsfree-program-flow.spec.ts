@@ -177,6 +177,8 @@ for (const device of devices) {
         exact: true,
       }),
     ).toHaveCount(0);
+    // The returned DTO removes the row before the async mutation closes its editor.
+    await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
     await page.getByRole('button', { name: 'Indietro', exact: true }).click();
     await expect(page).toHaveURL(programURL);
     await page
@@ -211,13 +213,29 @@ for (const device of devices) {
       .getByRole('button', { name: 'Modifica scheda', exact: true })
       .click();
     await expect(
-      page.getByRole('textbox', { name: 'Nome programma', exact: true }),
+      page.getByRole('textbox', { name: 'Nome scheda', exact: true }),
     ).toHaveValue('FORZA 2');
+    await page
+      .getByRole('button', { name: 'Altre azioni', exact: true })
+      .click();
     await page
       .getByRole('button', { name: 'Archivia programma', exact: true })
       .click();
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
     await expect.poll(() => f.program.status).toBe('archived');
+    await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
+    await page
+      .getByRole('button', { name: 'Cambia scheda', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'FORZA 2, NON ATTIVA', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Modifica questa scheda', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Altre azioni', exact: true })
+      .click();
     await page
       .getByRole('button', { name: 'Elimina programma', exact: true })
       .first()
@@ -232,7 +250,10 @@ for (const device of devices) {
         /Lo storico degli allenamenti già eseguiti non verrà eliminato/,
       ),
     ).toBeVisible();
-    await page.getByRole('button', { name: 'Annulla', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Annulla', exact: true })
+      .first()
+      .click();
     expect(f.program.id).toBeTruthy();
     await page
       .getByRole('button', { name: 'Elimina programma', exact: true })

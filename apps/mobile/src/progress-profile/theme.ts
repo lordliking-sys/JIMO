@@ -3,7 +3,7 @@ import { tabArtwork } from '../components/tab-artwork';
 export const ink = {
   charcoal: animePink.ink,
   paper: animePink.background,
-  card: animePink.surface,
+  card: animePink.background,
   green: animePink.primaryText,
   sage: animePink.primaryPinkSoft,
   secondary: animePink.textSecondary,

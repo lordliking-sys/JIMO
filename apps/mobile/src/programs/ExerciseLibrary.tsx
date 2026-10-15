@@ -1,8 +1,8 @@
 import { ExerciseThumbnail } from '../programs/ExerciseThumbnail';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
-import { Text } from '@jimo/ui';
+import { View, Pressable } from 'react-native';
+import { Text, animePink } from '@jimo/ui';
 import { useExercises } from '../api/queries';
 import {
   FormHeader,
@@ -11,8 +11,8 @@ import {
   FormScreen,
 } from '../programs/components';
 import {
-  ProgramRow,
   ProgramButton,
+  ProgramText,
   programInk,
 } from '../programs/presentation';
 export function ExerciseLibrary({
@@ -55,15 +55,29 @@ export function ExerciseLibrary({
             <Text color={programInk.secondary}>{t('noExercises')}</Text>
           ) : null}
           {entries.map((e) => (
-            <ProgramRow
+            <Pressable
               key={e.id}
-              title={e.displayName}
-              cardTone="light"
-              leading={<ExerciseThumbnail exercise={e} tone="light" />}
-              label={e.displayName}
-              subtitle={`${t(`trackingModes.${e.trackingMode}`)} · ${t(e.isCustom ? 'customExercises' : 'systemExercises')}`}
+              accessibilityRole="button"
+              accessibilityLabel={e.displayName}
               onPress={() => onChoose(e)}
-            />
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                gap: 12,
+                alignItems: 'center',
+                minHeight: 76,
+                paddingVertical: 8,
+                borderBottomWidth: 1,
+                borderColor: animePink.border,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <ExerciseThumbnail exercise={e} tone="light" />
+              <ProgramText
+                style={{ flex: 1, minWidth: 0, fontSize: 17, lineHeight: 23 }}
+              >
+                {e.displayName}
+              </ProgramText>
+            </Pressable>
           ))}
           {query.hasNextPage ? (
             <ProgramButton

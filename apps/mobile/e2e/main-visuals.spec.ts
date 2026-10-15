@@ -206,7 +206,7 @@ for (const device of devices)
       element.scrollTop = element.scrollHeight;
     });
     const upcomingRow = page.getByRole('button', {
-      name: 'Apri Panca piana',
+      name: 'Apri Plank',
       exact: true,
     });
     await expect(upcomingRow).toBeInViewport({ ratio: 1 });
@@ -231,65 +231,18 @@ for (const device of devices)
     for (const day of fixture.program.days) {
       const card = page.getByTestId(`program-day-${day.id}`);
       await expect(card.locator('img')).toHaveCount(0);
-      await expect(card).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+      await expect(card).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       await expect(card.locator('svg').last()).toHaveAttribute(
         'stroke',
         '#FF4D8D',
       );
     }
-    await expect(
-      page.getByRole('radio', { name: 'Settimana 1', exact: true }),
-    ).toBeChecked();
-    await expect(page.getByRole('radio')).toHaveCount(12);
-    const weekScroll = page.getByTestId('program-week-scroll');
+    await expect(page.getByTestId('program-week-selector')).toHaveCount(0);
+    await expect(page.getByTestId('program-tab-body')).not.toContainText(
+      /Settimana \d|settimane/,
+    );
     await noOverflow(page);
     await page.screenshot({ path: info.outputPath('program-reference.png') });
-    await page.getByRole('radio', { name: 'Settimana 2', exact: true }).click();
-    await expect(push).toHaveAccessibleName(/Pianificato/);
-    await weekScroll.hover();
-    await page.mouse.wheel(330, 0);
-    await expect
-      .poll(() => weekScroll.evaluate((element) => element.scrollLeft))
-      .toBeGreaterThan(100);
-    const fourth = page.getByRole('radio', {
-      name: 'Settimana 4',
-      exact: true,
-    });
-    await fourth.click();
-    await expect(fourth).toBeChecked();
-    await expect
-      .poll(async () => {
-        const frame = (await weekScroll.boundingBox())!,
-          chip = (await fourth.boundingBox())!;
-        return (
-          chip.x >= frame.x - 1 &&
-          chip.x + chip.width <= frame.x + frame.width + 1
-        );
-      })
-      .toBe(true);
-    await page
-      .getByRole('radio', { name: 'Settimana 12', exact: true })
-      .evaluate((element: HTMLElement) => element.click());
-    await expect(
-      page.getByRole('radio', { name: 'Settimana 12', exact: true }),
-    ).toBeChecked();
-    await expect
-      .poll(async () => {
-        const viewport = (await weekScroll.boundingBox())!,
-          selected = (await page
-            .getByRole('radio', { name: 'Settimana 12', exact: true })
-            .boundingBox())!;
-        return (
-          selected.x >= viewport.x - 1 &&
-          selected.x + selected.width <= viewport.x + viewport.width + 1
-        );
-      })
-      .toBe(true);
-    await page
-      .getByRole('radio', { name: 'Settimana 1', exact: true })
-      .evaluate((element: HTMLElement) => element.click());
-    await page.getByRole('radio', { name: 'Settimana 1', exact: true }).click();
-    await expect(push).toHaveAccessibleName(/Completato/);
     await page
       .getByTestId(`program-day-${fixture.program.days.at(-1)!.id}`)
       .scrollIntoViewIfNeeded();
@@ -335,13 +288,13 @@ test('Scheda management and creation are overlays; closing returns to the same h
   await page
     .getByRole('button', { name: 'Modifica scheda', exact: true })
     .click();
-  await expect(page.getByTestId('program-action-overlay')).toBeVisible();
-  await expect(page.getByLabel('Nome programma', { exact: true })).toHaveValue(
+  await expect(page.getByTestId('program-popup-overlay')).toBeVisible();
+  await expect(page.getByLabel('Nome scheda', { exact: true })).toHaveValue(
     'Push Pull Legs',
   );
   expect(new URL(page.url()).pathname).toBe('/program');
-  await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(page.getByTestId('program-action-overlay')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Chiudi popup', exact: true }).click();
+  await expect(page.getByTestId('program-popup-overlay')).toHaveCount(0);
   await page
     .getByRole('button', { name: '+ Nuova scheda', exact: true })
     .click();
@@ -381,7 +334,7 @@ test('Home stays full bleed with lateral insets and its last row clears the navb
     element.scrollTop = element.scrollHeight;
   });
   const upcoming = page.getByRole('button', {
-    name: 'Apri Panca piana',
+    name: 'Apri Plank',
     exact: true,
   });
   await expect(upcoming).toBeInViewport();
@@ -463,7 +416,7 @@ test('English, unknown artwork, long names and missing dates retain readable fal
     'Progress',
     'Profile',
   ]);
-  await expect(page.getByText('This week', { exact: true })).toBeVisible();
+  await expect(page.getByText('This week', { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole('radio', { name: 'Week 1', exact: true }),
   ).toHaveCount(0);
@@ -556,110 +509,6 @@ test('an archived-only account has no active plan and shows archives only in Swi
   expect(fixture.writes).toHaveLength(0);
 });
 
-test('the initial current week is visible and stays visible after viewport changes', async ({
-  page,
-}) => {
-  await page.clock.install({ time: new Date('2026-10-08T10:00:00Z') });
-  const fixture = await visualFixture(page);
-  fixture.program.startsOn = '2026-08-17';
-  fixture.program.durationWeeks = 12;
-  await page.goto('/program');
-  const selected = page.getByRole('radio', {
-    name: 'Settimana 8',
-    exact: true,
-  });
-  await expect(selected).toBeChecked();
-  for (const device of devices) {
-    await page.setViewportSize(device);
-    await expect
-      .poll(async () => {
-        const viewport = (await page
-            .getByTestId('program-week-scroll')
-            .boundingBox())!,
-          chip = (await selected.boundingBox())!;
-        return (
-          chip.x >= viewport.x - 1 &&
-          chip.x + chip.width <= viewport.x + viewport.width + 1
-        );
-      })
-      .toBe(true);
-    await noOverflow(page);
-  }
-  expect(fixture.writes).toHaveLength(0);
-});
-
-test('week selection keeps adjacent context, avoids unnecessary movement and scrolls smoothly', async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await page.clock.setFixedTime(new Date('2026-10-08T10:00:00Z'));
-  const fixture = await visualFixture(page);
-  fixture.program.durationWeeks = 12;
-  await page.goto('/program');
-  await expect(
-    page.getByRole('radio', { name: 'Settimana 1', exact: true }),
-  ).toBeChecked();
-  await expect(page.getByTestId('brand-transition')).toHaveCount(0);
-  const scroll = page.getByTestId('program-week-scroll');
-  const originalOffset = await scroll.evaluate((element) => element.scrollLeft);
-  await page.getByRole('radio', { name: 'Settimana 2', exact: true }).click();
-  await expect(
-    page.getByRole('radio', { name: 'Settimana 2', exact: true }),
-  ).toBeChecked();
-  expect(
-    await scroll.evaluate(async (element) => {
-      await new Promise(requestAnimationFrame);
-      await new Promise(requestAnimationFrame);
-      return element.scrollLeft;
-    }),
-  ).toBe(originalOffset);
-  const positions = await scroll.evaluate(async (element) => {
-    const positions = [element.scrollLeft];
-    (
-      element.querySelector(
-        '[role="radio"][aria-label="Settimana 9"]',
-      ) as HTMLElement
-    ).click();
-    await new Promise<void>((resolve) => {
-      let frames = 0;
-      const sample = () => {
-        positions.push(element.scrollLeft);
-        if (++frames === 45) resolve();
-        else requestAnimationFrame(sample);
-      };
-      requestAnimationFrame(sample);
-    });
-    return positions;
-  });
-  expect(new Set(positions.map(Math.round)).size).toBeGreaterThan(3);
-  await expect(
-    page.getByRole('radio', { name: 'Settimana 9', exact: true }),
-  ).toBeChecked();
-  await expect
-    .poll(async () => {
-      const viewport = (await scroll.boundingBox())!,
-        selected = (await page
-          .getByRole('radio', { name: 'Settimana 9', exact: true })
-          .boundingBox())!;
-      return (
-        selected.x >= viewport.x &&
-        selected.x + selected.width <= viewport.x + viewport.width
-      );
-    })
-    .toBe(true);
-  const viewport = (await scroll.boundingBox())!;
-  for (const week of [8, 10]) {
-    const chip = (await page
-      .getByRole('radio', { name: `Settimana ${week}`, exact: true })
-      .boundingBox())!;
-    const visibleWidth =
-      Math.min(chip.x + chip.width, viewport.x + viewport.width) -
-      Math.max(chip.x, viewport.x);
-    expect(visibleWidth).toBeGreaterThanOrEqual(16);
-  }
-  expect(fixture.writes).toHaveLength(0);
-});
-
 for (const device of devices)
   test(`shared anime-pink seam ${device.width}x${device.height}: upper progress title, overlapping identity and light program body`, async ({
     page,
@@ -700,6 +549,6 @@ for (const device of devices)
     );
     expect(
       await body.evaluate((el) => getComputedStyle(el).backgroundColor),
-    ).toBe('rgb(255, 255, 255)');
+    ).toBe('rgb(255, 247, 250)');
     await page.screenshot({ path: info.outputPath('scheme-hero-body.png') });
   });

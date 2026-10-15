@@ -8,6 +8,7 @@ import type { DayDto, ProgramDetail } from '@jimo/schemas';
 import { MainText } from './Surface';
 import { mainInk } from './theme';
 import { type DayState } from './helpers';
+import { exerciseSummary } from '../programs/summary';
 
 export function DayCard({
   program,
@@ -18,7 +19,7 @@ export function DayCard({
   day: DayDto;
   state: DayState;
 }) {
-  const { t } = useTranslation(['main', 'programs', 'workouts']),
+  const { t, i18n } = useTranslation(['main', 'programs', 'workouts']),
     router = useRouter();
   const label = `${t('programs:openDay')} ${day.name}`;
   return (
@@ -40,7 +41,7 @@ export function DayCard({
           borderColor:
             state === 'current' ? animePink.primaryPink : animePink.border,
           overflow: 'hidden',
-          backgroundColor: animePink.surface,
+          backgroundColor: 'transparent',
           opacity: pressed ? 0.8 : 1,
         })}
       >
@@ -61,16 +62,36 @@ export function DayCard({
                 )}
               </MainText>
             ) : null}
-            <MainText style={{ fontSize: 20, lineHeight: 27 }}>
-              {day.name}
-            </MainText>
             <Text
-              variant="caption"
               color={mainInk.muted}
-              style={{ marginTop: 5 }}
+              style={{ fontSize: 15, lineHeight: 22 }}
             >
+              {day.name} ·{' '}
               {t('programs:exerciseCount', { count: day.exercises.length })}
             </Text>
+            {day.exercises.map((exercise) => {
+              const summary = exerciseSummary(
+                exercise,
+                i18n.resolvedLanguage ?? 'it',
+                i18n.getFixedT(null, 'programs'),
+              );
+              return (
+                <View key={exercise.id} style={{ gap: 2, paddingTop: 8 }}>
+                  <Text
+                    style={{
+                      color: animePink.ink,
+                      fontSize: 14,
+                      lineHeight: 20,
+                    }}
+                  >
+                    {exercise.exercise.displayName}
+                  </Text>
+                  <Text variant="caption" color={mainInk.muted}>
+                    {summary.primary}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
           <View
             accessible={false}
@@ -79,16 +100,20 @@ export function DayCard({
               height: 40,
               borderRadius: 20,
               borderWidth: 1,
-              borderColor: mainInk.sage,
+              borderColor: animePink.primaryPink,
               backgroundColor: animePink.surfaceSoft,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             {state === 'completed' ? (
-              <Check size={23} strokeWidth={1.8} color={mainInk.sage} />
+              <Check
+                size={23}
+                strokeWidth={1.8}
+                color={animePink.primaryPink}
+              />
             ) : (
-              <ChevronRight size={21} color={mainInk.sage} />
+              <ChevronRight size={21} color={animePink.primaryPink} />
             )}
           </View>
         </View>

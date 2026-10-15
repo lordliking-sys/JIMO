@@ -35,10 +35,8 @@ for (const viewport of viewports) {
     await expect(page.getByTestId('active-program-card')).toHaveCount(0);
     for (const day of f.source.program.days)
       await expect(page.getByTestId(`program-day-${day.id}`)).toBeVisible();
-    await page.getByRole('radio', { name: 'Settimana 2', exact: true }).click();
-    await expect(
-      page.getByRole('radio', { name: 'Settimana 2', exact: true }),
-    ).toBeChecked();
+    await expect(page.getByTestId('program-week-selector')).toHaveCount(0);
+    await expect(body).not.toContainText(/Settimana \d|settimane/);
     expect(new URL(page.url()).pathname).toBe('/program');
     await page.screenshot({ path: info.outputPath('active-plan.png') });
     const day = f.source.program.days[0]!;
@@ -170,6 +168,9 @@ for (const viewport of viewports) {
       .click();
     await page
       .getByRole('button', { name: 'Modifica questa scheda', exact: true })
+      .click();
+    await page
+      .getByRole('button', { name: 'Altre azioni', exact: true })
       .click();
     await page
       .getByRole('button', { name: 'Elimina programma', exact: true })
