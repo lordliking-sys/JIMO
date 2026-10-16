@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Text, colors } from '@jimo/ui';
-/** Neutral placeholder. Supply the final original JIMO artwork through asset. */
+import { officialJimoLogo, logoAspectRatio } from './brand-asset';
+/** Shared official identity; callers can supply an explicitly sized image through asset. */
 export function BrandMark({
   compact = false,
   subtle = false,
@@ -28,14 +28,15 @@ export function BrandMark({
           {asset}
         </View>
       ) : (
-        <Text
+        <Image
+          source={officialJimoLogo}
+          resizeMode="contain"
           accessible={false}
-          variant={subtle ? 'caption' : compact ? 'h2' : 'display'}
-          color={subtle ? colors.secondary : colors.text}
-          style={{ letterSpacing: subtle ? 2 : -1 }}
-        >
-          {t('brand.name')}
-        </Text>
+          style={{
+            width: subtle ? 80 : compact ? 112 : 216,
+            height: (subtle ? 80 : compact ? 112 : 216) / logoAspectRatio,
+          }}
+        />
       )}
     </View>
   );

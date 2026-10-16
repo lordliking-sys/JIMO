@@ -51,6 +51,15 @@ for (const phone of phones)
       bottom = phone.width >= 393 ? 34 : 48;
     await openLogin(page, `?top=${top}&bottom=${bottom}`);
     await expect(page.getByTestId('login-visual-screen')).toBeVisible();
+    const logo = page.getByTestId('login-official-logo');
+    const logoBox = (await logo.boundingBox())!;
+    expect(logoBox.x + logoBox.width / 2).toBeCloseTo(phone.width / 2, 0);
+    expect(logoBox.width / logoBox.height).toBeCloseTo(2072 / 759, 2);
+    await expect(logo.locator('img')).toHaveAttribute(
+      'src',
+      /jimo-glamour-logo/,
+    );
+    await expect(logo).toBeInViewport({ ratio: 1 });
     const email = page.getByLabel('Email', { exact: true }),
       password = page.getByLabel('Password', { exact: true }),
       eye = page.getByRole('button', { name: 'Mostra password', exact: true });

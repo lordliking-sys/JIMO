@@ -13,11 +13,23 @@ Il crop mantiene orientamento, proporzioni, capelli, mano e scarpa della posa
 seduta. Il banner nella parte superiore del PNG è fuori dalla finestra hero.
 L'altezza della sola Home è proporzionata alla larghezza; un provider geometrico
 locale impedisce che questo ritocco allarghi anche le hero delle altre tab.
-HOME resta in alto a sinistra, con il saluto contenuto nella colonna sinistra.
+HOME resta in alto a sinistra; i saluti dinamici non sono più sovrapposti alla
+hero. Il raccordo col body ha un overlap di 26 px per evitare una riga chiara.
+
+Il logo ufficiale è il PNG trasparente originale di
+`Logo JIMO Glamour Fitness.zip`, copiato senza trasformazioni in
+`apps/mobile/assets/jimo/brand/jimo-glamour-logo.png`. SHA-256:
+`c6389116d36485f556788b64bacae330be8c243ba55cc126d05cd9d3ff25f2ef`.
+Il login e il componente condiviso BrandMark usano questo asset, senza
+ricostruire il lettering. Nel login il logo è centrato, mantiene il rapporto
+2072:759 e il payoff resta testo separato. La geometria conserva spazio fra
+payoff, fata e campo Email anche a 320 px; la fata si sposta pochi pixel a
+sinistra e il busto della ragazza sotto Password resta visibile.
 
 Il fondo e le superfici principali condividono il rosino `#FFF7FA`. Le superfici
 secondarie restano blush; popup, navbar, bordi e ombre derivano dalla stessa
-palette. `@jimo/ui` fornisce profondità, luce superiore dei pulsanti e ombra
+palette. La navbar è piena e opaca. `@jimo/ui` fornisce profondità, gradiente
+verticale SVG e luce superiore dei pulsanti, oltre all'ombra
 interna dei campi, riutilizzate nei form e nei dialog. Pressed, disabled, busy,
 focus, accessibilità e reduced motion restano gestiti dai componenti reali.
 Inter e Cormorant Garamond sono invariati, senza nuovi font o asset generati.
@@ -32,16 +44,19 @@ I controlli numerici mantengono label, meno, valore e più sulla stessa riga anc
 durante la digitazione. Il valore è un vero input; a 320 px la colonna numerica
 si compatta conservando target di almeno 48 px. Per il piramidale le ripetizioni
 sono esplicitamente riferite alla serie selezionata, senza duplicare un target
-generico. Dati, schemi e prescrizioni non cambiano.
+generico: meno, valore editabile e più sono dentro la riga della serie
+selezionata. Dati, schemi e prescrizioni non cambiano.
 Sul web lo scroll automatico che rivela il campo non deve chiudere la tastiera:
 il dialog usa `keyboardDismissMode="none"` su questa piattaforma, mantenendo
 `on-drag` nativo. La regressione verifica visibilità e focus a viewport ridotto.
 
-Il personaggio trasparente del Profilo è circa l'8% più piccolo; seduta, bordo
-del body e avatar fra le gambe restano ancorati agli stessi landmark. Il dialog
+Il personaggio trasparente del Profilo è ingrandito del 15% rispetto alla
+versione precedente; seduta, bordo del body e avatar fra le gambe restano
+ancorati agli stessi landmark. Il dialog
 foto mantiene camera, galleria, annullamento e rimozione esistenti. Progressi
-usa lo stesso originale, con blur atmosferico e luce ambientale leggermente
-più visibili, senza creare un nuovo ritaglio grafico.
+usa lo stesso originale con layering atmosferico, senza creare un nuovo
+ritaglio grafico. Le fasce scure superiori delle hero e lo sfumato della status
+bar sono più leggeri; i titoli usano il Cormorant Garamond già disponibile.
 
 Calendario Home, giorni vuoti/riposo, Start/Riprendi e modifiche usano i DTO e
 le mutation/cache già esistenti. Le verifiche browser controllano che aggiunte,

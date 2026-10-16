@@ -25,7 +25,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
-import { Screen, Text, animePink } from '@jimo/ui';
+import { Screen, Text, animePink, SoftHighlight } from '@jimo/ui';
 import { Wordmark } from '../../components/Wordmark';
 import { SectionStatusFade } from '../../components/SectionStatusFade';
 import { loginAssets } from './assets';
@@ -218,8 +218,7 @@ function LoginButton({
     animation = useAnimatedStyle(
       () => ({ transform: [{ scale: scale.value }] }),
       [scale],
-    ),
-    id = `login-cta-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+    );
   const animate = (next: number) => {
     scale.set(reduced ? 1 : withTiming(next, { duration: 120 }));
   };
@@ -251,34 +250,7 @@ function LoginButton({
           elevation: pressed ? 2 : 4,
         })}
       >
-        <View
-          pointerEvents="none"
-          accessible={false}
-          style={[
-            StyleSheet.absoluteFill,
-            { borderRadius: 32, overflow: 'hidden' },
-          ]}
-        >
-          <Svg width="100%" height="100%">
-            <Defs>
-              <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={animePink.primaryAction} />
-                <Stop offset="1" stopColor="#C9286B" />
-              </LinearGradient>
-            </Defs>
-            <Rect width="100%" height="100%" fill={`url(#${id})`} />
-          </Svg>
-          <View
-            style={{
-              position: 'absolute',
-              top: 1,
-              left: 16,
-              right: 16,
-              height: 1,
-              backgroundColor: 'rgba(255,255,255,0.28)',
-            }}
-          />
-        </View>
+        <SoftHighlight variant="primary" radius={32} />
         {busy ? (
           <ActivityIndicator color={animePink.white} />
         ) : (
@@ -320,7 +292,6 @@ export function LoginScreen({
   onForgot(): void;
 }) {
   const { t } = useTranslation('auth'),
-    common = useTranslation('common').t,
     insets = useSafeAreaInsets(),
     { width, height, fontScale } = useWindowDimensions();
   // Keep the composition attached while Android's IME temporarily reduces the window height.
@@ -374,21 +345,22 @@ export function LoginScreen({
                 paddingBottom: 12,
               }}
             >
-              <View testID="login-header" style={{ gap: 4 }}>
+              <View
+                testID="login-header"
+                style={{ gap: 4, alignItems: 'center' }}
+              >
                 <Wordmark
                   asset={
-                    <Text
+                    <Image
+                      testID="login-official-logo"
+                      source={sources.logo}
                       accessible={false}
+                      resizeMode="contain"
                       style={{
-                        fontFamily: 'Inter_700Bold',
-                        fontSize: geometry.logoFont,
-                        lineHeight: geometry.logoLine,
-                        letterSpacing: -1.5,
-                        color: animePink.ink,
+                        width: geometry.logoWidth,
+                        height: geometry.logoHeight,
                       }}
-                    >
-                      {common('brand.name')}
-                    </Text>
+                    />
                   }
                 />
                 <Text
@@ -396,6 +368,7 @@ export function LoginScreen({
                     color: animePink.ink,
                     fontSize: 14,
                     lineHeight: 22,
+                    textAlign: 'center',
                   }}
                 >
                   {t('tagline')}
@@ -403,12 +376,10 @@ export function LoginScreen({
                 <Text
                   accessibilityRole="header"
                   style={{
-                    marginTop: 10,
-                    fontFamily: 'Inter_700Bold',
-                    fontSize: geometry.headingFont,
-                    lineHeight: geometry.headingLine,
-                    letterSpacing: -1.2,
-                    color: animePink.ink,
+                    position: 'absolute',
+                    width: 1,
+                    height: 1,
+                    overflow: 'hidden',
                   }}
                 >
                   {title}
@@ -453,7 +424,7 @@ export function LoginScreen({
                 testID="login-secondary-links"
                 style={{
                   flexDirection: 'row',
-                  minHeight: 56,
+                  minHeight: 48,
                   alignItems: 'center',
                   borderRadius: 24,
                   backgroundColor: 'rgba(255,247,250,0.38)',
@@ -484,7 +455,7 @@ export function LoginScreen({
                       variant="bodyMedium"
                       style={{
                         color: animePink.primaryText,
-                        fontSize: 14,
+                        fontSize: width < 360 ? 13 : 14,
                         lineHeight: 20,
                         textAlign: 'center',
                       }}

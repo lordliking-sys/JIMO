@@ -35,12 +35,12 @@ export function SectionStatusFade({
             <Stop
               offset="0"
               stopColor={color}
-              stopOpacity={lightIcons ? 0.82 : 1}
+              stopOpacity={lightIcons ? 0.44 : 0.85}
             />
             <Stop
               offset={topInset / height}
               stopColor={color}
-              stopOpacity={lightIcons ? 0.5 : 0.8}
+              stopOpacity={lightIcons ? 0.18 : 0.45}
             />
             <Stop offset="1" stopColor={color} stopOpacity="0" />
           </LinearGradient>

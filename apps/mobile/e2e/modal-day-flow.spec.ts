@@ -232,7 +232,13 @@ test('Internal steps preserve custom duration, pyramid targets, EMOM, ordering a
   await button(page, 'Piramidale').click();
   await expect(button(page, 'Aumenta Ripetizioni')).toHaveCount(0);
   await button(page, 'Target serie 2').click();
-  await button(page, 'Aumenta Ripetizioni serie 2').click();
+  const pyramidRow = page.getByTestId('pyramid-set-2');
+  await pyramidRow
+    .getByRole('button', { name: 'Aumenta Ripetizioni serie 2', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Aumenta Ripetizioni', exact: true }),
+  ).toHaveCount(0);
   await page
     .getByLabel('Note (opzionali)', { exact: true })
     .fill('Piramide reale');

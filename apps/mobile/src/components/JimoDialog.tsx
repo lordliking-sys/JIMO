@@ -96,6 +96,7 @@ export function JimoDialog({
   scrollKey,
   back,
   backLabel,
+  titleAlign = 'left',
 }: {
   title: string;
   children: ReactNode;
@@ -108,6 +109,7 @@ export function JimoDialog({
   scrollKey?: string;
   back?: () => void;
   backLabel?: string;
+  titleAlign?: 'left' | 'center';
 }) {
   const { t } = useTranslation('main'),
     insets = useSafeAreaInsets(),
@@ -332,6 +334,8 @@ export function JimoDialog({
                       accessible={false}
                     />
                   </Pressable>
+                ) : titleAlign === 'center' ? (
+                  <View style={{ width: 48, height: 48, marginLeft: -12 }} />
                 ) : null}
                 <Text
                   accessibilityRole="header"
@@ -341,6 +345,7 @@ export function JimoDialog({
                     fontFamily: 'Inter_600SemiBold',
                     fontSize: 22,
                     lineHeight: 28,
+                    textAlign: titleAlign,
                     color: animePink.ink,
                   }}
                 >

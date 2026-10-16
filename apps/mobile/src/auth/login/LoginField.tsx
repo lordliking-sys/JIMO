@@ -20,10 +20,10 @@ export function LoginField({
     [focused, setFocused] = useState(false),
     id = `login-field-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{ gap: 4 }}>
       <Text
         variant="label"
-        style={{ fontSize: 15, lineHeight: 22, color: animePink.ink }}
+        style={{ fontSize: 13, lineHeight: 18, color: animePink.ink }}
       >
         {label}
       </Text>
@@ -33,7 +33,7 @@ export function LoginField({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          minHeight: 56,
+          minHeight: 54,
           borderRadius: 32,
           backgroundColor: 'rgba(255,247,250,0.94)',
           borderWidth: 1,
@@ -87,7 +87,7 @@ export function LoginField({
             {
               flex: 1,
               minWidth: 0,
-              minHeight: 54,
+              minHeight: 52,
               borderWidth: 0,
               backgroundColor: 'transparent',
               borderRadius: 32,

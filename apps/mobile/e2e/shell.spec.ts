@@ -193,9 +193,13 @@ test('complete onboarding, reload, change language and open program placeholders
   );
   await checkWidths(page);
   await page.getByRole('button', { name: 'Indietro', exact: true }).click();
-  await expect(page.getByText('Buonasera', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'HOME', exact: true }),
+  ).toBeVisible();
   await page.goto('/onboarding');
-  await expect(page.getByText('Buonasera', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'HOME', exact: true }),
+  ).toBeVisible();
   expect(errors).toEqual([]);
 });
 test('unsupported device language falls back to English and deep links cannot bypass onboarding', async ({

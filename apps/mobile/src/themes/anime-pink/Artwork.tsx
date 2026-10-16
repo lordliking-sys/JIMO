@@ -42,7 +42,7 @@ export function ThemeArtwork({
       ? heroArtworkFrame(scene, dimensions)
       : null;
   const shadeStops = [
-    { offset: 0, opacity: scene ? 0.66 : 0.35, color: animePink.surfaceDark },
+    { offset: 0, opacity: scene ? 0.26 : 0.35, color: animePink.surfaceDark },
     { offset: scene ? 0.3 : 0.5, opacity: 0.05, color: animePink.surfaceDark },
     ...(scene
       ? [
@@ -56,7 +56,7 @@ export function ThemeArtwork({
       : []),
     {
       offset: 0.97,
-      opacity: dark ? 0.48 : 0.2,
+      opacity: scene ? 0.18 : dark ? 0.48 : 0.2,
       color: animePink.surfaceDark,
     },
     {

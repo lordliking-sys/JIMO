@@ -171,8 +171,11 @@ for (const device of devices)
     expect(hero.height).toBeGreaterThanOrEqual(296);
     expect(hero.y + hero.height).toBeLessThanOrEqual(workoutCard.y - 8);
     await expect(
-      page.getByRole('heading', { name: 'Buon pomeriggio', exact: true }),
+      page.getByRole('heading', { name: 'HOME', exact: true }),
     ).toBeVisible();
+    await expect(
+      page.getByText(/Buongiorno|Buon pomeriggio|Buonasera/),
+    ).toHaveCount(0);
     await expect(page.getByTestId('home-name')).toHaveCount(0);
     await expect(page.getByTestId('home-motto')).toHaveCount(0);
     await expect(page.getByTestId('home-brand')).toHaveCount(1);

@@ -52,7 +52,7 @@ test('terrace ledge, character seat and avatar dock form one composition without
     assert.equal(stage.avatar.centerX, viewport.width / 2);
     assert.ok(stage.avatar.centerY - stage.avatar.size / 2 > height);
     assert.ok(stage.character.top > 47);
-    assert.ok(stage.character.width <= viewport.width * 0.8);
+    assert.ok(stage.character.width <= viewport.width * 0.94);
     assert.ok(stage.character.left >= 0);
     assert.ok(stage.character.left + stage.character.width <= viewport.width);
     assert.ok(

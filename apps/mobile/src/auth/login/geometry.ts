@@ -14,51 +14,55 @@ export function loginGeometry(
     side = frameWidth < 360 ? 24 : 32,
     contentWidth = frameWidth - side * 2,
     scale = Math.max(1, fontScale),
-    headingFont = clamp(frameWidth * 0.105, 34, 46),
-    headingLine = Math.ceil(headingFont * 1.2),
-    logoFont = headingFont * 0.72,
-    logoLine = Math.ceil(logoFont * 1.2),
+    logoWidth = Math.min(contentWidth * 0.8, 300),
+    logoHeight = (logoWidth * 759) / 2072,
     available = height - top - bottom,
-    topPadding = clamp(available * 0.034, 20, 28),
-    fieldHeight = Math.max(56, 28 * scale + 24),
-    labelHeight = 22 * scale,
-    headerHeight = (headingLine + logoLine) * scale + 4 + 22 * scale + 14,
+    topPadding = clamp(available * 0.024, 16, 22),
+    fieldHeight = Math.max(54, 28 * scale + 22),
+    labelHeight = 18 * scale,
+    fairyWidth = clamp(frameWidth * 0.31, 96, 145),
+    minEmailGap = Math.ceil((830 * fairyWidth) / 1024 - labelHeight - 4 + 8),
+    headerHeight = logoHeight + 4 + 22 * scale,
     errorSpace = hasError ? 62 * scale : 0,
     fixed =
       topPadding +
       headerHeight +
-      (labelHeight + 6 + fieldHeight) * 2 +
+      (labelHeight + 4 + fieldHeight) * 2 +
       20 +
       56 +
-      56 +
+      48 +
       12 +
       errorSpace,
     // Preserve the torso landmark on short screens by adapting width, not clipping at the chest.
     lifterWidth = Math.min(
       frameWidth * 0.78,
-      Math.max(frameWidth * 0.7, ((available - fixed - 18) * 941) / (850 - 62)),
+      Math.max(
+        frameWidth * 0.64,
+        ((available - fixed - minEmailGap) * 941) / (850 - 62),
+      ),
     ),
     lifterScale = lifterWidth / 941,
     handY = 62 * lifterScale,
     lifterDesiredHeight = (900 - 62) * lifterScale,
     lifterMinHeight = (850 - 62) * lifterScale,
-    emailGap = clamp(available - fixed - lifterDesiredHeight, 18, 70),
+    emailGap = clamp(
+      available - fixed - lifterDesiredHeight,
+      minEmailGap,
+      Math.max(90, minEmailGap),
+    ),
     lifterHeight = clamp(
       available - fixed - emailGap,
       lifterMinHeight,
       lifterDesiredHeight,
     ),
-    fairyWidth = clamp(frameWidth * 0.31, 96, 145),
     fairyScale = fairyWidth / 1024,
-    fairyLeft = frameWidth - fairyWidth - 6 - clamp(frameWidth * 0.035, 10, 15);
+    fairyLeft = frameWidth - fairyWidth - 6 - clamp(frameWidth * 0.045, 13, 19);
   return {
     frameWidth,
     side,
     contentWidth,
-    headingFont,
-    headingLine,
-    logoFont,
-    logoLine,
+    logoWidth,
+    logoHeight,
     topPadding,
     fieldHeight,
     emailGap,
@@ -70,7 +74,7 @@ export function loginGeometry(
       left: fairyLeft - side,
       top: -880 * fairyScale,
       seatX: fairyLeft - side + (1024 - 595) * fairyScale,
-      writeInset: Math.max(60, fairyWidth * 0.62 + frameWidth * 0.035),
+      writeInset: Math.max(60, fairyWidth * 0.62 + frameWidth * 0.045),
     },
     lifter: {
       width: lifterWidth,

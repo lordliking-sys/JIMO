@@ -132,7 +132,7 @@ export function FloatingTabBar({
           height: geometry.height,
           padding: 6,
           borderRadius: 34,
-          backgroundColor: 'rgba(255,247,251,0.94)',
+          backgroundColor: animePink.background,
           borderWidth: 1,
           borderColor: 'rgba(239,178,204,0.52)',
           shadowColor: animePink.primaryPink,

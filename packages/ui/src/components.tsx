@@ -5,6 +5,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useId,
 } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -27,6 +28,7 @@ import type {
   ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import {
   animePink,
   colors,
@@ -212,7 +214,14 @@ type ButtonProps = {
   labelStyle?: StyleProp<import('react-native').TextStyle>;
 };
 /** Code-only top light. It never intercepts taps or adds an accessibility element. */
-export function SoftHighlight({ radius: corner = 18 }: { radius?: number }) {
+export function SoftHighlight({
+  radius: corner = 18,
+  variant = 'light',
+}: {
+  radius?: number;
+  variant?: 'primary' | 'light' | 'dark';
+}) {
+  const id = `surface-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
     <View
       pointerEvents="none"
@@ -222,15 +231,48 @@ export function SoftHighlight({ radius: corner = 18 }: { radius?: number }) {
         { borderRadius: corner, overflow: 'hidden' },
       ]}
     >
+      <Svg width="100%" height="100%">
+        <Defs>
+          <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            {(variant === 'primary'
+              ? [
+                  { offset: 0, color: '#E85897', opacity: 1 },
+                  { offset: 0.18, color: animePink.primaryAction, opacity: 1 },
+                  { offset: 0.6, color: '#CE286B', opacity: 1 },
+                  { offset: 1, color: '#BB225E', opacity: 1 },
+                ]
+              : [
+                  {
+                    offset: 0,
+                    color: '#FFFFFF',
+                    opacity: variant === 'dark' ? 0.18 : 0.65,
+                  },
+                  { offset: 0.28, color: '#FFFFFF', opacity: 0.06 },
+                  { offset: 0.75, color: '#FFFFFF', opacity: 0 },
+                  { offset: 1, color: '#C65B8B', opacity: 0.05 },
+                ]
+            ).map((stop) => (
+              <Stop
+                key={stop.offset}
+                offset={stop.offset}
+                stopColor={stop.color}
+                stopOpacity={stop.opacity}
+              />
+            ))}
+          </LinearGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill={`url(#${id})`} />
+      </Svg>
       <View
         style={{
+          position: 'absolute',
+          top: 1,
+          left: 16,
+          right: 16,
           height: 1,
-          marginHorizontal: 12,
-          backgroundColor: 'rgba(255,255,255,0.45)',
+          backgroundColor: 'rgba(255,255,255,0.4)',
         }}
       />
-      <View style={{ height: 5, backgroundColor: 'rgba(255,255,255,0.10)' }} />
-      <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.04)' }} />
     </View>
   );
 }
@@ -264,6 +306,7 @@ export function Button({
           opacity: disabled ? 0.55 : pressed ? 0.9 : 1,
         },
         primary && uiDepth.action,
+        primary && { borderWidth: 1, borderColor: 'rgba(182,28,92,0.22)' },
         primary &&
           pressed && {
             shadowOpacity: 0.12,
@@ -287,7 +330,15 @@ export function Button({
         style,
       ]}
     >
-      {primary ? <SoftHighlight /> : null}
+      {primary ? (
+        <SoftHighlight
+          variant="primary"
+          radius={
+            Number(StyleSheet.flatten([styles.button, style]).borderRadius) ||
+            18
+          }
+        />
+      ) : null}
       {busy ? (
         <ActivityIndicator color={primary ? animePink.white : colors.primary} />
       ) : (

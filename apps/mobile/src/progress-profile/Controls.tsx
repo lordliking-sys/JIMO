@@ -83,7 +83,10 @@ export function ProgressTabs({
                     : animePink.darkBorder,
               }}
             >
-              <SoftHighlight radius={17} />
+              <SoftHighlight
+                radius={17}
+                variant={tab === value ? 'primary' : 'dark'}
+              />
               <EditorialText
                 style={{
                   fontSize: compact ? 12 : 13,

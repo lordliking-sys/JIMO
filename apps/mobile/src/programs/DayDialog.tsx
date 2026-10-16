@@ -155,6 +155,7 @@ export function DayDialog({
   return (
     <ProgramPopup
       title={title}
+      titleAlign={step === 'day' || step === 'edit' ? 'center' : 'left'}
       close={close}
       visible={visible}
       onDismiss={onDismiss}
@@ -168,17 +169,33 @@ export function DayDialog({
           {day ? (
             <>
               {day.name !== title ? (
-                <Text variant="h3" color={animePink.ink}>
+                <Text
+                  variant="h3"
+                  color={animePink.ink}
+                  style={{ textAlign: 'center', fontSize: 22 }}
+                >
                   {day.name}
                 </Text>
               ) : null}
               {day.notes ? (
-                <Text color={animePink.textSecondary}>{day.notes}</Text>
+                <Text
+                  color={animePink.textSecondary}
+                  style={{ textAlign: 'center' }}
+                >
+                  {day.notes}
+                </Text>
               ) : null}
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
               >
-                <Text color={animePink.textSecondary} style={{ flex: 1 }}>
+                <Text
+                  color={animePink.primaryText}
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    fontFamily: 'Inter_600SemiBold',
+                  }}
+                >
                   {t('exerciseCount', { count: day.exercises.length })}
                 </Text>
                 <IconButton

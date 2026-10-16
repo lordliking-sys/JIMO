@@ -201,6 +201,7 @@ for (const size of phones) {
       const nav = page.getByTestId('floating-navbar'),
         button = nav.getByRole('tab', { name, exact: true });
       await button.click();
+      await expect(nav).toHaveCSS('background-color', 'rgb(255, 247, 250)');
       await expect(button).toHaveAttribute('aria-selected', 'true');
       const b = (await nav.boundingBox())!,
         tab = (await button.boundingBox())!,

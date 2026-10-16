@@ -129,6 +129,7 @@ export function MainHome() {
       <HomeHero />
       <SectionBody
         testID="home-body"
+        overlap={26}
         style={{
           paddingTop: 12,
           gap: 16,
@@ -279,7 +280,7 @@ export function MainHome() {
                   justifyContent: 'center',
                 }}
               >
-                <SoftHighlight radius={20} />
+                <SoftHighlight radius={20} variant="primary" />
                 <Play
                   size={18}
                   color={animePink.white}

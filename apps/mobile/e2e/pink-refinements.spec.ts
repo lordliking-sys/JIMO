@@ -186,6 +186,10 @@ for (const size of sizes) {
       if (route === '/') {
         const label = page.getByTestId('home-brand');
         await expect(label).toHaveText('HOME');
+        await expect(hero.getByRole('heading')).toHaveCount(1);
+        await expect(
+          hero.getByText(/Buongiorno|Buon pomeriggio|Buonasera/),
+        ).toHaveCount(0);
         expect((await label.boundingBox())!.y - bounds.y).toBeLessThan(32);
         expect((await label.boundingBox())!.x).toBeLessThan(32);
       }

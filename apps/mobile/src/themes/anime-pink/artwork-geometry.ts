@@ -36,8 +36,9 @@ export function profileArtworkLayout(
   topInset = 24,
 ) {
   const bodyTop = heroHeight - 24;
-  // Reduce the final fitted pose, including when available hero height is the limiting factor.
+  // Enlarge the approved fitted pose by 15%, preserving seat and avatar landmarks.
   const scale =
+    1.15 *
     0.92 *
     Math.min(
       (width * 0.86) / 1024,

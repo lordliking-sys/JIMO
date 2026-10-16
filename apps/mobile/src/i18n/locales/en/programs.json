@@ -203,5 +203,7 @@
   "delete": "Delete",
   "reorder": "Reorder",
   "setReps": "Set {{set}} reps",
-  "setDuration": "Set {{set}} duration"
+  "setDuration": "Set {{set}} duration",
+  "seriesReps": "Set {{set}} · reps",
+  "seriesDuration": "Set {{set}} · sec"
 }

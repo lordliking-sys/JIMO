@@ -203,5 +203,7 @@
   "delete": "Elimina",
   "reorder": "Riordina",
   "setReps": "Ripetizioni serie {{set}}",
-  "setDuration": "Durata serie {{set}}"
+  "setDuration": "Durata serie {{set}}",
+  "seriesReps": "Serie {{set}} · reps",
+  "seriesDuration": "Serie {{set}} · sec"
 }

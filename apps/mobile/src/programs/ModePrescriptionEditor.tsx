@@ -87,9 +87,11 @@ export function ModePrescriptionEditor({
     label: string,
     key: 'reps' | 'duration' | 'load' | 'rpe',
     decimal = false,
+    displayLabel?: string,
   ) => (
     <NumberControl
       label={label}
+      {...(displayLabel ? { displayLabel } : {})}
       value={draft[key]}
       onChange={(v) => change(key, v)}
       keyboardType={decimal ? 'decimal-pad' : 'number-pad'}
@@ -236,32 +238,64 @@ export function ModePrescriptionEditor({
         </>
       ) : (
         <View testID="pyramid-builder" style={{ gap: 6 }}>
-          {targets.map((s, i) => (
-            <Pressable
-              key={i}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('setTarget')} ${i + 1}`}
-              accessibilityState={{ selected: selected === i }}
-              onPress={() => setSelected(i)}
-              style={{
-                minHeight: 48,
-                padding: 12,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor:
-                  selected === i ? programInk.sage : programInk.border,
-                backgroundColor: programInk.field,
-              }}
-            >
-              <Text color={programInk.text}>
-                {String(i + 1).padStart(2, '0')} ·{' '}
-                {exercise.trackingMode === 'reps'
-                  ? `${s.reps} reps`
-                  : `${s.duration} s`}
-                {loadMode !== 'bodyweight' ? ` · ${s.load || '—'} kg` : ''}
-              </Text>
-            </Pressable>
-          ))}
+          {targets.map((s, i) =>
+            selected === i ? (
+              <View
+                key={i}
+                testID={`pyramid-set-${i + 1}`}
+                style={{
+                  padding: 8,
+                  borderWidth: 1,
+                  borderColor: programInk.sage,
+                  borderRadius: 16,
+                  backgroundColor: programInk.field,
+                }}
+              >
+                {number(
+                  t(
+                    exercise.trackingMode === 'reps'
+                      ? 'setReps'
+                      : 'setDuration',
+                    { set: i + 1 },
+                  ),
+                  exercise.trackingMode === 'reps' ? 'reps' : 'duration',
+                  false,
+                  t(
+                    exercise.trackingMode === 'reps'
+                      ? 'seriesReps'
+                      : 'seriesDuration',
+                    { set: i + 1 },
+                  ),
+                )}
+              </View>
+            ) : (
+              <Pressable
+                key={i}
+                testID={`pyramid-set-${i + 1}`}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('setTarget')} ${i + 1}`}
+                accessibilityState={{ selected: false }}
+                onPress={() => setSelected(i)}
+                style={{
+                  minHeight: 54,
+                  padding: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: programInk.border,
+                  backgroundColor: programInk.field,
+                  justifyContent: 'center',
+                }}
+              >
+                <Text color={programInk.text}>
+                  {String(i + 1).padStart(2, '0')} ·{' '}
+                  {exercise.trackingMode === 'reps'
+                    ? `${s.reps} reps`
+                    : `${s.duration} s`}
+                  {loadMode !== 'bodyweight' ? ` · ${s.load || '—'} kg` : ''}
+                </Text>
+              </Pressable>
+            ),
+          )}
           <View style={choiceStyles.row}>
             <ProgramButton
               label={t('addSet')}
@@ -295,13 +329,15 @@ export function ModePrescriptionEditor({
           </View>
         </View>
       )}
-      {number(
-        seriesMode === 'pyramid'
-          ? t(exercise.trackingMode === 'reps' ? 'setReps' : 'setDuration', {
-              set: selected + 1,
-            })
-          : t(exercise.trackingMode === 'reps' ? 'reps' : 'duration'),
-        exercise.trackingMode === 'reps' ? 'reps' : 'duration',
+      {seriesMode === 'emom' ? (
+        number(
+          t(exercise.trackingMode === 'reps' ? 'reps' : 'duration'),
+          exercise.trackingMode === 'reps' ? 'reps' : 'duration',
+        )
+      ) : (
+        <Text variant="caption" color={programInk.secondary}>
+          {t('setTarget')} {selected + 1}
+        </Text>
       )}
       {loadMode !== 'bodyweight'
         ? number(
