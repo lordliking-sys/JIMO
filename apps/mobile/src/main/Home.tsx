@@ -9,12 +9,7 @@ import { Text, animePink, uiDepth, SoftHighlight } from '@jimo/ui';
 import { zonedDateKey } from '@jimo/schemas';
 import { SyncStatus } from '../db/Status';
 import { useHistory } from '../workouts/queries';
-import {
-  setSummary,
-  weekBounds,
-  weekSchedule,
-  localWeekday,
-} from '../workouts/helpers';
+import { weekBounds, weekSchedule, localWeekday } from '../workouts/helpers';
 import { exerciseSummary } from '../programs/summary';
 import { MainNotice, MainScreen, MainText } from './Surface';
 import { completedExerciseCount, homePlanForDate } from './helpers';
@@ -59,7 +54,11 @@ export function MainHome() {
     timeZone,
   );
   const day = plan.day,
-    scheduledToday = !!day;
+    scheduledToday = !!day,
+    selectedActive =
+      !!active &&
+      active.programId === program?.id &&
+      active.programDayId === day?.id;
   const action = useDayStart(day?.id);
   const week = weekSchedule(
     program?.days ?? [],
@@ -77,9 +76,9 @@ export function MainHome() {
     ),
   }));
   const canStart =
-    !!program && !!day?.exercises.length && scheduledToday && !plan.completed;
+    !active && !!program && !!day?.exercises.length && !plan.completed;
   const label =
-    active || action.conflict
+    selectedActive || action.conflict
       ? t('workouts:resume')
       : !program
         ? t('goToProgram')
@@ -97,33 +96,17 @@ export function MainHome() {
       },
     });
   const open = () => {
-    if (active)
+    if (selectedActive && active)
       router.push({ pathname: '/workout/[id]', params: { id: active.id } });
     else if (action.conflict || canStart) action.start();
     else if (!program) openProgram();
     else editSelected();
   };
-  const upcoming = active
-    ? active.exercises.find((exercise) =>
-        exercise.sets.some((set) => set.status === 'pending'),
-      )
-    : scheduledToday
-      ? day?.exercises[0]
-      : null;
-  const dataUnavailable =
-    !active && !program && (!runtime.online || !runtime.owner);
-  const exercises = active
-    ? upcoming
-      ? [upcoming]
-      : []
-    : scheduledToday
-      ? (day?.exercises ?? [])
-      : [];
-  const thumb = upcoming
-    ? 'exercise' in upcoming
-      ? upcoming.exercise
-      : { canonicalName: upcoming.exerciseNameSnapshot, isCustom: false }
-    : null;
+  // The calendar always reads the current plan. A session snapshot belongs only
+  // to the resume action and must never replace another selected day's exercises.
+  const exercises = day?.exercises ?? [],
+    thumb = exercises[0]?.exercise ?? null,
+    dataUnavailable = !program && (!runtime.online || !runtime.owner);
   return (
     <MainScreen light>
       <HomeHero />
@@ -142,6 +125,40 @@ export function MainHome() {
             setSelection({ week: weekKey, date: zonedDateKey(date, timeZone) })
           }
         />
+        {active && !selectedActive ? (
+          <Pressable
+            testID="home-resume-workout"
+            accessibilityRole="button"
+            accessibilityLabel={t('workouts:resume')}
+            onPress={() =>
+              router.push({
+                pathname: '/workout/[id]',
+                params: { id: active.id },
+              })
+            }
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              minHeight: 56,
+              padding: 12,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: animePink.border,
+              backgroundColor: animePink.surfaceSoft,
+            }}
+          >
+            <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+              <Text variant="caption" color={animePink.textSecondary}>
+                {active.name}
+              </Text>
+              <Text variant="bodyMedium" color={animePink.primaryText}>
+                {t('workouts:resume')}
+              </Text>
+            </View>
+            <Play size={20} color={animePink.primaryText} accessible={false} />
+          </Pressable>
+        ) : null}
         <View
           style={{
             flexDirection: 'row',
@@ -180,9 +197,9 @@ export function MainHome() {
             <ChevronRight size={18} color={animePink.primaryPink} />
           </Pressable>
         </View>
-        {(!active && query.isPending) || session.isPending ? (
+        {query.isPending || session.isPending ? (
           <MainNotice loading />
-        ) : !active && !program && (query.error || session.error) ? (
+        ) : !program && (query.error || session.error) ? (
           <MainNotice retry={refresh} />
         ) : (
           <Pressable
@@ -224,17 +241,16 @@ export function MainHome() {
             )}
             <View style={{ flex: 1, minWidth: 0, gap: 5 }}>
               <MainText style={{ fontSize: 16, lineHeight: 21 }}>
-                {active?.name ??
-                  (dataUnavailable
-                    ? t('workouts:offline.connect')
-                    : program
-                      ? scheduledToday
-                        ? day!.name
-                        : t('restDay')
-                      : t('noActivePlan'))}
+                {dataUnavailable
+                  ? t('workouts:offline.connect')
+                  : program
+                    ? scheduledToday
+                      ? day!.name
+                      : t('restDay')
+                    : t('noActivePlan')}
               </MainText>
               <Text variant="caption" color={animePink.textSecondary}>
-                {active
+                {selectedActive && active
                   ? t('exerciseProgress', {
                       completed: completedExerciseCount(active),
                       total: active.exercises.length,
@@ -249,7 +265,7 @@ export function MainHome() {
                       ? t('offline')
                       : t('common:home.description')}
               </Text>
-              {!active &&
+              {!selectedActive &&
               program &&
               (!scheduledToday || !day!.exercises.length || plan.completed) ? (
                 <Text variant="caption" color={animePink.textSecondary}>
@@ -266,7 +282,8 @@ export function MainHome() {
                 </Text>
               ) : null}
             </View>
-            {!dataUnavailable && (active || action.conflict || canStart) ? (
+            {!dataUnavailable &&
+            (selectedActive || action.conflict || canStart) ? (
               <View
                 testID="home-start-affordance"
                 accessible={false}
@@ -300,45 +317,17 @@ export function MainHome() {
         {exercises.length ? (
           <View testID="home-upcoming-exercise" style={{ gap: 8 }}>
             {exercises.map((exercise) => {
-              const snapshot = 'sets' in exercise ? exercise : null;
-              const next = snapshot?.sets.find(
-                (set) => set.status === 'pending',
+              const prescription = exerciseSummary(
+                exercise,
+                i18n.resolvedLanguage ?? 'en',
+                i18n.getFixedT(null, 'programs'),
               );
-              const brief =
-                snapshot && next
-                  ? setSummary(snapshot, next, i18n.resolvedLanguage ?? 'en')
-                  : null;
-              const prescription =
-                'exercise' in exercise
-                  ? exerciseSummary(
-                      exercise,
-                      i18n.resolvedLanguage ?? 'en',
-                      i18n.getFixedT(null, 'programs'),
-                    )
-                  : null;
-              const load = snapshot
-                ? snapshot.loadModeSnapshot === 'bodyweight'
-                  ? t('workouts:bodyweight')
-                  : snapshot.loadModeSnapshot === 'assisted'
-                    ? `${t('workouts:assisted')} ${brief?.load || '—'} kg`
-                    : `${snapshot.loadModeSnapshot === 'weighted' ? '+' : ''}${brief?.load || '—'} kg`
-                : '';
-              const thumbnail =
-                'exercise' in exercise
-                  ? exercise.exercise
-                  : {
-                      canonicalName: exercise.exerciseNameSnapshot,
-                      isCustom: false,
-                    };
               return (
                 <Pressable
                   key={exercise.id}
                   accessibilityRole="button"
                   accessibilityLabel={t('nextExerciseAction', {
-                    name:
-                      'exerciseNameSnapshot' in exercise
-                        ? exercise.exerciseNameSnapshot
-                        : exercise.exercise.displayName,
+                    name: exercise.exercise.displayName,
                   })}
                   disabled={action.pending || dataUnavailable}
                   onPress={open}
@@ -356,19 +345,16 @@ export function MainHome() {
                     opacity: pressed ? 0.8 : 1,
                   })}
                 >
-                  <ExerciseThumbnail exercise={thumbnail} tone="light" />
+                  <ExerciseThumbnail
+                    exercise={exercise.exercise}
+                    tone="light"
+                  />
                   <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
                     <MainText style={{ fontSize: 16, lineHeight: 21 }}>
-                      {'exerciseNameSnapshot' in exercise
-                        ? exercise.exerciseNameSnapshot
-                        : exercise.exercise.displayName}
+                      {exercise.exercise.displayName}
                     </MainText>
                     <Text variant="caption" color={animePink.textSecondary}>
-                      {prescription
-                        ? prescription.primary
-                        : brief
-                          ? `${snapshot!.sets.length} × ${brief.target} ${load}`
-                          : t('workouts:resume')}
+                      {prescription.primary}
                     </Text>
                   </View>
                   <ChevronRight size={20} color={animePink.primaryPink} />

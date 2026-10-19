@@ -61,8 +61,13 @@ export function ThemeArtwork({
     },
     {
       offset: 1,
-      opacity: bodyColor ? 1 : 0.5,
-      color: bodyColor ?? animePink.surfaceDark,
+      // Home meets an opaque rounded body; a light final stop can leave a
+      // horizontal band inside the taller native portrait after layout updates.
+      opacity: scene === 'home' ? 0.18 : bodyColor ? 1 : 0.5,
+      color:
+        scene === 'home'
+          ? animePink.surfaceDark
+          : (bodyColor ?? animePink.surfaceDark),
     },
   ];
   return (

@@ -117,17 +117,22 @@ for (const size of sizes) {
     page,
   }) => {
     await page.setViewportSize(size);
+    await page.clock.install({ time: new Date('2026-10-12T10:00:00Z') });
     const f = await workoutFixture(page);
     f.workout.name = 'Sessione eliminata';
     f.workout.exercises[0]!.exerciseNameSnapshot = 'Esercizio eliminato';
     f.setStarted();
     await page.goto('/');
-    await expect(page.getByTestId('home-workout-card')).toContainText(
-      'Sessione eliminata',
-    );
+    await expect(page.getByTestId('home-workout-card')).toContainText('PUSH');
     await expect(page.getByTestId('home-upcoming-exercise')).toContainText(
-      'Esercizio eliminato',
+      'Panca piana',
     );
+    await expect(
+      page.getByText('Esercizio eliminato', { exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Riprendi allenamento', exact: true }),
+    ).toHaveCount(1);
     const headers = { 'access-control-allow-origin': '*' };
     await page.route('**/workouts/active', (route) =>
       route.fulfill({ json: { workout: null }, headers }),
@@ -143,6 +148,12 @@ for (const size of sizes) {
     );
     await page.getByRole('tab', { name: 'Profilo', exact: true }).click();
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: 'Riprendi allenamento', exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Inizia allenamento', exact: true }),
+    ).toBeEnabled();
     await expect(page.getByTestId('home-workout-card')).not.toContainText(
       'Sessione eliminata',
     );

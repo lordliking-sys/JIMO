@@ -22,30 +22,40 @@ Il logo ufficiale è il PNG trasparente originale di
 `c6389116d36485f556788b64bacae330be8c243ba55cc126d05cd9d3ff25f2ef`.
 Il login e il componente condiviso BrandMark usano questo asset, senza
 ricostruire il lettering. Nel login il logo è centrato, mantiene il rapporto
-2072:759 e il payoff resta testo separato. La geometria conserva spazio fra
-payoff, fata e campo Email anche a 320 px; la fata si sposta pochi pixel a
+2072:759. Il payoff non viene più mostrato nel login. Un alone radiale chiaro
+dietro al logo e una sfocatura lieve del solo background ne migliorano la
+leggibilità senza alterare il PNG. La geometria conserva spazio fra
+logo, fata e campo Email anche a 320 px; la fata si sposta pochi pixel a
 sinistra e il busto della ragazza sotto Password resta visibile.
 
 Il fondo e le superfici principali condividono il rosino `#FFF7FA`. Le superfici
 secondarie restano blush; popup, navbar, bordi e ombre derivano dalla stessa
 palette. La navbar è piena e opaca. `@jimo/ui` fornisce profondità, gradiente
-verticale SVG e luce superiore dei pulsanti, oltre all'ombra
+verticale SVG, riflesso radiale, bordo interno arrotondato e luce superiore dei
+pulsanti, oltre all'ombra
 interna dei campi, riutilizzate nei form e nei dialog. Pressed, disabled, busy,
 focus, accessibilità e reduced motion restano gestiti dai componenti reali.
 Inter e Cormorant Garamond sono invariati, senza nuovi font o asset generati.
+
+La Home non usa uno sfumato chiaro al fondo della hero: il body opaco copre il
+raccordo, evitando la banda bianca osservata nel ritratto su Android.
 
 I giorni con allenamento hanno icona manubrio, accento e fondo rosa; i riposi
 restano righe neutre. I dettagli degli esercizi sono solo nel dialog giorno.
 L'eliminazione è un'azione testo centrata sotto Modifica giorno, con conferma.
 L'ordinamento preesistente resta disponibile dal controllo Riordina vicino al
-conteggio esercizi, senza il precedente pulsante Altre azioni.
+conteggio esercizi, senza il precedente pulsante Altre azioni. Il giorno resta
+centrato nel titolo del popup; il nome dell'allenamento sotto è a sinistra.
 
 I controlli numerici mantengono label, meno, valore e più sulla stessa riga anche
 durante la digitazione. Il valore è un vero input; a 320 px la colonna numerica
 si compatta conservando target di almeno 48 px. Per il piramidale le ripetizioni
 sono esplicitamente riferite alla serie selezionata, senza duplicare un target
 generico: meno, valore editabile e più sono dentro la riga della serie
-selezionata. Dati, schemi e prescrizioni non cambiano.
+selezionata. I comandi Sposta su/giù delle serie non sono più mostrati nel form
+di creazione/modifica esercizio. Aggiunta, rimozione e modifica dei target restano
+disponibili; l'ordinamento degli esercizi nel giorno resta distinto.
+Dati, schemi e prescrizioni non cambiano.
 Sul web lo scroll automatico che rivela il campo non deve chiudere la tastiera:
 il dialog usa `keyboardDismissMode="none"` su questa piattaforma, mantenendo
 `on-drag` nativo. La regressione verifica visibilità e focus a viewport ridotto.
@@ -61,7 +71,13 @@ bar sono più leggeri; i titoli usano il Cormorant Garamond già disponibile.
 Calendario Home, giorni vuoti/riposo, Start/Riprendi e modifiche usano i DTO e
 le mutation/cache già esistenti. Le verifiche browser controllano che aggiunte,
 modifiche e cancellazioni si riflettano nella Home, anche con sync indisponibile;
-non viene introdotta una seconda copia dei dati della giornata.
+non viene introdotta una seconda copia dei dati della giornata. La sessione in
+corso non sostituisce più nome ed esercizi del giorno selezionato: gli esercizi
+provengono sempre dalla scheda corrente. Quando la sessione appartiene a un altro
+giorno, un controllo Riprendi separato mantiene accessibile il workout senza
+trasformarlo nel piano di tutti i giorni. Finché è in corso non viene proposta
+una seconda partenza. La regressione copre questo caso su tutti e quattro i
+viewport, inclusi riposo e giornata senza esercizi.
 
 Le prove UI usano fixture locali con credenziali esterne rimosse dal processo.
 Viewport: 320×740, 390×780, 393×851 e 430×860, inclusi safe area e testo al 130%.

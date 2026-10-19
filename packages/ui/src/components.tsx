@@ -28,7 +28,13 @@ import type {
   ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import Svg, {
+  Defs,
+  LinearGradient,
+  RadialGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
 import {
   animePink,
   colors,
@@ -226,6 +232,9 @@ export function SoftHighlight({
     <View
       pointerEvents="none"
       accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      aria-hidden
       style={[
         StyleSheet.absoluteFill,
         { borderRadius: corner, overflow: 'hidden' },
@@ -236,10 +245,11 @@ export function SoftHighlight({
           <LinearGradient id={id} x1="0" y1="0" x2="0" y2="1">
             {(variant === 'primary'
               ? [
-                  { offset: 0, color: '#E85897', opacity: 1 },
-                  { offset: 0.18, color: animePink.primaryAction, opacity: 1 },
-                  { offset: 0.6, color: '#CE286B', opacity: 1 },
-                  { offset: 1, color: '#BB225E', opacity: 1 },
+                  { offset: 0, color: '#EE6BA3', opacity: 1 },
+                  { offset: 0.2, color: '#E13A7E', opacity: 1 },
+                  { offset: 0.5, color: animePink.primaryAction, opacity: 1 },
+                  { offset: 0.78, color: '#C41E62', opacity: 1 },
+                  { offset: 1, color: '#A71751', opacity: 1 },
                 ]
               : [
                   {
@@ -260,17 +270,40 @@ export function SoftHighlight({
               />
             ))}
           </LinearGradient>
+          <RadialGradient id={`${id}-gloss`} cx="50%" cy="0%" rx="70%" ry="65%">
+            <Stop
+              offset="0"
+              stopColor="#FFFFFF"
+              stopOpacity={variant === 'primary' ? 0.48 : 0.3}
+            />
+            <Stop offset="0.32" stopColor="#FFFFFF" stopOpacity={0.18} />
+            <Stop offset="0.72" stopColor="#FFFFFF" stopOpacity={0.02} />
+            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
+          </RadialGradient>
         </Defs>
         <Rect width="100%" height="100%" fill={`url(#${id})`} />
+        {variant !== 'dark' ? (
+          <Rect width="100%" height="100%" fill={`url(#${id}-gloss)`} />
+        ) : null}
       </Svg>
       <View
         style={{
           position: 'absolute',
-          top: 1,
-          left: 16,
-          right: 16,
-          height: 1,
-          backgroundColor: 'rgba(255,255,255,0.4)',
+          top: 1.5,
+          bottom: 1.5,
+          left: 1.5,
+          right: 1.5,
+          borderRadius: Math.max(0, corner - 1.5),
+          borderTopWidth: 1.5,
+          borderBottomWidth: variant === 'primary' ? 2 : 1,
+          borderLeftWidth: 0.5,
+          borderRightWidth: 0.5,
+          borderColor: 'rgba(255,255,255,0.18)',
+          borderTopColor: 'rgba(255,255,255,0.65)',
+          borderBottomColor:
+            variant === 'primary'
+              ? 'rgba(114,12,53,0.3)'
+              : 'rgba(193,100,142,0.1)',
         }}
       />
     </View>
@@ -317,10 +350,10 @@ export function Button({
           borderWidth: 1,
           borderColor: colors.primary,
           shadowColor: '#B6517E',
-          shadowOpacity: 0.035,
-          shadowRadius: 4,
-          shadowOffset: { width: 0, height: 1 },
-          elevation: 1,
+          shadowOpacity: pressed ? 0.03 : 0.08,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: pressed ? 1 : 3 },
+          elevation: pressed ? 1 : 2,
         },
         variant === 'text' && {
           paddingVertical: spacing.sm,
@@ -330,9 +363,9 @@ export function Button({
         style,
       ]}
     >
-      {primary ? (
+      {variant !== 'text' ? (
         <SoftHighlight
-          variant="primary"
+          variant={primary ? 'primary' : 'light'}
           radius={
             Number(StyleSheet.flatten([styles.button, style]).borderRadius) ||
             18

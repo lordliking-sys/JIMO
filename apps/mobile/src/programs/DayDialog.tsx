@@ -172,7 +172,7 @@ export function DayDialog({
                 <Text
                   variant="h3"
                   color={animePink.ink}
-                  style={{ textAlign: 'center', fontSize: 22 }}
+                  style={{ textAlign: 'left', fontSize: 22 }}
                 >
                   {day.name}
                 </Text>

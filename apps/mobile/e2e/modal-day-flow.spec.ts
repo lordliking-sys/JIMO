@@ -230,12 +230,17 @@ test('Internal steps preserve custom duration, pyramid targets, EMOM, ordering a
   await button(page, '+ Aggiungi esercizio').click();
   await button(page, 'Dip').click();
   await button(page, 'Piramidale').click();
+  await expect(button(page, 'Sposta su')).toHaveCount(0);
+  await expect(button(page, 'Sposta giù')).toHaveCount(0);
   await expect(button(page, 'Aumenta Ripetizioni')).toHaveCount(0);
   await button(page, 'Target serie 2').click();
   const pyramidRow = page.getByTestId('pyramid-set-2');
   await pyramidRow
     .getByRole('button', { name: 'Aumenta Ripetizioni serie 2', exact: true })
     .click();
+  await button(page, 'Modifica manualmente Ripetizioni serie 2').click();
+  await page.getByLabel('Ripetizioni serie 2', { exact: true }).fill('11');
+  await button(page, 'Conferma Ripetizioni serie 2').click();
   await expect(
     page.getByRole('button', { name: 'Aumenta Ripetizioni', exact: true }),
   ).toHaveCount(0);
@@ -247,7 +252,7 @@ test('Internal steps preserve custom duration, pyramid targets, EMOM, ordering a
   const pyramid = structuredClone(day.exercises.at(-1)!);
   expect(pyramid.workoutMode).toBe('pyramid');
   expect(pyramid.setTargets).toHaveLength(3);
-  expect(pyramid.setTargets![1]!.targetReps).toBe(9);
+  expect(pyramid.setTargets![1]!.targetReps).toBe(11);
   await page.getByTestId(`day-dialog-exercise-${pyramid.id}`).click();
   await expect(button(page, 'Piramidale')).toHaveAttribute(
     'aria-pressed',

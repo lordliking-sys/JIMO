@@ -24,8 +24,14 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
-import { Screen, Text, animePink, SoftHighlight } from '@jimo/ui';
+import Svg, {
+  Defs,
+  LinearGradient,
+  RadialGradient,
+  Rect,
+  Stop,
+} from 'react-native-svg';
+import { Screen, Text, animePink, uiDepth, SoftHighlight } from '@jimo/ui';
 import { Wordmark } from '../../components/Wordmark';
 import { SectionStatusFade } from '../../components/SectionStatusFade';
 import { loginAssets } from './assets';
@@ -65,6 +71,7 @@ const LoginBackground = memo(function LoginBackground({
     >
       <Image
         source={sources.background}
+        blurRadius={2}
         resizeMode="cover"
         accessible={false}
         style={{
@@ -89,6 +96,38 @@ const LoginBackground = memo(function LoginBackground({
     </View>
   );
 });
+
+function LogoWash() {
+  const id = `logo-wash-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  return (
+    <View
+      testID="login-logo-wash"
+      pointerEvents="none"
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      aria-hidden
+      style={{
+        position: 'absolute',
+        top: -28,
+        bottom: -24,
+        left: -28,
+        right: -28,
+      }}
+    >
+      <Svg width="100%" height="100%">
+        <Defs>
+          <RadialGradient id={id} cx="50%" cy="50%" rx="55%" ry="55%">
+            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.7} />
+            <Stop offset="0.45" stopColor="#FFF9FC" stopOpacity={0.48} />
+            <Stop offset="1" stopColor="#FFF9FC" stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill={`url(#${id})`} />
+      </Svg>
+    </View>
+  );
+}
 
 export function LoginEmail(props: TextInputProps & { label: string }) {
   const geometry = useGeometry(),
@@ -243,11 +282,15 @@ function LoginButton({
           padding: 12,
           backgroundColor: animePink.primaryAction,
           opacity: disabled ? 0.55 : 1,
-          shadowColor: '#EF5799',
-          shadowOpacity: pressed ? 0.12 : 0.25,
-          shadowRadius: pressed ? 8 : 14,
-          shadowOffset: { width: 0, height: pressed ? 3 : 6 },
-          elevation: pressed ? 2 : 4,
+          ...uiDepth.action,
+          ...(pressed
+            ? {
+                shadowOpacity: 0.14,
+                shadowRadius: 8,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 2,
+              }
+            : {}),
         })}
       >
         <SoftHighlight variant="primary" radius={32} />
@@ -349,6 +392,7 @@ export function LoginScreen({
                 testID="login-header"
                 style={{ gap: 4, alignItems: 'center' }}
               >
+                <LogoWash />
                 <Wordmark
                   asset={
                     <Image
@@ -363,16 +407,6 @@ export function LoginScreen({
                     />
                   }
                 />
-                <Text
-                  style={{
-                    color: animePink.ink,
-                    fontSize: 14,
-                    lineHeight: 22,
-                    textAlign: 'center',
-                  }}
-                >
-                  {t('tagline')}
-                </Text>
                 <Text
                   accessibilityRole="header"
                   style={{

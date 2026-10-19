@@ -33,10 +33,10 @@ export const uiDepth = {
   },
   action: {
     shadowColor: '#C53473',
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 3,
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 5,
   },
   input: {
     boxShadow: [

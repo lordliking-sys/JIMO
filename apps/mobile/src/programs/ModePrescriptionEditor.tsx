@@ -19,7 +19,6 @@ import {
   integerInput,
   stepInteger,
   stepDecimal,
-  moved,
 } from './helpers';
 import type { Href } from 'expo-router';
 
@@ -314,18 +313,6 @@ export function ModePrescriptionEditor({
                 setSelected(Math.max(0, selected - 1));
               }}
             />
-            {([-1, 1] as const).map((d) => (
-              <ProgramButton
-                key={d}
-                variant="text"
-                label={t(d === -1 ? 'moveUp' : 'moveDown')}
-                disabled={selected + d < 0 || selected + d >= targets.length}
-                onPress={() => {
-                  setTargets((old) => moved(old, selected, d));
-                  setSelected(selected + d);
-                }}
-              />
-            ))}
           </View>
         </View>
       )}

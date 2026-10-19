@@ -22,7 +22,7 @@ export function loginGeometry(
     labelHeight = 18 * scale,
     fairyWidth = clamp(frameWidth * 0.31, 96, 145),
     minEmailGap = Math.ceil((830 * fairyWidth) / 1024 - labelHeight - 4 + 8),
-    headerHeight = logoHeight + 4 + 22 * scale,
+    headerHeight = logoHeight,
     errorSpace = hasError ? 62 * scale : 0,
     fixed =
       topPadding +

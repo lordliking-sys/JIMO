@@ -386,7 +386,7 @@ test('an active workout remains resumable offline even without a cached program'
     route.fulfill({ json: { programs: [] } }),
   );
   await page.goto('/');
-  const card = page.getByTestId('home-workout-card');
+  const card = page.getByTestId('home-resume-workout');
   await expect(card).toContainText('Pull');
   await page.context().setOffline(true);
   await expect(page.getByText(/Offline ·/)).toBeVisible();

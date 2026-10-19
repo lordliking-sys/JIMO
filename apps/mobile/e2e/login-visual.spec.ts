@@ -51,6 +51,15 @@ for (const phone of phones)
       bottom = phone.width >= 393 ? 34 : 48;
     await openLogin(page, `?top=${top}&bottom=${bottom}`);
     await expect(page.getByTestId('login-visual-screen')).toBeVisible();
+    await expect(
+      page.getByText(
+        /Il tuo allenamento\. Il tuo ritmo\.|Your workout\. Your rhythm\./,
+      ),
+    ).toHaveCount(0);
+    await expect(page.getByTestId('login-logo-wash')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
     const logo = page.getByTestId('login-official-logo');
     const logoBox = (await logo.boundingBox())!;
     expect(logoBox.x + logoBox.width / 2).toBeCloseTo(phone.width / 2, 0);
