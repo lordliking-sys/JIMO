@@ -133,24 +133,26 @@ export function ThemeArtwork({
           <Rect width="100%" height="100%" fill={`url(#${id}-glow)`} />
         </Svg>
       )}
-      <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
-        {scene === 'profile' ? (
-          <Rect width="100%" height="100%" fill="#352044" opacity={0.22} />
-        ) : null}
-        <Defs>
-          <LinearGradient id={`${id}-shade`} x1="0" y1="0" x2="0" y2="1">
-            {shadeStops.map((stop) => (
-              <Stop
-                key={stop.offset}
-                offset={stop.offset}
-                stopColor={stop.color}
-                stopOpacity={stop.opacity}
-              />
-            ))}
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" fill={`url(#${id}-shade)`} />
-      </Svg>
+      {scene !== 'home' ? (
+        <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+          {scene === 'profile' ? (
+            <Rect width="100%" height="100%" fill="#352044" opacity={0.22} />
+          ) : null}
+          <Defs>
+            <LinearGradient id={`${id}-shade`} x1="0" y1="0" x2="0" y2="1">
+              {shadeStops.map((stop) => (
+                <Stop
+                  key={stop.offset}
+                  offset={stop.offset}
+                  stopColor={stop.color}
+                  stopOpacity={stop.opacity}
+                />
+              ))}
+            </LinearGradient>
+          </Defs>
+          <Rect width="100%" height="100%" fill={`url(#${id}-shade)`} />
+        </Svg>
+      ) : null}
     </View>
   );
 }

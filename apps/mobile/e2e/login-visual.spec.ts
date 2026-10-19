@@ -62,7 +62,10 @@ for (const phone of phones)
     );
     const logo = page.getByTestId('login-official-logo');
     const logoBox = (await logo.boundingBox())!;
-    expect(logoBox.x + logoBox.width / 2).toBeCloseTo(phone.width / 2, 0);
+    expect(logoBox.x + logoBox.width * (1069 / 2072)).toBeCloseTo(
+      phone.width / 2,
+      0,
+    );
     expect(logoBox.width / logoBox.height).toBeCloseTo(2072 / 759, 2);
     await expect(logo.locator('img')).toHaveAttribute(
       'src',
@@ -87,6 +90,9 @@ for (const phone of phones)
     await expect(email).toBeFocused();
     await password.fill('only-synthetic-fixture');
     await expect(password).toBeFocused();
+    await expect(
+      page.getByRole('button', { name: 'Fine', exact: true }),
+    ).toHaveCount(0);
     await eye.click();
     await expect(password).toHaveJSProperty('type', 'text');
     await page

@@ -61,7 +61,6 @@ for (const size of sizes) {
     ).toHaveCount(0);
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
     await page.getByTestId(`program-day-${day.id}`).click();
-    await page.getByRole('button', { name: 'Riordina', exact: true }).click();
     await page.getByRole('button', { name: 'Elimina', exact: true }).click();
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
     await expect(
@@ -76,9 +75,12 @@ for (const size of sizes) {
       .click();
     await page.getByRole('tab', { name: 'Home', exact: true }).click();
     await expect(upcoming).toHaveCount(0);
+    await expect(page.getByTestId('home-workout-card')).toContainText(
+      'Giorno di riposo',
+    );
     await expect(
       page.getByText('I tuoi esercizi appariranno qui.', { exact: true }),
-    ).toBeVisible();
+    ).toHaveCount(0);
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
     await page
       .getByRole('button', { name: 'Modifica scheda', exact: true })

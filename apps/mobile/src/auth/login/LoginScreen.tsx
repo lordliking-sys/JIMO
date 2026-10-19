@@ -363,7 +363,6 @@ export function LoginScreen({
           edgeToEdge
           bottomInset={false}
           keyboardAware
-          dismissKeyboardLabel={t('keyboardDone')}
           surfaceStyle={{ backgroundColor: 'transparent' }}
           footerStyle={{ backgroundColor: 'transparent', borderTopWidth: 0 }}
           contentStyle={{
@@ -403,6 +402,7 @@ export function LoginScreen({
                       style={{
                         width: geometry.logoWidth,
                         height: geometry.logoHeight,
+                        transform: [{ translateX: geometry.logoShiftX }],
                       }}
                     />
                   }

@@ -65,25 +65,15 @@ test('terrace ledge, character seat and avatar dock form one composition without
   }
 });
 
-test('portrait Home preserves the original seated pose without mirroring or stretching', () => {
+test('Home shares the section height and preserves the face while the raised body covers the lower portrait', () => {
   for (const viewport of viewports) {
-    const height = Math.max(
-      Math.max(280, Math.min(480, viewport.height * 0.46)),
-      viewport.width * 1.02 + 24,
-    );
+    const height = Math.max(280, Math.min(480, viewport.height * 0.46));
     const frame = heroArtworkFrame('home', { width: viewport.width, height });
     const scale = frame.width / 1024;
     assert.ok(Math.abs(frame.width / frame.height - 1024 / 1536) < 1e-9);
-    // Crown, left hand and right shoe in the supplied portrait, relative to the rounded body.
-    for (const point of [
-      { x: 540, y: 540 },
-      { x: 20, y: 1390 },
-      { x: 1000, y: 1510 },
-    ]) {
-      assert.ok(frame.left + point.x * scale >= 0);
-      assert.ok(frame.left + point.x * scale <= viewport.width);
-      assert.ok(frame.top + point.y * scale >= 0);
-      assert.ok(frame.top + point.y * scale <= height - 24);
-    }
+    assert.ok(frame.top + 540 * scale >= 24);
+    assert.ok(frame.top + 800 * scale < height - 24);
+    assert.ok(frame.top + frame.height >= height - 24);
+    assert.equal(frame.width, viewport.width);
   }
 });

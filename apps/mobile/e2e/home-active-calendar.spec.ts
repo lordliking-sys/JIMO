@@ -46,9 +46,17 @@ for (const phone of [
     await expect(page.getByTestId('home-resume-workout')).toContainText(
       'Upper corrente',
     );
+    await page
+      .getByRole('button', { name: 'Inizia allenamento', exact: true })
+      .click();
     await expect(
-      page.getByRole('button', { name: 'Inizia allenamento', exact: true }),
-    ).toHaveCount(0);
+      page.getByRole('heading', {
+        name: 'Allenamento in corso',
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Annulla', exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
     await page.screenshot({
       path: info.outputPath('selected-day-with-active-session.png'),
     });
@@ -72,3 +80,49 @@ for (const phone of [
     ).toBeVisible();
   });
 }
+test('Home starts every programmed exercise in sequence through workout completion', async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date('2026-10-12T10:00:00Z') });
+  const fixture = await workoutFixture(page),
+    day = fixture.program.days[0]!;
+  day.exercises = day.exercises
+    .slice(0, 2)
+    .map((e) => ({ ...e, targetSets: 1, restSeconds: 0 }));
+  await page.goto('/');
+  await page
+    .getByRole('button', { name: 'Inizia allenamento', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/workout\/[^/]+$/);
+  const session = page.url();
+  await expect(
+    page.getByRole('heading', { name: 'Panca piana', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: '✓ Completa serie', exact: true })
+    .click();
+  await expect(
+    page.getByText('Esercizio completato', { exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Continua', exact: true }).click();
+  await expect(page).toHaveURL(session);
+  await expect(
+    page.getByRole('heading', { name: 'Trazioni', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: '✓ Completa serie', exact: true })
+    .click();
+  await expect(
+    page.getByText('Allenamento completato', { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Termina allenamento', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Torna agli allenamenti', exact: true }),
+  ).toBeVisible();
+  await expect.poll(() => fixture.workout.status).toBe('completed');
+  expect(fixture.workout.exercises).toHaveLength(2);
+  expect(fixture.workout.completedSets).toBe(2);
+  expect(fixture.workout.skippedSets).toBe(0);
+});

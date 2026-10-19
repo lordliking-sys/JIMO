@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
-import ArrowDownUp from 'lucide-react-native/icons/arrow-down-up';
-import { Text, IconButton, Button, animePink } from '@jimo/ui';
+import { Text, Button, animePink } from '@jimo/ui';
 import type { ExerciseDto, Prescription, ProgramDetail } from '@jimo/schemas';
 import { useApiLocale, useProgramMutation } from '../api/queries';
 import { programsApi } from '../api/programs';
@@ -14,7 +13,7 @@ import { CustomExerciseEditor } from './CustomExerciseEditor';
 import { PrescriptionEditor } from './PrescriptionEditor';
 import { ExerciseThumbnail } from './ExerciseThumbnail';
 import { ErrorNotice } from './components';
-import { moved } from './helpers';
+import { SortableExerciseList } from './SortableExerciseList';
 
 /** One native modal and an internal step stack; all writes use the existing mutation/cache path. */
 export function DayDialog({
@@ -43,7 +42,6 @@ export function DayDialog({
     >('day'),
     [exercise, setExercise] = useState<ExerciseDto | null>(null),
     [entryId, setEntryId] = useState<string | undefined>(),
-    [more, setMore] = useState(false),
     [confirm, setConfirm] = useState<'day' | 'exercise' | null>(null);
   const entry = day?.exercises.find((e) => e.id === entryId);
   const mutate = useProgramMutation(
@@ -185,33 +183,27 @@ export function DayDialog({
                   {day.notes}
                 </Text>
               ) : null}
-              <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              <Text
+                color={animePink.primaryText}
+                style={{ fontSize: 14, fontFamily: 'Inter_600SemiBold' }}
               >
-                <Text
-                  color={animePink.primaryText}
-                  style={{
-                    flex: 1,
-                    fontSize: 14,
-                    fontFamily: 'Inter_600SemiBold',
-                  }}
-                >
-                  {t('exerciseCount', { count: day.exercises.length })}
-                </Text>
-                <IconButton
-                  icon={<ArrowDownUp size={20} color={animePink.primaryText} />}
-                  label={t('reorder')}
-                  disabled={mutate.isPending || save.isPending}
-                  onPress={() => setMore(!more)}
-                />
-              </View>
-              {day.exercises.map((item, index) => (
-                <View key={item.id} style={{ gap: 4 }}>
+                {t('exerciseCount', { count: day.exercises.length })}
+              </Text>
+              <SortableExerciseList
+                items={day.exercises}
+                disabled={mutate.isPending || save.isPending}
+                name={(item) => item.exercise.displayName}
+                onReorder={(ids) =>
+                  mutate.mutateAsync(() =>
+                    programsApi.reorderExercises(day.id, ids, locale),
+                  )
+                }
+                renderItem={(item) => (
                   <Pressable
                     testID={`day-dialog-exercise-${item.id}`}
                     accessibilityRole="button"
                     accessibilityLabel={`${t('editExercise')} ${item.exercise.displayName}`}
-                    disabled={mutate.isPending}
+                    disabled={mutate.isPending || save.isPending}
                     onPress={() => {
                       setEntryId(item.id);
                       setExercise(item.exercise);
@@ -245,72 +237,12 @@ export function DayDialog({
                       accessible={false}
                     />
                   </Pressable>
-                  {more ? (
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      {([-1, 1] as const).map((direction) => (
-                        <View key={direction} style={{ flex: 1 }}>
-                          <PopupButton
-                            outline
-                            label={`${t(direction < 0 ? 'moveUp' : 'moveDown')} ${item.exercise.displayName}`}
-                            disabled={
-                              mutate.isPending ||
-                              index + direction < 0 ||
-                              index + direction >= day.exercises.length
-                            }
-                            onPress={() =>
-                              run(() =>
-                                programsApi.reorderExercises(
-                                  day.id,
-                                  moved(day.exercises, index, direction).map(
-                                    (e) => e.id,
-                                  ),
-                                  locale,
-                                ),
-                              )
-                            }
-                          />
-                        </View>
-                      ))}
-                    </View>
-                  ) : null}
-                </View>
-              ))}
+                )}
+              />
               {!day.exercises.length ? (
                 <Text color={animePink.textSecondary}>
                   {t('noDayExercises')}
                 </Text>
-              ) : null}
-              {more ? (
-                <>
-                  {([-1, 1] as const).map((direction) => {
-                    const index = program.days.findIndex(
-                      (d) => d.id === day.id,
-                    );
-                    return (
-                      <PopupButton
-                        key={direction}
-                        outline
-                        label={`${t(direction < 0 ? 'moveUp' : 'moveDown')} ${day.name}`}
-                        disabled={
-                          mutate.isPending ||
-                          index + direction < 0 ||
-                          index + direction >= program.days.length
-                        }
-                        onPress={() =>
-                          run(() =>
-                            programsApi.reorderDays(
-                              program.id,
-                              moved(program.days, index, direction).map(
-                                (d) => d.id,
-                              ),
-                              locale,
-                            ),
-                          )
-                        }
-                      />
-                    );
-                  })}
-                </>
               ) : null}
             </>
           ) : (

@@ -205,5 +205,8 @@
   "setReps": "Set {{set}} reps",
   "setDuration": "Set {{set}} duration",
   "seriesReps": "Set {{set}} · reps",
-  "seriesDuration": "Set {{set}} · sec"
+  "seriesDuration": "Set {{set}} · sec",
+  "dragExercise": "Reorder {{name}}",
+  "dragHint": "Drag the handle to reorder. On a keyboard use the up and down arrows.",
+  "reorderedExercise": "{{name}}, position {{position}}"
 }

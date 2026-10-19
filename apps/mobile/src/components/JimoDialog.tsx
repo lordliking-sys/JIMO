@@ -35,6 +35,11 @@ import { popupGeometry } from '../programs/popup-geometry';
 
 const Focus = createContext<((input: TextInput | null) => void) | null>(null);
 export const useDialogFocus = () => useContext(Focus);
+const Drag = createContext<{
+  setDragging(value: boolean): void;
+  scrollNear(y: number): number;
+} | null>(null);
+export const useDialogDrag = () => useContext(Drag);
 type FormState = { dirty: boolean; busy: boolean };
 const Forms = createContext<
   ((id: string, state: FormState | null) => void) | null
@@ -141,6 +146,33 @@ export function JimoDialog({
     viewport = useRef<View>(null),
     focused = useRef<TextInput | null>(null),
     offset = useRef(0);
+  const [dragging, setDragging] = useState(false);
+  const dragBounds = useRef({ top: 0, height: 0, content: 0 });
+  const measureDragBounds = () =>
+    viewport.current?.measureInWindow((_x, top, _w, height) => {
+      dragBounds.current = { ...dragBounds.current, top, height };
+    });
+  const scrollNear = useCallback((y: number) => {
+    const { top, height, content } = dragBounds.current;
+    if (!height) return 0;
+    const edge = 36;
+    const delta =
+      y < top + edge
+        ? -Math.min(9, (top + edge - y) / 4)
+        : y > top + height - edge
+          ? Math.min(9, (y - top - height + edge) / 4)
+          : 0;
+    const next = Math.max(
+      0,
+      Math.min(Math.max(0, content - height), offset.current + delta),
+    );
+    const moved = next - offset.current;
+    if (Math.abs(moved) > 0.1) {
+      offset.current = next;
+      scroll.current?.scrollTo({ y: next, animated: false });
+    }
+    return moved;
+  }, []);
   const reveal = useCallback(() => {
     const input = focused.current;
     if (!input) return;
@@ -369,13 +401,21 @@ export function JimoDialog({
               </View>
               <View
                 ref={viewport}
-                onLayout={() => requestAnimationFrame(reveal)}
+                onLayout={() => {
+                  requestAnimationFrame(reveal);
+                  requestAnimationFrame(measureDragBounds);
+                }}
                 style={{ flexShrink: 1 }}
               >
                 <ScrollView
                   ref={scroll}
                   testID="program-popup-scroll"
                   keyboardShouldPersistTaps="handled"
+                  scrollEnabled={!dragging}
+                  onContentSizeChange={(_w, height) => {
+                    dragBounds.current.content = height;
+                    requestAnimationFrame(measureDragBounds);
+                  }}
                   // RN Web dismisses on every scroll, including automatic field reveal.
                   keyboardDismissMode={
                     Platform.OS === 'web' ? 'none' : 'on-drag'
@@ -389,9 +429,11 @@ export function JimoDialog({
                   style={{ flexShrink: 1 }}
                   contentContainerStyle={{ gap: 18, paddingBottom: 4 }}
                 >
-                  <Forms.Provider value={report}>
-                    <Focus.Provider value={focus}>{children}</Focus.Provider>
-                  </Forms.Provider>
+                  <Drag.Provider value={{ setDragging, scrollNear }}>
+                    <Forms.Provider value={report}>
+                      <Focus.Provider value={focus}>{children}</Focus.Provider>
+                    </Forms.Provider>
+                  </Drag.Provider>
                 </ScrollView>
               </View>
               {footer || discard ? (

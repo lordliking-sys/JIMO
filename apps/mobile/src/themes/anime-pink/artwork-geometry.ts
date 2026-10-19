@@ -25,7 +25,7 @@ export function heroArtworkFrame(scene: ArtworkScene, viewport: Size) {
       scene === 'profile'
         ? viewport.height - 24 - 755 * scale
         : scene === 'home'
-          ? viewport.height - 24 - height
+          ? Math.max(viewport.height - 24 - height, 24 - 540 * scale)
           : -(height - viewport.height) * original.y,
   };
 }

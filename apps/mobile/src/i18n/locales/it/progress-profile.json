@@ -52,5 +52,16 @@
   "version": "JIMO · Versione {{version}}",
   "aboutBody": "Registrazione degli allenamenti e progressi personali.",
   "fontLicense": "Titoli: Cormorant Garamond · Testi: Inter. Font distribuiti con licenza SIL Open Font License.",
-  "logoutSubtitle": "Disconnetti questo dispositivo"
+  "logoutSubtitle": "Disconnetti questo dispositivo",
+  "chooseExercise": "Scegli esercizio",
+  "loadProgress": "Carico massimo",
+  "assistanceProgress": "Assistenza minima",
+  "repsProgress": "Ripetizioni massime",
+  "durationProgress": "Durata massima",
+  "previousSession": "Seduta precedente",
+  "nextSession": "Seduta successiva",
+  "sessionIndex": "Seduta {{current}} di {{total}}",
+  "sessionMaximaNote": "Massimi per seduta: carico e ripetizioni possono riferirsi a serie diverse. Tocca il grafico per esplorare le sedute.",
+  "assistanceNote": "Meno assistenza indica una prestazione migliore. I massimi di ripetizioni possono riferirsi a una serie diversa.",
+  "bodyweightNote": "La progressione a corpo libero usa ripetizioni o durata effettive, senza stimare carichi."
 }

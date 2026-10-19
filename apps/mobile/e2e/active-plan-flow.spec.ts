@@ -133,6 +133,9 @@ for (const viewport of viewports) {
     expect(f.source.program.status).toBe('archived');
     expect(f.alternate.status).toBe('active');
     await page
+      .getByRole('button', { name: 'Cambia scheda', exact: true })
+      .click();
+    await page
       .getByRole('button', { name: '+ Nuova scheda', exact: true })
       .click();
     await page.getByLabel('Nome scheda', { exact: true }).fill('Nuova bozza');

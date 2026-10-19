@@ -73,5 +73,7 @@
   "editDayAction": "Edit",
   "selectedPlan": "Plan for {{date}}",
   "emptyDay": "No exercises configured.",
-  "noScheduledWorkout": "No workout scheduled."
+  "noScheduledWorkout": "No workout scheduled.",
+  "activeWorkoutTitle": "Workout in progress",
+  "activeWorkoutNotice": "You already have a workout in progress. Resume and finish it before starting another."
 }

@@ -210,11 +210,6 @@ export function MainProgram() {
         <View style={{ gap: 8, paddingTop: 8 }}>
           <MainButton
             subtle
-            label={t('newPlan')}
-            onPress={() => setSheet({ kind: 'create' })}
-          />
-          <MainButton
-            subtle
             label={t('switchPlan')}
             onPress={() => setSheet({ kind: 'switch' })}
           />

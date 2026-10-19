@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
   progressSummarySchema,
   progressWeeklySchema,
-  progressRecordsSchema,
   progressExercisesSchema,
   workoutHistorySchema,
   type ProgressRange,
@@ -40,8 +39,9 @@ import {
   SectionHeading,
   type ProgressTab,
 } from './Controls';
-import { StatCard, PersonalRecordRow, DataRow } from './ProgressCards';
+import { StatCard, DataRow } from './ProgressCards';
 import { VolumePanel } from './VolumePanel';
+import { PersonalRecordsPanel } from './PersonalRecordsPanel';
 import { ink } from './theme';
 export default function ProgressScreen() {
   const { t, i18n } = useTranslation(['progressProfile', 'progress']),
@@ -67,12 +67,6 @@ export default function ProgressScreen() {
     ),
     weekly = useProgressQuery('/progress/weekly', progressWeeklySchema, params),
     pending = usePendingProgress();
-  const records = useProgressPages(
-    '/progress/prs',
-    progressRecordsSchema,
-    { ...params, limit: '6' },
-    (p) => p.nextCursor,
-  );
   const exercises = useProgressPages(
     '/progress/exercises',
     progressExercisesSchema,
@@ -100,7 +94,6 @@ export default function ProgressScreen() {
   );
   const { refetch: refetchSummary } = summary,
     { refetch: refetchWeekly } = weekly,
-    { refetch: refetchRecords } = records,
     { refetch: refetchExercises } = exercises,
     { refetch: refetchHistory } = history;
   const refresh = useCallback(() => {
@@ -110,14 +103,12 @@ export default function ProgressScreen() {
     }
     void refetchSummary();
     void refetchWeekly();
-    void refetchRecords();
     void refetchExercises();
     void refetchHistory();
   }, [
     runtime,
     refetchSummary,
     refetchWeekly,
-    refetchRecords,
     refetchExercises,
     refetchHistory,
   ]);
@@ -131,10 +122,8 @@ export default function ProgressScreen() {
     locale = i18n.language;
   const openExercise = (id: string) =>
     router.push({ pathname: '/progress/[id]', params: { id, range } });
-  const recordRows =
-      records.data?.pages.flatMap((p) => p.payload.records) ?? [],
-    exerciseRows =
-      exercises.data?.pages.flatMap((p) => p.payload.exercises) ?? [];
+  const exerciseRows =
+    exercises.data?.pages.flatMap((p) => p.payload.exercises) ?? [];
   // Weekly keys are local calendar dates, not UTC instants.
   const weeklyPoints = (
     key:
@@ -151,42 +140,17 @@ export default function ProgressScreen() {
     ? `${new Date(s.period.from).toLocaleDateString(locale, { day: 'numeric', month: 'short' })} – ${new Date(s.period.to).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}`
     : '';
   const recordsCard = (
-    <PaperCard style={{ gap: 4 }}>
-      <SectionHeading>{t('personalRecords')}</SectionHeading>
-      {recordRows.map((r) => (
-        <PersonalRecordRow
-          key={`${r.exerciseId}:${r.trackingMode}:${r.loadMode}:${r.type}`}
-          record={r}
-          {...(exerciseRows.find((e) => e.id === r.exerciseId)
-            ? {
-                latest: exerciseRows.find((e) => e.id === r.exerciseId)!.latest,
-              }
-            : {})}
-          onPress={() => openExercise(r.exerciseId)}
-        />
-      ))}
-      {records.error && !records.data ? (
-        <DataNotice retry={() => void records.refetch()} />
-      ) : !recordRows.length ? (
-        <Copy>
-          {t(
-            records.isPending && !!runtime.owner
-              ? 'progress:loading'
-              : 'progress:noRecords',
-          )}
-        </Copy>
-      ) : null}
-      {records.data?.pages.map((p, i) => (
-        <CacheNote key={i} stale={p.stale} fetchedAt={p.fetchedAt} />
-      ))}
-      {records.hasNextPage ? (
-        <Action
-          label={t('progress:moreRecords')}
-          disabled={records.isFetching}
-          onPress={() => void records.fetchNextPage()}
-        />
-      ) : null}
-    </PaperCard>
+    <View
+      style={{
+        display: tab === 'overview' || tab === 'strength' ? 'flex' : 'none',
+      }}
+    >
+      <PersonalRecordsPanel
+        range={range}
+        active={tab === 'overview' || tab === 'strength'}
+        openExercise={openExercise}
+      />
+    </View>
   );
   return (
     <EditorialScreen>
@@ -213,158 +177,150 @@ export default function ProgressScreen() {
                 retry={refresh}
               />
             </PaperCard>
-          ) : (
+          ) : null}
+          {s?.completedWorkouts === 0 ? (
+            <PaperCard style={{ gap: 8 }}>
+              <Copy>{t('progress:empty')}</Copy>
+              <Copy>{t('progress:emptyPeriod')}</Copy>
+              <Action
+                label={t('progress:goWorkout')}
+                onPress={() => router.push('/workout')}
+              />
+            </PaperCard>
+          ) : null}
+          {tab === 'overview' && s ? (
             <>
-              {s.completedWorkouts === 0 ? (
-                <PaperCard style={{ gap: 8 }}>
-                  <Copy>{t('progress:empty')}</Copy>
-                  <Copy>{t('progress:emptyPeriod')}</Copy>
-                  <Action
-                    label={t('progress:goWorkout')}
-                    onPress={() => router.push('/workout')}
+              <StatCard
+                testID="workouts-stat"
+                label={t('progress:workouts')}
+                value={formatNumber(s.completedWorkouts, locale, 0)}
+                caption={periodCaption}
+                points={weeklyPoints('completedWorkouts')}
+                bars
+              />
+              <StatCard
+                testID="global-volume-stat"
+                label={t('totalVolume')}
+                value="—"
+                caption={t('globalVolumeUnavailable')}
+              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'stretch',
+                  gap: 10,
+                }}
+              >
+                <StatCard
+                  small
+                  label={t('completedSets')}
+                  value={formatNumber(s.completedSets, locale, 0)}
+                  points={weeklyPoints('completedSets')}
+                  bars
+                />
+                <StatCard
+                  small
+                  label={t('trainingTime')}
+                  value={formatTrainingDuration(s.trainingSeconds, locale)}
+                  points={weeklyPoints('trainingSeconds')}
+                  format={(v) => formatTrainingDuration(v, locale)}
+                />
+              </View>
+            </>
+          ) : null}
+          {recordsCard}
+          {tab === 'strength' ? (
+            <>
+              <PaperCard style={{ gap: 10 }}>
+                <SectionHeading>{t('progress:exercises')}</SectionHeading>
+                <Copy>{t('progress:search')}</Copy>
+                <TextInput
+                  accessibilityLabel={t('progress:search')}
+                  value={search}
+                  onChangeText={setSearch}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  selectionColor={ink.green}
+                  maxLength={100}
+                  style={{
+                    minHeight: 48,
+                    borderWidth: 1,
+                    borderColor: searchFocused ? ink.green : ink.border,
+                    color: ink.charcoal,
+                    padding: 12,
+                    fontFamily: 'Inter_400Regular',
+                    borderRadius: 18,
+                    backgroundColor: ink.card,
+                    fontSize: 14,
+                  }}
+                />
+                {exerciseRows.map((e) => (
+                  <DataRow
+                    key={e.id}
+                    title={e.displayName}
+                    subtitle={`${t('progress:last')} · ${performanceText(e.latest, locale)}${e.trend ? ` · ${e.trend === 'same' ? t('progress:trend.same') : t(`progress:trendMetrics.${e.latest.trackingMode === 'duration' ? 'duration' : e.latest.loadMode}.${e.trend}`)}` : ''}`}
+                    onPress={() => openExercise(e.id)}
                   />
+                ))}
+                {exercises.error && !exercises.data ? (
+                  <DataNotice retry={() => void exercises.refetch()} />
+                ) : !exerciseRows.length ? (
+                  <Copy>{t('progress:noExercises')}</Copy>
+                ) : null}
+                {exercises.data?.pages.map((p, i) => (
+                  <CacheNote key={i} stale={p.stale} fetchedAt={p.fetchedAt} />
+                ))}
+                {exercises.hasNextPage ? (
+                  <Action
+                    label={t('progress:moreExercises')}
+                    disabled={exercises.isFetching}
+                    onPress={() => void exercises.fetchNextPage()}
+                  />
+                ) : null}
+              </PaperCard>
+            </>
+          ) : null}
+          <View style={{ display: tab === 'volume' ? 'flex' : 'none' }}>
+            <VolumePanel range={range} active={tab === 'volume'} />
+          </View>
+          {tab === 'frequency' && s ? (
+            <>
+              <StatCard
+                label={t('progress:frequency')}
+                value={formatNumber(s.sessionsPerWeek, locale)}
+                caption={t('sessionsPerWeek')}
+                points={weeklyPoints('completedWorkouts')}
+                bars
+              />
+              {s.adherence ? (
+                <PaperCard style={{ gap: 6 }}>
+                  <SectionHeading>{t('progress:adherence')}</SectionHeading>
+                  <EditorialText style={{ fontSize: 30 }}>
+                    {s.adherence.completed} / {s.adherence.planned} ·{' '}
+                    {formatNumber(s.adherence.percentage, locale)}%
+                  </EditorialText>
+                  <Copy>{t('progress:adherenceLimit')}</Copy>
                 </PaperCard>
               ) : null}
-              {tab === 'overview' ? (
-                <>
-                  <StatCard
-                    testID="workouts-stat"
-                    label={t('progress:workouts')}
-                    value={formatNumber(s.completedWorkouts, locale, 0)}
-                    caption={periodCaption}
-                    points={weeklyPoints('completedWorkouts')}
-                    bars
-                  />
-                  <StatCard
-                    testID="global-volume-stat"
-                    label={t('totalVolume')}
-                    value="—"
-                    caption={t('globalVolumeUnavailable')}
-                  />
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'stretch',
-                      gap: 10,
-                    }}
-                  >
-                    <StatCard
-                      small
-                      label={t('completedSets')}
-                      value={formatNumber(s.completedSets, locale, 0)}
-                      points={weeklyPoints('completedSets')}
-                      bars
-                    />
-                    <StatCard
-                      small
-                      label={t('trainingTime')}
-                      value={formatTrainingDuration(s.trainingSeconds, locale)}
-                      points={weeklyPoints('trainingSeconds')}
-                      format={(v) => formatTrainingDuration(v, locale)}
-                    />
-                  </View>
-                  {recordsCard}
-                </>
-              ) : null}
-              {tab === 'strength' ? (
-                <>
-                  {recordsCard}
-                  <PaperCard style={{ gap: 10 }}>
-                    <SectionHeading>{t('progress:exercises')}</SectionHeading>
-                    <Copy>{t('progress:search')}</Copy>
-                    <TextInput
-                      accessibilityLabel={t('progress:search')}
-                      value={search}
-                      onChangeText={setSearch}
-                      onFocus={() => setSearchFocused(true)}
-                      onBlur={() => setSearchFocused(false)}
-                      selectionColor={ink.green}
-                      maxLength={100}
-                      style={{
-                        minHeight: 48,
-                        borderWidth: 1,
-                        borderColor: searchFocused ? ink.green : ink.border,
-                        color: ink.charcoal,
-                        padding: 12,
-                        fontFamily: 'Inter_400Regular',
-                        borderRadius: 18,
-                        backgroundColor: ink.card,
-                        fontSize: 14,
-                      }}
-                    />
-                    {exerciseRows.map((e) => (
-                      <DataRow
-                        key={e.id}
-                        title={e.displayName}
-                        subtitle={`${t('progress:last')} · ${performanceText(e.latest, locale)}${e.trend ? ` · ${e.trend === 'same' ? t('progress:trend.same') : t(`progress:trendMetrics.${e.latest.trackingMode === 'duration' ? 'duration' : e.latest.loadMode}.${e.trend}`)}` : ''}`}
-                        onPress={() => openExercise(e.id)}
-                      />
-                    ))}
-                    {exercises.error && !exercises.data ? (
-                      <DataNotice retry={() => void exercises.refetch()} />
-                    ) : !exerciseRows.length ? (
-                      <Copy>{t('progress:noExercises')}</Copy>
-                    ) : null}
-                    {exercises.data?.pages.map((p, i) => (
-                      <CacheNote
-                        key={i}
-                        stale={p.stale}
-                        fetchedAt={p.fetchedAt}
-                      />
-                    ))}
-                    {exercises.hasNextPage ? (
-                      <Action
-                        label={t('progress:moreExercises')}
-                        disabled={exercises.isFetching}
-                        onPress={() => void exercises.fetchNextPage()}
-                      />
-                    ) : null}
-                  </PaperCard>
-                </>
-              ) : null}
-              <View style={{ display: tab === 'volume' ? 'flex' : 'none' }}>
-                <VolumePanel range={range} active={tab === 'volume'} />
-              </View>
-              {tab === 'frequency' ? (
-                <>
-                  <StatCard
-                    label={t('progress:frequency')}
-                    value={formatNumber(s.sessionsPerWeek, locale)}
-                    caption={t('sessionsPerWeek')}
-                    points={weeklyPoints('completedWorkouts')}
-                    bars
-                  />
-                  {s.adherence ? (
-                    <PaperCard style={{ gap: 6 }}>
-                      <SectionHeading>{t('progress:adherence')}</SectionHeading>
-                      <EditorialText style={{ fontSize: 30 }}>
-                        {s.adherence.completed} / {s.adherence.planned} ·{' '}
-                        {formatNumber(s.adherence.percentage, locale)}%
-                      </EditorialText>
-                      <Copy>{t('progress:adherenceLimit')}</Copy>
-                    </PaperCard>
-                  ) : null}
-                  <StatCard
-                    label={t('progress:averageRpe')}
-                    value={formatNumber(s.averageRpe, locale)}
-                    points={weeklyPoints('averageRpe')}
-                  />
-                  <PaperCard style={{ gap: 4 }}>
-                    <Copy>
-                      {t('progress:repsValue', {
-                        value: formatNumber(s.totalReps, locale, 0),
-                      })}
-                    </Copy>
-                    {s.skippedSets ? (
-                      <Copy>
-                        {t('progress:skippedValue', { count: s.skippedSets })}
-                      </Copy>
-                    ) : null}
-                  </PaperCard>
-                </>
-              ) : null}
+              <StatCard
+                label={t('progress:averageRpe')}
+                value={formatNumber(s.averageRpe, locale)}
+                points={weeklyPoints('averageRpe')}
+              />
+              <PaperCard style={{ gap: 4 }}>
+                <Copy>
+                  {t('progress:repsValue', {
+                    value: formatNumber(s.totalReps, locale, 0),
+                  })}
+                </Copy>
+                {s.skippedSets ? (
+                  <Copy>
+                    {t('progress:skippedValue', { count: s.skippedSets })}
+                  </Copy>
+                ) : null}
+              </PaperCard>
             </>
-          )}
+          ) : null}
           {tab === 'frequency' ? (
             <PaperCard style={{ gap: 10 }}>
               <SectionHeading>{t('historyTitle')}</SectionHeading>

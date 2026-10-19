@@ -56,11 +56,14 @@ for (const phone of phones) {
       else {
         await expect(page.getByTestId('home-start-affordance')).toHaveCount(0);
         await expect(button(page, 'Inizia allenamento')).toHaveCount(0);
-        await expect(card).toContainText(
-          day
-            ? 'Nessun esercizio configurato.'
-            : 'Nessun allenamento programmato.',
-        );
+        if (day)
+          await expect(card).toContainText('Nessun esercizio configurato.');
+        else {
+          await expect(card).toHaveText('Giorno di riposoModifica');
+          await expect(
+            page.getByText('Prossimi esercizi', { exact: true }),
+          ).toHaveCount(0);
+        }
       }
     }
     await expect(button(page, 'Scegli un giorno')).toHaveCount(0);
@@ -275,12 +278,8 @@ test('Internal steps preserve custom duration, pyramid targets, EMOM, ordering a
   await expect(button(page, 'EMOM')).toHaveAttribute('aria-pressed', 'true');
   await button(page, 'Salva modifiche').click();
   await expect(page.getByTestId('day-dialog-detail')).toBeVisible();
-  await button(page, 'Riordina').click();
-  await page
-    .getByTestId(`day-dialog-exercise-${emom.id}`)
-    .locator('..')
-    .getByRole('button', { name: 'Sposta su Dip', exact: true })
-    .click();
+  await page.getByTestId(`drag-exercise-${emom.id}`).focus();
+  await page.getByTestId(`drag-exercise-${emom.id}`).press('ArrowUp');
   await expect.poll(() => day.exercises.at(-2)!.id).toBe(emom.id);
   await button(page, 'Elimina').click();
   await button(page, 'Conferma').click();

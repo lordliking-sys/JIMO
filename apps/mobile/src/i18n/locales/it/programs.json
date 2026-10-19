@@ -205,5 +205,8 @@
   "setReps": "Ripetizioni serie {{set}}",
   "setDuration": "Durata serie {{set}}",
   "seriesReps": "Serie {{set}} · reps",
-  "seriesDuration": "Serie {{set}} · sec"
+  "seriesDuration": "Serie {{set}} · sec",
+  "dragExercise": "Riordina {{name}}",
+  "dragHint": "Trascina la maniglia per cambiare ordine. Con tastiera usa le frecce su e giù.",
+  "reorderedExercise": "{{name}}, posizione {{position}}"
 }

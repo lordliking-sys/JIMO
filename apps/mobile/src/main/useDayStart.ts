@@ -24,6 +24,7 @@ export function useDayStart(dayId?: string) {
       ? mutation.error.sessionId
       : null;
   return {
+    reset: mutation.reset,
     pending: mutation.isPending,
     error: mutation.error,
     conflict,

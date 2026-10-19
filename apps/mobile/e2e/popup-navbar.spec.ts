@@ -54,8 +54,17 @@ for (const size of phones) {
   }, info) => {
     const f = await open(page, size),
       popup = page.getByTestId('program-popup-overlay');
-    const create = () =>
-      page.getByRole('button', { name: '+ Nuova scheda', exact: true }).click();
+    const create = async () => {
+      await expect(
+        page.getByRole('button', { name: '+ Nuova scheda', exact: true }),
+      ).toHaveCount(0);
+      await page
+        .getByRole('button', { name: 'Cambia scheda', exact: true })
+        .click();
+      await page
+        .getByRole('button', { name: '+ Nuova scheda', exact: true })
+        .click();
+    };
     await create();
     await bounds(page, size);
     await page

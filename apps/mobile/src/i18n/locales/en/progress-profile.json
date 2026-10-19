@@ -52,5 +52,16 @@
   "version": "JIMO · Version {{version}}",
   "aboutBody": "Workout logging and personal progress.",
   "fontLicense": "Headings: Cormorant Garamond · Text: Inter. Fonts distributed under the SIL Open Font License.",
-  "logoutSubtitle": "Sign out on this device"
+  "logoutSubtitle": "Sign out on this device",
+  "chooseExercise": "Choose exercise",
+  "loadProgress": "Maximum load",
+  "assistanceProgress": "Minimum assistance",
+  "repsProgress": "Maximum reps",
+  "durationProgress": "Maximum duration",
+  "previousSession": "Previous session",
+  "nextSession": "Next session",
+  "sessionIndex": "Session {{current}} of {{total}}",
+  "sessionMaximaNote": "Session maximums: load and reps may come from different sets. Tap the chart to explore sessions.",
+  "assistanceNote": "Less assistance means a better performance. Maximum reps may come from a different set.",
+  "bodyweightNote": "Bodyweight progression uses actual reps or duration, without estimating loads."
 }

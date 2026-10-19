@@ -63,6 +63,8 @@ export function loginGeometry(
     contentWidth,
     logoWidth,
     logoHeight,
+    // Center the visible lettering (alpha bounds x=110..2028), not transparent PNG margins.
+    logoShiftX: -logoWidth * (33 / 2072),
     topPadding,
     fieldHeight,
     emailGap,

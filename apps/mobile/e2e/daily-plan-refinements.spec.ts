@@ -82,7 +82,6 @@ for (const phone of phones) {
     );
     await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
     await page.getByTestId(`program-day-${day.id}`).click();
-    await page.getByRole('button', { name: 'Riordina', exact: true }).click();
     await page.getByRole('button', { name: 'Elimina', exact: true }).click();
     await page.getByRole('button', { name: 'Conferma', exact: true }).click();
     await expect(page).toHaveURL(/\/program$/);
@@ -158,6 +157,9 @@ for (const phone of phones) {
         (w) => w.method === 'PATCH' && w.path === `/programs/${updated.id}`,
       ),
     ).toHaveLength(1);
+    await page
+      .getByRole('button', { name: 'Cambia scheda', exact: true })
+      .click();
     await page
       .getByRole('button', { name: '+ Nuova scheda', exact: true })
       .click();

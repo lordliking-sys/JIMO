@@ -170,9 +170,11 @@ test('Home week strip and resume, Workout hub start, finish confirmation and can
     await expect(
       page.getByLabel(new RegExp(`${day},.*programmato`)),
     ).toBeVisible();
-  await expect(page.getByLabel(/Mercoledì, oggi, programmato/)).toBeVisible();
+  await expect(
+    page.getByLabel(/Mercoledì, \d+, oggi, programmato/),
+  ).toBeVisible();
   const sunday = await page
-    .getByLabel(/Domenica, non programmato/)
+    .getByLabel(/Domenica, \d+, non programmato/)
     .boundingBox();
   expect(sunday?.width).toBeGreaterThan(0);
   expect(sunday!.x + sunday!.width).toBeLessThanOrEqual(390);
