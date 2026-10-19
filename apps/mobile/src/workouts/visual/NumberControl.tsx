@@ -16,6 +16,8 @@ export type NumberRowLayout = {
   labelWidth: number;
   valueWidth: number;
   stacked: boolean;
+  valueFontSize: number;
+  compact: boolean;
 };
 
 export function NumberControl({
@@ -82,15 +84,17 @@ export function NumberControl({
   };
   return (
     <View
-      testID={rowLayout ? 'correction-number-row' : undefined}
+      testID={
+        rowLayout?.compact ? 'correction-number-row' : 'workout-number-row'
+      }
       style={{ gap: 4, paddingVertical: rowLayout ? 0 : 1 }}
     >
       <View
         style={{
           flexDirection: stacked ? 'column' : 'row',
           alignItems: stacked ? 'stretch' : 'center',
-          gap: stacked ? (rowLayout ? 0 : 2) : 6,
-          minHeight: rowLayout ? (stacked ? 70 : 48) : undefined,
+          gap: stacked ? 6 : 8,
+          minHeight: rowLayout ? (stacked ? 80 : 56) : undefined,
         }}
       >
         <View
@@ -115,7 +119,9 @@ export function NumberControl({
             <Icon size={22} color={ink.sage} strokeWidth={1.7} />
           )}
           <InkText
-            testID={rowLayout ? 'correction-row-label' : undefined}
+            testID={
+              rowLayout?.compact ? 'correction-row-label' : 'workout-row-label'
+            }
             numberOfLines={rowLayout ? 1 : undefined}
             style={{
               flexShrink: 1,
@@ -176,9 +182,15 @@ export function NumberControl({
               selectionColor={ink.sage}
               style={{
                 color: ink.parchment,
-                fontSize: 24,
+                fontSize: rowLayout?.valueFontSize ?? 22,
                 minHeight: 48,
-                flex: 1,
+                width: rowLayout
+                  ? Math.min(
+                      rowLayout.valueWidth,
+                      Math.max(48, contentWidth - 150),
+                    )
+                  : undefined,
+                flex: rowLayout ? undefined : 1,
                 minWidth: 48,
                 paddingHorizontal: 4,
                 textAlign: 'center',
@@ -198,35 +210,43 @@ export function NumberControl({
                 flexShrink: rowLayout ? 0 : 1,
               }}
             >
-              <InkText
-                numberOfLines={rowLayout ? 1 : undefined}
+              <View
                 style={{
-                  fontSize: 28,
-                  textAlign: 'center',
-                  ...(rowLayout
-                    ? {
-                        lineHeight: 36,
-                        includeFontPadding: false,
-                        textAlignVertical: 'center' as const,
-                      }
-                    : {}),
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  justifyContent: 'center',
+                  gap: 4,
+                  maxWidth: '100%',
                 }}
               >
-                {value ? `${prefix}${value}` : '—'}
+                <InkText
+                  testID="workout-numeric-value"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}
+                  style={{
+                    fontSize: rowLayout?.valueFontSize ?? 22,
+                    lineHeight: 28,
+                    textAlign: 'center',
+                    includeFontPadding: false,
+                    textAlignVertical: 'center',
+                    flexShrink: 1,
+                  }}
+                >
+                  {value ? `${prefix}${value}` : '—'}
+                </InkText>
                 {value && unit ? (
                   <InkText
                     style={{
-                      fontSize: 14,
-                      ...(rowLayout
-                        ? { lineHeight: 18, includeFontPadding: false }
-                        : {}),
+                      fontSize: 12,
+                      lineHeight: 18,
+                      includeFontPadding: false,
                     }}
                   >
-                    {' '}
                     {unit}
                   </InkText>
                 ) : null}
-              </InkText>
+              </View>
             </InkButton>
           )}
           <InkButton
@@ -262,7 +282,7 @@ export function NumberControl({
                 paddingHorizontal: 10,
               }}
             >
-              <InkText style={{ fontSize: 18 }}>{preset.label}</InkText>
+              <InkText style={{ fontSize: 16 }}>{preset.label}</InkText>
             </InkButton>
           ))}
         </View>

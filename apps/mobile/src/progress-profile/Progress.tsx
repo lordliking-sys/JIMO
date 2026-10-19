@@ -120,8 +120,6 @@ export default function ProgressScreen() {
   const s = summary.data?.payload,
     week = weekly.data?.payload.weeks ?? [],
     locale = i18n.language;
-  const openExercise = (id: string) =>
-    router.push({ pathname: '/progress/[id]', params: { id, range } });
   const exerciseRows =
     exercises.data?.pages.flatMap((p) => p.payload.exercises) ?? [];
   // Weekly keys are local calendar dates, not UTC instants.
@@ -148,7 +146,6 @@ export default function ProgressScreen() {
       <PersonalRecordsPanel
         range={range}
         active={tab === 'overview' || tab === 'strength'}
-        openExercise={openExercise}
       />
     </View>
   );
@@ -184,7 +181,7 @@ export default function ProgressScreen() {
               <Copy>{t('progress:emptyPeriod')}</Copy>
               <Action
                 label={t('progress:goWorkout')}
-                onPress={() => router.push('/workout')}
+                onPress={() => router.replace('/')}
               />
             </PaperCard>
           ) : null}
@@ -213,17 +210,15 @@ export default function ProgressScreen() {
               >
                 <StatCard
                   small
+                  testID="completed-sets-stat"
                   label={t('completedSets')}
                   value={formatNumber(s.completedSets, locale, 0)}
-                  points={weeklyPoints('completedSets')}
-                  bars
                 />
                 <StatCard
                   small
+                  testID="training-time-stat"
                   label={t('trainingTime')}
                   value={formatTrainingDuration(s.trainingSeconds, locale)}
-                  points={weeklyPoints('trainingSeconds')}
-                  format={(v) => formatTrainingDuration(v, locale)}
                 />
               </View>
             </>
@@ -259,7 +254,6 @@ export default function ProgressScreen() {
                     key={e.id}
                     title={e.displayName}
                     subtitle={`${t('progress:last')} · ${performanceText(e.latest, locale)}${e.trend ? ` · ${e.trend === 'same' ? t('progress:trend.same') : t(`progress:trendMetrics.${e.latest.trackingMode === 'duration' ? 'duration' : e.latest.loadMode}.${e.trend}`)}` : ''}`}
-                    onPress={() => openExercise(e.id)}
                   />
                 ))}
                 {exercises.error && !exercises.data ? (
@@ -335,12 +329,6 @@ export default function ProgressScreen() {
                     key={w.id}
                     title={w.name}
                     subtitle={`${new Date(w.completedAt ?? w.startedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })} · ${formatTrainingDuration(w.completedAt ? Math.max(0, (Date.parse(w.completedAt) - Date.parse(w.startedAt)) / 1000) : null, locale)} · ${t('progress:historyCounts', { exercises: w.exercisesCount, sets: w.completedSets })} · ${t(`progress:historyStatus.${w.status === 'cancelled' ? 'cancelled' : 'completed'}`)}`}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/workout/[id]',
-                        params: { id: w.id },
-                      })
-                    }
                   />
                 ))}
               {history.error && !history.data ? (

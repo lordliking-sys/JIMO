@@ -75,5 +75,9 @@
   "emptyDay": "Nessun esercizio configurato.",
   "noScheduledWorkout": "Nessun allenamento programmato.",
   "activeWorkoutTitle": "Allenamento in corso",
-  "activeWorkoutNotice": "Hai già un allenamento in corso. Riprendilo e terminalo prima di iniziarne un altro."
+  "activeWorkoutNotice": "Riprendi l’allenamento in corso oppure interrompilo prima di iniziarne un altro.",
+  "stopWorkout": "Interrompi allenamento",
+  "stopWorkoutTitle": "Interrompere l’allenamento?",
+  "confirmStopWorkout": "Conferma interruzione",
+  "stopWorkoutNotice": "Le serie registrate resteranno nello storico. La sessione verrà segnata come annullata e potrai iniziare l’allenamento di un altro giorno."
 }

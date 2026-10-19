@@ -8,7 +8,7 @@ export type BackNavigator = {
 /** Check at press time: deep links and navigation guards can reset the stack. */
 export function safeBack(
   navigation: BackNavigator,
-  fallback: BackFallback = '/workout',
+  fallback: BackFallback = '/',
   dismiss?: () => void,
 ): 'dismiss' | 'back' | 'fallback' {
   if (dismiss) {

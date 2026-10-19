@@ -209,9 +209,24 @@ for (const device of devices)
     await expect(page.getByTestId('workouts-stat')).toContainText('7');
     await expect(page.getByTestId('global-volume-stat')).toContainText('—');
     await expect(
-      page.getByRole('button', { name: /Panca piana, Carico massimo, 82,5/ }),
+      page.getByLabel(/Panca piana, Carico massimo, 82,5/),
     ).toBeVisible();
     await expect(page.getByText('2h 33m', { exact: true })).toBeVisible();
+    for (const id of ['completed-sets-stat', 'training-time-stat']) {
+      await expect(
+        page.getByTestId(id).getByTestId('editorial-chart'),
+      ).toHaveCount(0);
+      await expect(page.getByTestId(id).locator('svg')).toHaveCount(0);
+    }
+    const record = page.getByLabel(/Panca piana, Carico massimo, 82,5/);
+    await expect(record).not.toHaveRole('button');
+    await record.click();
+    await expect(page).toHaveURL('/progress');
+    await expect(page.getByTestId('personal-performance-chart')).toBeVisible();
+    await page.getByTestId('editorial-scroll').evaluate((element) => {
+      element.scrollTop = 0;
+    });
+
     await expect(page.getByRole('tab')).toHaveCount(8);
     await expect(
       page.getByRole('tab', { name: 'Progressi', exact: true }),

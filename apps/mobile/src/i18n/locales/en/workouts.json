@@ -73,7 +73,7 @@
   "retry": "Retry",
   "saveFailed": "Set was not saved. Your values are preserved: try again.",
   "invalid": "Check your set values.",
-  "back": "Back to workouts",
+  "back": "Back to Home",
   "sessionActions": "Workout actions",
   "setTable": "Set · Values · Status",
   "targetVsActual": "Target {{target}} · Actual {{actual}}",
@@ -124,5 +124,6 @@
     "completed": "Completed rounds: {{count}}",
     "prepare": "GET READY",
     "defaultActualNotice": "Rounds completed automatically using targets as defaults. Correct your actual values here if needed."
-  }
+  },
+  "reviewBeforeFinish": "Ready to confirm"
 }

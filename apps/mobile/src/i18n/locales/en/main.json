@@ -75,5 +75,9 @@
   "emptyDay": "No exercises configured.",
   "noScheduledWorkout": "No workout scheduled.",
   "activeWorkoutTitle": "Workout in progress",
-  "activeWorkoutNotice": "You already have a workout in progress. Resume and finish it before starting another."
+  "activeWorkoutNotice": "Resume the current workout or stop it before starting another one.",
+  "stopWorkout": "Stop workout",
+  "stopWorkoutTitle": "Stop this workout?",
+  "confirmStopWorkout": "Confirm stop",
+  "stopWorkoutNotice": "Recorded sets will remain in your history. This session will be marked as cancelled and you can start another day’s workout."
 }

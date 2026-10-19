@@ -11,7 +11,7 @@ import {
 } from './safe-back';
 
 export function useSafeBack(
-  fallback: BackFallback = '/workout',
+  fallback: BackFallback = '/',
   dismiss?: () => void,
   hardware = true,
 ) {
@@ -33,7 +33,7 @@ export function useSafeBack(
 }
 
 export function SafeBack({
-  fallback = '/workout',
+  fallback = '/',
   dismiss,
   color = colors.secondary,
 }: {

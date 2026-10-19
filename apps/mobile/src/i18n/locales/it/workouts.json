@@ -73,7 +73,7 @@
   "retry": "Riprova",
   "saveFailed": "Serie non salvata. I valori sono conservati: riprova.",
   "invalid": "Controlla i valori della serie.",
-  "back": "Torna agli allenamenti",
+  "back": "Torna alla Home",
   "sessionActions": "Azioni allenamento",
   "setTable": "Serie · Valori · Stato",
   "targetVsActual": "Target {{target}} · Actual {{actual}}",
@@ -124,5 +124,6 @@
     "completed": "Round completati: {{count}}",
     "prepare": "PREPARATI",
     "defaultActualNotice": "Round completati automaticamente con i valori target come default. Correggi qui i valori effettivi se necessario."
-  }
+  },
+  "reviewBeforeFinish": "Da confermare"
 }

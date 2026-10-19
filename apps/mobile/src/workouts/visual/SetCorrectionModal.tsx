@@ -34,7 +34,7 @@ export function SetCorrectionModal({
   const actions = useWorkoutActions();
   const reducedMotion = useReducedMotion();
   const [draft, setDraft] = useState(() => prefillDraft(exercise, set, locale));
-  const close = useSafeBack('/workout', onClose, false);
+  const close = useSafeBack('/', onClose, false);
   const save = useWorkoutMutation(
     (actual: ActualInput) => actions.save(set.id, actual, true),
     () => {
@@ -69,7 +69,7 @@ export function SetCorrectionModal({
                 maxWidth: 480,
                 alignSelf: 'center',
                 height: Math.min(
-                  440 * Math.min(fontScale, 1.5),
+                  520 * Math.min(fontScale, 1.4),
                   usableHeight - 32,
                 ),
                 maxHeight: '100%',
@@ -116,14 +116,14 @@ export function SetCorrectionModal({
                     accessibilityRole="header"
                     style={{
                       flex: 1,
-                      fontSize: 24,
+                      fontSize: 20,
                       textTransform: 'uppercase',
                     }}
                   >
                     {t('correctionTitle')}
                   </InkText>
                 </View>
-                <InkText style={{ color: ink.secondary, fontSize: 20 }}>
+                <InkText style={{ color: ink.secondary, fontSize: 16 }}>
                   {exercise.exerciseNameSnapshot} · {t('set')} {set.setNumber}
                 </InkText>
                 <ActualEditor

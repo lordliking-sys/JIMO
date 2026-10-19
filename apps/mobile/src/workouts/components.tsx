@@ -84,10 +84,7 @@ export function Values({
     s = setSummary(exercise, set, locale, actual);
   const mode = exercise.loadModeSnapshot;
   return (
-    <Text
-      variant="bodyMedium"
-      color={actual ? colors.text : colors.primarySoft}
-    >
+    <Text variant="bodyMedium" color={actual ? colors.text : colors.primary}>
       {`${s.target}${exercise.trackingModeSnapshot === 'reps' ? ` ${t('repsShort')}` : ''} · ${mode === 'bodyweight' ? t('bodyweight') : mode === 'assisted' ? `${t('assisted')} ${s.load || '—'} kg` : `${mode === 'weighted' ? '+' : ''}${s.load || '—'} kg`}${s.rpe ? ` · RPE ${s.rpe}` : ''}`}
     </Text>
   );
@@ -126,7 +123,7 @@ export function SetRows({
             >
               <Text
                 variant="bodyMedium"
-                color={set.id === currentId ? colors.primarySoft : colors.text}
+                color={set.id === currentId ? colors.primary : colors.text}
               >
                 {set.setNumber}
               </Text>
@@ -154,9 +151,7 @@ export function SetRows({
               </View>
               <Text
                 color={
-                  set.status === 'completed'
-                    ? colors.primarySoft
-                    : colors.secondary
+                  set.status === 'completed' ? colors.primary : colors.secondary
                 }
               >
                 {set.status === 'completed'
@@ -192,14 +187,17 @@ export function SessionSummary({
 }) {
   const { t, i18n } = useTranslation('workouts');
   return (
-    <View style={{ gap: spacing.lg }}>
-      <Text variant="h1">{workout.name}</Text>
+    <View testID="session-summary" style={{ gap: spacing.lg }}>
+      <Text variant="h2">{workout.name}</Text>
       <Text color={colors.secondary}>
         {new Date(workout.startedAt).toLocaleDateString(
           i18n.resolvedLanguage === 'it' ? 'it-IT' : 'en-US',
           { day: 'numeric', month: 'long', year: 'numeric' },
         )}{' '}
-        · {t(`workoutStatus.${workout.status}`)}
+        ·{' '}
+        {workout.status === 'in_progress'
+          ? t('reviewBeforeFinish')
+          : t(`workoutStatus.${workout.status}`)}
       </Text>
       <Text>
         {t('elapsed')}:{' '}
@@ -213,7 +211,11 @@ export function SessionSummary({
         <NewRecords sessionId={workout.id} />
       ) : null}
       {workout.exercises.map((exercise) => (
-        <View key={exercise.id} style={{ gap: spacing.sm }}>
+        <View
+          key={exercise.id}
+          testID={`summary-exercise-${exercise.id}`}
+          style={{ gap: spacing.sm }}
+        >
           <Text variant="h3">{exercise.exerciseNameSnapshot}</Text>
           <SetRows
             exercise={exercise}

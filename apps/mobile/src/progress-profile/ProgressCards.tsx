@@ -1,7 +1,6 @@
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import Trophy from 'lucide-react-native/icons/trophy';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useTranslation } from 'react-i18next';
 import type { ProgressRecord, Performance } from '@jimo/schemas';
 import { recordText, performanceText } from '../progress/helpers';
@@ -80,11 +79,9 @@ export function StatCard({
 export function PersonalRecordRow({
   record,
   latest,
-  onPress,
 }: {
   record: ProgressRecord;
   latest?: Performance;
-  onPress: () => void;
 }) {
   const { t, i18n } = useTranslation(['progressProfile', 'progress']),
     locale = i18n.language;
@@ -95,10 +92,9 @@ export function PersonalRecordRow({
       ? performanceText(latest, locale)
       : '—';
   return (
-    <Pressable
-      accessibilityRole="button"
+    <View
+      accessible
       accessibilityLabel={`${record.displayName}, ${t(`progress:recordTypes.${record.type}`)}, ${recordText(record, locale)}`}
-      onPress={onPress}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -128,23 +124,20 @@ export function PersonalRecordRow({
         </Copy>
       </View>
       <Trophy color={ink.green} size={23} accessible={false} />
-    </Pressable>
+    </View>
   );
 }
 export function DataRow({
   title,
   subtitle,
-  onPress,
 }: {
   title: string;
   subtitle: string;
-  onPress: () => void;
 }) {
   return (
-    <Pressable
-      accessibilityRole="button"
+    <View
+      accessible
       accessibilityLabel={`${title}. ${subtitle}`}
-      onPress={onPress}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -159,7 +152,6 @@ export function DataRow({
         <EditorialText style={{ fontSize: 18 }}>{title}</EditorialText>
         <Copy>{subtitle}</Copy>
       </View>
-      <ChevronRight size={20} color={ink.green} accessible={false} />
-    </Pressable>
+    </View>
   );
 }

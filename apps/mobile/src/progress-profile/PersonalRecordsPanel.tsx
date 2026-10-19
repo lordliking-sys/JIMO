@@ -26,11 +26,9 @@ import { PerformanceChart } from './PerformanceChart';
 export function PersonalRecordsPanel({
   range,
   active,
-  openExercise,
 }: {
   range: ProgressRange;
   active: boolean;
-  openExercise(id: string): void;
 }) {
   const { t } = useTranslation(['progressProfile', 'progress']),
     { runtime } = useOffline();
@@ -162,7 +160,6 @@ export function PersonalRecordsPanel({
                   key={`${record.type}:${record.loadMode}:${record.trackingMode}`}
                   record={record}
                   latest={mode.latest}
-                  onPress={() => openExercise(exercise.id)}
                 />
               ))}
               {!mode.records.length ? (

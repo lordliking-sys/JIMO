@@ -119,7 +119,7 @@ test('Home starts every programmed exercise in sequence through workout completi
     .getByRole('button', { name: 'Termina allenamento', exact: true })
     .click();
   await expect(
-    page.getByRole('button', { name: 'Torna agli allenamenti', exact: true }),
+    page.getByRole('button', { name: 'Torna alla Home', exact: true }),
   ).toBeVisible();
   await expect.poll(() => fixture.workout.status).toBe('completed');
   expect(fixture.workout.exercises).toHaveLength(2);

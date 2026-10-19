@@ -67,7 +67,7 @@ test('Android hardware back consumes the event, falls back safely and unregister
     }),
   );
   assert.equal((listener as unknown as () => boolean)(), true);
-  assert.deepEqual(actions, ['/workout']);
+  assert.deepEqual(actions, ['/']);
   release();
   assert.equal(listener, null);
 });

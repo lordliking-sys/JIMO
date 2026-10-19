@@ -9,7 +9,7 @@ import { useOffline } from '../../src/db/Provider';
 import { SyncStatus } from '../../src/db/Status';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Button, colors, Screen, spacing, Text } from '@jimo/ui';
+import { Button, colors, spacing, Text } from '@jimo/ui';
 import type {
   WorkoutDetail,
   WorkoutExercise,
@@ -28,7 +28,7 @@ import {
   useWorkoutActions,
 } from '../../src/workouts/queries';
 import { ActualEditor } from '../../src/workouts/ActualEditor';
-import { SessionSummary, Values } from '../../src/workouts/components';
+import { SessionSummary } from '../../src/workouts/components';
 import {
   actualPayload,
   nextPending,
@@ -54,11 +54,11 @@ import {
   SetIndicators,
   EnsoTimer,
   BrushDivider,
-  CompletedSet,
   Arrow,
 } from '../../src/workouts/visual/components';
 import { ink } from '../../src/workouts/visual/theme';
 import { SetCorrectionModal } from '../../src/workouts/visual/SetCorrectionModal';
+import { WorkoutSummarySurface } from '../../src/workouts/visual/WorkoutSummarySurface';
 import { SafeBack, useSafeBack } from '../../src/navigation/SafeBack';
 function SetEditor({
   exercise,
@@ -206,7 +206,7 @@ export default function WorkoutScreen() {
     } | null>(null),
     [transition, setTransition] = useState<string | null>(null);
   const closeCorrection = useCallback(() => setEditing(null), []);
-  useSafeBack('/workout', editing ? closeCorrection : undefined);
+  useSafeBack('/', editing ? closeCorrection : undefined);
   const [restPreference, setRestPreference] = useState<{
     key: string;
     value: string | null;
@@ -371,25 +371,22 @@ export default function WorkoutScreen() {
   const renderWorkout = () => {
     if (workout.status !== 'in_progress')
       return (
-        <Screen contentStyle={{ padding: spacing.lg, gap: spacing.lg }}>
-          {header}
-          {workout.status === 'completed' ? (
-            <Text variant="h2">{t('workoutStatus.completed')}</Text>
-          ) : null}
+        <WorkoutSummarySurface
+          title={t(`workoutStatus.${workout.status}`)}
+          footer={
+            <Button label={t('back')} onPress={() => router.replace('/')} />
+          }
+        >
+          <SyncStatus />
           <SessionSummary workout={workout} />
-          <Button
-            label={t('back')}
-            onPress={() => router.replace('/workout')}
-          />
-        </Screen>
+        </WorkoutSummarySurface>
       );
-
     if (!restReady)
       return (
-        <Screen>
+        <WorkoutSurface>
           {header}
-          <Text>{t('loading')}</Text>
-        </Screen>
+          <InkText>{t('loading')}</InkText>
+        </WorkoutSurface>
       );
     const emom =
       workout.exercises.find(
@@ -502,50 +499,35 @@ export default function WorkoutScreen() {
           <View style={{ width: '100%', marginTop: 4 }}>
             <TargetPill exercise={next.exercise} set={next.set} />
           </View>
-          <View style={{ width: '100%', gap: 4, marginTop: 4 }}>
-            <InkText style={{ fontSize: 19, color: ink.secondary }}>
-              {t('visual.lastCompleted')}
-            </InkText>
-            <CompletedSet
-              exercise={rest.exercise}
-              set={rest.set}
-              onEdit={() => openCorrection(rest.exercise.id, rest.set.id)}
-            />
-            {rest.exercise.sets
-              .filter((s) => s.status === 'completed' && s.id !== rest.set.id)
-              .map((s) => (
-                <CompletedSet
-                  key={s.id}
-                  exercise={rest.exercise}
-                  set={s}
-                  onEdit={() => openCorrection(rest.exercise.id, s.id)}
-                />
-              ))}
-          </View>
         </WorkoutSurface>
       );
     if (transition && next)
       return (
-        <Screen
-          contentStyle={{ padding: spacing.lg, gap: spacing.xl }}
+        <WorkoutSurface
           footer={
-            <Button label={t('continue')} onPress={() => setTransition(null)} />
+            <InkButton
+              primary
+              label={t('continue')}
+              onPress={() => setTransition(null)}
+            />
           }
         >
           {header}
           {errors}
-          <Text variant="h2">{t('exerciseDone')}</Text>
-          <Text variant="label" color={colors.secondary}>
+          <InkText accessibilityRole="header" style={{ fontSize: 26 }}>
+            {t('exerciseDone')}
+          </InkText>
+          <InkText style={{ fontSize: 16, color: ink.secondary }}>
             {t('nextExercise')}
-          </Text>
-          <Text variant="h1">{transition}</Text>
-          <Values exercise={next.exercise} set={next.set} />
-        </Screen>
+          </InkText>
+          <ExerciseHero name={transition} />
+          <TargetPill exercise={next.exercise} set={next.set} />
+        </WorkoutSurface>
       );
     if (!next)
       return (
-        <Screen
-          contentStyle={{ padding: spacing.lg, gap: spacing.lg }}
+        <WorkoutSummarySurface
+          title={t('readyFinish')}
           footer={
             <Button
               label={t('finish')}
@@ -554,14 +536,14 @@ export default function WorkoutScreen() {
             />
           }
         >
-          {header}
+          <SyncStatus />
+          {confirm.dialog}
           {errors}
-          <Text variant="h2">{t('readyFinish')}</Text>
           <SessionSummary
             workout={workout}
             onEdit={(exercise, s) => openCorrection(exercise.id, s.id)}
           />
-        </Screen>
+        </WorkoutSummarySurface>
       );
     return (
       <View style={{ flex: 1 }}>

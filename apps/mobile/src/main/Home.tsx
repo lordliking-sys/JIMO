@@ -8,7 +8,7 @@ import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import { Text, animePink, uiDepth } from '@jimo/ui';
 import { zonedDateKey } from '@jimo/schemas';
 import { SyncStatus } from '../db/Status';
-import { useHistory } from '../workouts/queries';
+import { useHistory, useWorkoutMutation } from '../workouts/queries';
 import { weekBounds, weekSchedule, localWeekday } from '../workouts/helpers';
 import { exerciseSummary } from '../programs/summary';
 import { MainButton, MainNotice, MainScreen, MainText } from './Surface';
@@ -77,6 +77,25 @@ export function MainHome() {
     ),
   }));
   const [resumeConflict, setResumeConflict] = useState(false);
+  const [stopRequest, setStopRequest] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const stop = useWorkoutMutation(
+    (id: string) => runtime.cancel(id),
+    () => {
+      setStopRequest(null);
+      setResumeConflict(false);
+      action.reset();
+    },
+  );
+  const requestStop = () => {
+    if (!active) return;
+    stop.reset();
+    setResumeConflict(false);
+    action.reset();
+    setStopRequest({ id: active.id, name: active.name });
+  };
   const canStart = !!program && !!day?.exercises.length && !plan.completed;
   const label =
     selectedActive || action.conflict
@@ -158,6 +177,9 @@ export function MainHome() {
             </View>
             <Play size={20} color={animePink.primaryText} accessible={false} />
           </Pressable>
+        ) : null}
+        {active && !selectedActive ? (
+          <MainButton subtle label={t('stopWorkout')} onPress={requestStop} />
         ) : null}
         {!rest ? (
           <View
@@ -282,6 +304,13 @@ export function MainHome() {
               disabled={action.pending || dataUnavailable}
               subtle={!canStart || selectedActive}
             />
+            {selectedActive ? (
+              <MainButton
+                subtle
+                label={t('stopWorkout')}
+                onPress={requestStop}
+              />
+            ) : null}
           </View>
         )}
         {action.error && !action.conflict ? (
@@ -352,33 +381,71 @@ export function MainHome() {
         ) : null}
       </SectionBody>
       <JimoDialog
-        title={t('activeWorkoutTitle')}
-        visible={resumeConflict || action.conflict}
-        close={closeConflict}
+        title={t(stopRequest ? 'stopWorkoutTitle' : 'activeWorkoutTitle')}
+        visible={!!stopRequest || resumeConflict || action.conflict}
+        busy={stop.isPending}
+        close={() => {
+          if (stop.isPending) return;
+          setStopRequest(null);
+          closeConflict();
+        }}
         onDismiss={() => {}}
         footer={
-          <>
-            <PopupButton
-              label={t('workouts:resume')}
-              onPress={() => {
-                if (active)
-                  router.push({
-                    pathname: '/workout/[id]',
-                    params: { id: active.id },
-                  });
-                else action.start();
-                closeConflict();
-              }}
-            />
-            <PopupButton
-              label={t('programs:cancel')}
-              outline
-              onPress={closeConflict}
-            />
-          </>
+          stopRequest ? (
+            <>
+              <PopupButton
+                label={t('confirmStopWorkout')}
+                busy={stop.isPending}
+                onPress={() => stop.mutate(stopRequest.id)}
+              />
+              <PopupButton
+                label={t('programs:cancel')}
+                outline
+                disabled={stop.isPending}
+                onPress={() => setStopRequest(null)}
+              />
+            </>
+          ) : (
+            <>
+              <PopupButton
+                label={t('workouts:resume')}
+                onPress={() => {
+                  if (active)
+                    router.push({
+                      pathname: '/workout/[id]',
+                      params: { id: active.id },
+                    });
+                  else action.start();
+                  closeConflict();
+                }}
+              />
+              {active ? (
+                <PopupButton
+                  label={t('stopWorkout')}
+                  outline
+                  onPress={requestStop}
+                />
+              ) : null}
+              <PopupButton
+                label={t('programs:cancel')}
+                outline
+                onPress={closeConflict}
+              />
+            </>
+          )
         }
       >
-        <Text>{t('activeWorkoutNotice')}</Text>
+        {stopRequest ? (
+          <>
+            <Text variant="bodyMedium">{stopRequest.name}</Text>
+            <Text>{t('stopWorkoutNotice')}</Text>
+            {stop.error ? (
+              <MainNotice retry={() => stop.mutate(stopRequest.id)} />
+            ) : null}
+          </>
+        ) : (
+          <Text>{t('activeWorkoutNotice')}</Text>
+        )}
       </JimoDialog>
     </MainScreen>
   );

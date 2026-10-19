@@ -22,9 +22,21 @@ export function ActualEditor({
   const set = (key: keyof ActualDraft, value: string) =>
     onChange({ ...draft, [key]: value });
   const { contentWidth, fontScale } = useWorkoutLayout();
-  const labelSize = contentWidth < (alignRows ? 330 : 300) ? 14 : 15;
-  const valueWidth = 80 * Math.max(1, fontScale);
-  const labelWidth = Math.max(0, contentWidth - (96 + valueWidth + 4) - 6);
+  const labelSize = 14;
+  const baseSize = alignRows ? 20 : 22;
+  const longestValue = Math.max(
+    draft.reps.length,
+    draft.duration.length,
+    draft.rpe.length,
+    draft.load.length + (exercise.loadModeSnapshot === 'weighted' ? 1 : 0),
+    draft.assistance.length,
+    1,
+  );
+  const valueWidth = Math.min(
+    Math.max(100, Math.ceil(longestValue * baseSize * 0.64 * fontScale + 36)),
+    Math.max(48, contentWidth - 104),
+  );
+  const labelWidth = Math.max(0, contentWidth - (96 + valueWidth + 8) - 8);
   const labels = [
     t(exercise.trackingModeSnapshot === 'reps' ? 'reps' : 'duration'),
     ...(exercise.loadModeSnapshot === 'bodyweight'
@@ -34,19 +46,21 @@ export function ActualEditor({
         ]),
     t('rpe'),
   ];
-  const rowLayout = alignRows
-    ? {
-        labelWidth,
-        valueWidth,
-        stacked:
-          fontScale > 1.2 ||
-          labels.some(
-            (label) =>
-              labelWidth <
-              label.length * (labelSize * 0.6 + 0.25) * fontScale + 30,
-          ),
-      }
-    : undefined;
+  const rowLayout = {
+    labelWidth,
+    valueWidth,
+    compact: alignRows,
+    valueFontSize: Math.max(
+      16,
+      Math.min(baseSize, (valueWidth - 28) / (longestValue * 0.64 * fontScale)),
+    ),
+    stacked:
+      fontScale > 1.2 ||
+      labels.some(
+        (label) =>
+          labelWidth < label.length * (labelSize * 0.6 + 0.25) * fontScale + 30,
+      ),
+  };
   const integer = (key: 'reps' | 'duration', min: number) => ({
     value: draft[key],
     onChange: (v: string) => set(key, v),
@@ -88,7 +102,7 @@ export function ActualEditor({
     },
   });
   return (
-    <View style={{ gap: alignRows ? 2 : 6 }}>
+    <View style={{ gap: alignRows ? 12 : 16 }}>
       {exercise.trackingModeSnapshot === 'reps' ? (
         <NumberControl
           rowLayout={rowLayout}

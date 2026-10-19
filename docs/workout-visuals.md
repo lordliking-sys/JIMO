@@ -127,3 +127,13 @@ EMOM/Pyramid mockup component and all preview navigation have been removed.
 Configure the corresponding mode in a real program exercise and start/resume
 the real workout to verify standard, rest, EMOM and Pyramid. Current verification
 is documented in [daily-plan-refinements.md](daily-plan-refinements.md).
+
+## Refinement del 19 ottobre 2026
+
+- Recupero contiene timer, prossima serie e target. Le righe delle serie completate e la loro correzione sono nel riepilogo finale, con header compatto, corpo rosa e azioni coerenti con il tema.
+- Reps, kg e RPE condividono colonne e spaziatura. I valori usano dimensioni più contenute, le unità hanno una dimensione secondaria e la modifica manuale resta entro la larghezza disponibile.
+- La schermata intermedia Allenamento è eliminata: i vecchi link `/workout` portano alla Home; il ritorno dal riepilogo e il fallback Indietro portano alla Home.
+- In Progressi serie completate e tempo sono numeri, senza mini grafici. Record ed elenchi non aprono sottopagine; il grafico dell’esercizio e la selezione rimangono nella pagina. I vecchi link ai dettagli riportano a Progressi.
+- Dalla Home si può interrompere la sessione, anche dal popup che segnala un allenamento già aperto. La conferma usa l’operazione esistente `CANCEL_WORKOUT`: conserva gli actual registrati, marca la sessione annullata e permette l’avvio di un altro giorno. Non avvia automaticamente un nuovo allenamento.
+
+Nessuna modifica a API, database, migration, asset o sincronizzazione. Le verifiche browser usano fixture locali; sul telefono controllare anche tastiera nativa, Back Android, safe area e conferma dell’interruzione prima di iniziare un’altra giornata.

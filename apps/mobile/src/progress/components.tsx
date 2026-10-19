@@ -60,18 +60,11 @@ export function Metric({ value, label }: { value: string; label: string }) {
     </View>
   );
 }
-export function RecordRow({
-  record,
-  onPress,
-}: {
-  record: ProgressRecord;
-  onPress: () => void;
-}) {
+export function RecordRow({ record }: { record: ProgressRecord }) {
   const { t, i18n } = useTranslation('progress');
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
+    <View
+      accessible
       style={{
         minHeight: sizes.touch,
         gap: spacing.xs,
@@ -82,7 +75,7 @@ export function RecordRow({
       accessibilityLabel={`${record.displayName}, ${t(`recordTypes.${record.type}`)}, ${recordText(record, i18n.language)}`}
     >
       <Text variant="bodyMedium">{record.displayName}</Text>
-      <Text variant="h3" color={colors.primarySoft}>
+      <Text variant="h3" color={colors.primary}>
         {recordText(record, i18n.language)}
       </Text>
       <Text variant="caption" color={colors.secondary}>
@@ -93,7 +86,7 @@ export function RecordRow({
           year: 'numeric',
         })}
       </Text>
-    </Pressable>
+    </View>
   );
 }
 export function CacheNotice({
