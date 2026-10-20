@@ -9,6 +9,26 @@ import {
 import { cachedProgram } from './offline-fixtures';
 import { sqliteAdapter } from './sqlite-adapter';
 
+test('an unchanged active-program refresh does not rewrite cached prescriptions', async () => {
+  const c = sqliteAdapter(),
+    owner = randomUUID(),
+    p = cachedProgram();
+  await c.db.migrate();
+  try {
+    const cache = new ProgramCacheRepository(c.db);
+    assert.equal(await cache.replaceActive(owner, p), true);
+    const writes = c.sqlite.prepare('SELECT total_changes() AS n').get()!.n;
+    assert.equal(await cache.replaceActive(owner, structuredClone(p)), false);
+    assert.equal(
+      c.sqlite.prepare('SELECT total_changes() AS n').get()!.n,
+      writes,
+    );
+    assert.deepEqual(await cache.active(owner), p);
+  } finally {
+    c.sqlite.close();
+  }
+});
+
 test('successful exercise/day deletion replaces the local active detail and its relational rows', async () => {
   const c = sqliteAdapter(),
     owner = randomUUID(),

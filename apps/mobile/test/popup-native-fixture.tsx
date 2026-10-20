@@ -1,8 +1,11 @@
 import { Fragment, type ReactNode } from 'react';
 export { animePink } from '../../../packages/ui/src/tokens';
+export const programInk = { background: '#FFF7FA' };
 export const nativePopup = {
   close: 0,
   keyboardDismissals: 0,
+  keyboardVisible: false,
+  back: 0,
   modals: [] as {
     onRequestClose(): void;
     statusBarTranslucent: boolean;
@@ -19,7 +22,11 @@ export const nativePopup = {
 };
 export const Platform = { OS: 'android' };
 export const Keyboard = {
-  dismiss: () => nativePopup.keyboardDismissals++,
+  isVisible: () => nativePopup.keyboardVisible,
+  dismiss: () => {
+    nativePopup.keyboardDismissals++;
+    nativePopup.keyboardVisible = false;
+  },
   addListener: () => ({ remove: () => {} }),
 };
 export const StyleSheet = { absoluteFill: {} };

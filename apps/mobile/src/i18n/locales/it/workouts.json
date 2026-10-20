@@ -79,6 +79,7 @@
   "targetVsActual": "Target {{target}} · Actual {{actual}}",
   "loading": "Caricamento allenamento…",
   "transition": "Vai al prossimo esercizio",
+  "pyramidActualNotice": "Al check vengono registrati i valori prescritti. Puoi correggerli nel riepilogo finale dell’allenamento.",
   "rangeHint": "Target a range: il valore iniziale è il minimo prescritto.",
   "emptyDay": "Aggiungi almeno un esercizio prima di iniziare.",
   "activeChanged": "Lo stato dell’allenamento è cambiato. Ricarica per continuare.",

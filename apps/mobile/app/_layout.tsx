@@ -48,7 +48,13 @@ function AppNavigator() {
       preferences.onboardingCompleted || !!preferences.accountOnboarded,
   });
   if (destination === 'loading')
-    return <StartupScreen error={account.error} retry={account.retry} />;
+    return (
+      <StartupScreen
+        error={account.error}
+        retry={account.retry}
+        issue={account.startupIssue}
+      />
+    );
   const onboarding =
     destination === 'onboarding' ||
     (session.test && !preferences.onboardingCompleted);
@@ -85,7 +91,9 @@ function AppNavigator() {
             <Stack.Screen name="progress/[id]" />
             <Stack.Screen name="program/create" />
             <Stack.Screen name="program/manual" />
+            <Stack.Screen name="program/manage" />
             <Stack.Screen name="program/[id]/index" />
+            <Stack.Screen name="program/[id]/day-detail" />
             <Stack.Screen name="program/[id]/settings" />
             <Stack.Screen name="program/[id]/day" />
             <Stack.Screen name="program/[id]/choose-exercise" />

@@ -277,6 +277,16 @@ export class WorkoutLocalRepository {
         [owner, w.id],
       );
       if (pending.length) return false;
+      const key = `sequence:${w.id}`,
+        sequence = (
+          await sql.all<{ value: string }>(
+            'SELECT value FROM sync_metadata WHERE owner_user_id=? AND key=?',
+            [owner, key],
+          )
+        )[0];
+      // A response fetched before an ACK must not roll back the acknowledged
+      // local state just because the corresponding outbox rows are now gone.
+      if ((w.syncSequence ?? 0) < Number(sequence?.value ?? 0)) return false;
       if (w.status === 'in_progress') {
         const other = await sql.all<{ id: string }>(
           "SELECT id FROM local_workout_sessions WHERE owner_user_id=? AND status='in_progress' AND id<>?",
@@ -291,13 +301,6 @@ export class WorkoutLocalRepository {
         }
       }
       await store(sql, owner, w);
-      const key = `sequence:${w.id}`,
-        sequence = (
-          await sql.all<{ value: string }>(
-            'SELECT value FROM sync_metadata WHERE owner_user_id=? AND key=?',
-            [owner, key],
-          )
-        )[0];
       await sql.run(
         'INSERT INTO sync_metadata VALUES(?,?,?) ON CONFLICT(owner_user_id,key) DO UPDATE SET value=excluded.value',
         [

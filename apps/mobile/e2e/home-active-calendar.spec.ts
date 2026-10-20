@@ -101,10 +101,6 @@ test('Home starts every programmed exercise in sequence through workout completi
   await page
     .getByRole('button', { name: '✓ Completa serie', exact: true })
     .click();
-  await expect(
-    page.getByText('Esercizio completato', { exact: true }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Continua', exact: true }).click();
   await expect(page).toHaveURL(session);
   await expect(
     page.getByRole('heading', { name: 'Trazioni', exact: true }),

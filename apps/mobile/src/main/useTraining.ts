@@ -12,7 +12,8 @@ export function useTraining() {
     program = useCachedProgram(),
     session = useActiveWorkout();
   const refresh = useCallback(() => {
-    void cache.invalidateQueries({ queryKey: ['local', runtime.owner] });
+    for (const key of ['active-program', 'active-workout', 'history'])
+      void cache.invalidateQueries({ queryKey: ['local', runtime.owner, key] });
     void runtime.engine.request(true);
   }, [cache, runtime]);
   useFocusEffect(

@@ -1,8 +1,27 @@
 import { test, expect } from '@playwright/test';
 import { workoutFixture } from './workout-fixture';
+test('all compatibility program deep links require authentication', async ({
+  page,
+}) => {
+  const f = await workoutFixture(page);
+  await page.addInitScript(() =>
+    sessionStorage.setItem('jimo.test.signedOut', 'true'),
+  );
+  for (const url of [
+    '/program/manage',
+    `/program/${f.program.id}/day-detail?dayId=${f.program.days[0]!.id}`,
+  ]) {
+    await page.goto(url);
+    await expect(
+      page.getByRole('button', { name: 'Accedi', exact: true }),
+    ).toBeVisible();
+    await expect(page.getByTestId('day-dialog-detail')).toHaveCount(0);
+  }
+});
 test('test auth: sign in, app guard, workout and progress; logout warning preserves active workout', async ({
   page,
 }, info) => {
+  await page.clock.install({ time: new Date('2026-10-19T10:00:00Z') });
   await workoutFixture(page);
   await page.addInitScript(() => {
     if (sessionStorage.getItem('jimo.test.initialized') !== 'true') {
@@ -37,7 +56,8 @@ test('test auth: sign in, app guard, workout and progress; logout warning preser
   await expect(
     page.getByRole('tab', { name: 'Scheda', exact: true }),
   ).toBeVisible();
-  await page.getByRole('tab', { name: 'Scheda', exact: true }).click();
+  await page.getByRole('tab', { name: 'Home', exact: true }).click();
+  await page.getByTestId('home-date-1').click();
   await page
     .getByRole('button', { name: /Inizia allenamento/ })
     .first()

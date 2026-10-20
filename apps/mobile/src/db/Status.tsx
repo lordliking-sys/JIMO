@@ -9,7 +9,7 @@ export function SyncStatus() {
   const { runtime } = useOffline(),
     { t } = useTranslation('workouts');
   const state = useQuery({
-    queryKey: ['local', 'sync-status', runtime.owner],
+    queryKey: ['local', runtime.owner, 'sync-status'],
     queryFn: async () => ({
       operations: runtime.owner ? await runtime.outbox.list(runtime.owner) : [],
       conflict: runtime.owner

@@ -79,6 +79,7 @@
   "targetVsActual": "Target {{target}} · Actual {{actual}}",
   "loading": "Loading workout…",
   "transition": "Move to the next exercise",
+  "pyramidActualNotice": "Checking a set records the prescribed values. You can correct them in the final workout review.",
   "rangeHint": "Range target: the initial value is the prescribed minimum.",
   "emptyDay": "Add at least one exercise before starting.",
   "activeChanged": "Workout state changed. Reload to continue.",

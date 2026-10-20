@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import Trophy from 'lucide-react-native/icons/trophy';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +28,7 @@ export function StatCard({
   format?: (value: number) => string;
   testID?: string;
 }) {
+  const { fontScale } = useWindowDimensions();
   const sideBySide = !small && !!points && value.length <= 9;
   return (
     <PaperCard
@@ -40,7 +41,11 @@ export function StatCard({
       }}
     >
       <EditorialText
-        style={{ fontSize: small ? 15 : 18, lineHeight: small ? 21 : 25 }}
+        style={{
+          fontSize: small ? 15 : 18,
+          lineHeight: small ? 21 : 25,
+          minHeight: small ? 42 * fontScale : undefined,
+        }}
       >
         {label}
       </EditorialText>
@@ -53,7 +58,8 @@ export function StatCard({
       >
         <View style={{ flex: sideBySide ? 1 : undefined, minWidth: 0, gap: 3 }}>
           <EditorialText
-            style={{ fontSize: small ? 28 : 46, lineHeight: small ? 36 : 56 }}
+            testID={testID ? `${testID}-value` : undefined}
+            style={{ fontSize: small ? 22 : 34, lineHeight: small ? 30 : 42 }}
           >
             {value}
           </EditorialText>

@@ -1,4 +1,5 @@
 {
+  "networkError": "Connection unavailable. Your edits are still on screen: reconnect and try again.",
   "title": "Program",
   "empty": "You don't have a program yet.",
   "create": "Create program",
@@ -198,7 +199,7 @@
   "confirmDeleteProgram": "Permanently delete this program?",
   "deleteProgramExplanation": "The program and its structure will be removed. Your past workouts and their snapshots will be preserved.",
   "daysHeading": "DAYS",
-  "deleteSyncPending": "Wait for your workouts to sync before deleting this program.",
+  "deleteSyncPending": "Wait for your workouts to sync before changing this program.",
   "createWeekdayWorkout": "Create workout for {{day}}",
   "delete": "Delete",
   "reorder": "Reorder",

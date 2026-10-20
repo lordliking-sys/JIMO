@@ -41,6 +41,10 @@ export function ProgramOverlay({
       statusBarTranslucent
       navigationBarTranslucent
       onRequestClose={() => {
+        if (Keyboard.isVisible()) {
+          Keyboard.dismiss();
+          return;
+        }
         Keyboard.dismiss();
         back();
       }}

@@ -6,6 +6,7 @@ import { cachedProgram } from './offline-fixtures';
 import {
   completedDay,
   completedExerciseCount,
+  completedProgramExercises,
   dayArtworkKey,
   dayStates,
   homeDay,
@@ -254,4 +255,48 @@ test('Home uses the device’s local date near midnight and across daylight savi
     if (original === undefined) delete process.env.TZ;
     else process.env.TZ = original;
   }
+});
+
+test('Home completion checks require every set and exact program entry, day and program', () => {
+  const workout = {
+    status: 'in_progress',
+    programId: 'program',
+    programDayId: 'monday',
+    exercises: [
+      {
+        programExerciseId: 'entry-a',
+        exerciseId: 'same-catalog',
+        sets: [{ status: 'completed' }, { status: 'completed' }],
+      },
+      {
+        programExerciseId: 'entry-b',
+        exerciseId: 'same-catalog',
+        sets: [{ status: 'completed' }, { status: 'pending' }],
+      },
+      {
+        programExerciseId: 'entry-c',
+        sets: [{ status: 'completed' }, { status: 'skipped' }],
+      },
+      { programExerciseId: 'entry-d', sets: [{ status: 'skipped' }] },
+      { programExerciseId: 'entry-e', sets: [] },
+      { programExerciseId: null, sets: [{ status: 'completed' }] },
+    ],
+  } as WorkoutDetail;
+  assert.deepEqual(
+    [...completedProgramExercises(workout, 'program', 'monday')],
+    ['entry-a'],
+  );
+  assert.equal(
+    completedProgramExercises(workout, 'program', 'wednesday').size,
+    0,
+  );
+  assert.equal(completedProgramExercises(workout, 'other', 'monday').size, 0);
+  assert.equal(completedProgramExercises(null, 'program', 'monday').size, 0);
+  workout.status = 'completed';
+  assert.deepEqual(
+    [...completedProgramExercises(workout, 'program', 'monday')],
+    ['entry-a'],
+  );
+  workout.status = 'cancelled';
+  assert.equal(completedProgramExercises(workout, 'program', 'monday').size, 0);
 });

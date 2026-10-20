@@ -468,14 +468,19 @@ export function ErrorNotice({
       >
         {t(
           error instanceof ApiClientError &&
-            error.code === 'PROGRAM_SYNC_PENDING'
-            ? 'deleteSyncPending'
-            : error instanceof ApiClientError && error.code === 'CONFLICT'
-              ? 'conflictError'
-              : error instanceof ApiClientError &&
-                  error.code === 'API_NOT_CONFIGURED'
-                ? 'configurationError'
-                : 'serverError',
+            ['NETWORK_ERROR', 'TIMEOUT', 'TOKEN_UNAVAILABLE'].includes(
+              error.code,
+            )
+            ? 'networkError'
+            : error instanceof ApiClientError &&
+                error.code === 'PROGRAM_SYNC_PENDING'
+              ? 'deleteSyncPending'
+              : error instanceof ApiClientError && error.code === 'CONFLICT'
+                ? 'conflictError'
+                : error instanceof ApiClientError &&
+                    error.code === 'API_NOT_CONFIGURED'
+                  ? 'configurationError'
+                  : 'serverError',
         )}
       </Text>
       {retry ? (

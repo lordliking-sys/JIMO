@@ -13,6 +13,8 @@ import { WorkoutLocalRepository } from './repositories/workouts';
 import { ProgramCacheRepository } from './repositories/programs';
 import { SyncOutboxRepository } from './repositories/outbox';
 import { SyncEngine } from './sync/engine';
+import { prepareProgramChange } from './sync/program-change';
+import type { LocalChange } from './invalidation';
 export class OfflineRuntime {
   owner: string | null = null;
   online = true;
@@ -26,7 +28,7 @@ export class OfflineRuntime {
   progressRevision = 0;
   /** Disabled until auth binds the resolved provider subject to its local UUID. */
   authBound = false;
-  private listeners = new Set<() => void>();
+  private listeners = new Set<(change: LocalChange) => void>();
   constructor(readonly db: LocalDatabase) {
     this.progress = new ProgressCacheRepository(db);
     this.workouts = new WorkoutLocalRepository(db, randomUUID);
@@ -54,13 +56,13 @@ export class OfflineRuntime {
         }),
       synced: () => {
         this.progressRevision++;
-        this.changed();
+        this.changed('status');
       },
       reconcile: (owner) => this.reconcile(owner),
-      changed: () => this.changed(),
+      changed: () => this.changed('status'),
       error: (code) => {
         this.syncError = code;
-        this.changed();
+        this.changed('status');
       },
     });
   }
@@ -70,7 +72,7 @@ export class OfflineRuntime {
   setNetwork(online: boolean) {
     const before = this.online;
     this.online = online;
-    if (before !== online) this.changed();
+    if (before !== online) this.changed('status');
     if (online) void this.engine.request(!before);
   }
   async hydrate() {
@@ -81,16 +83,16 @@ export class OfflineRuntime {
     this.owner = owner;
     this.authBound = owner !== null;
     this.syncError = null;
-    this.changed();
+    this.changed('identity');
   }
-  subscribe(fn: () => void) {
+  subscribe(fn: (change: LocalChange) => void) {
     this.listeners.add(fn);
     return () => {
       this.listeners.delete(fn);
     };
   }
-  changed() {
-    for (const fn of this.listeners) fn();
+  changed(change: LocalChange = 'workout') {
+    for (const fn of this.listeners) fn(change);
   }
   async metadata(owner: string, key: string, value?: string) {
     return this.db.access(async (sql) => {
@@ -118,7 +120,13 @@ export class OfflineRuntime {
       ? await programsApi.detail(active.id, this.locale)
       : null;
     if (owner !== this.owner) return;
-    await this.programs.replaceActive(owner, detail, programRevision);
+    const programChanged = await this.programs.replaceActive(
+      owner,
+      detail,
+      programRevision,
+    );
+    if (owner !== this.owner) return;
+    if (programChanged) this.changed('reconcile');
     const local = await this.workouts.active(owner),
       server = await serverWorkouts.active();
     if (owner !== this.owner) return;
@@ -183,15 +191,20 @@ export class OfflineRuntime {
       }
     }
     // Bound downloads; cache enough read-only recent detail for offline history.
-    for (const summary of history.workouts.slice(0, 5))
+    for (const summary of history.workouts.slice(0, 5)) {
+      if (owner !== this.owner) return;
+      const local = await this.workouts.detail(owner, summary.id);
       if (
-        owner === this.owner &&
-        !(await this.workouts.detail(owner, summary.id))
-      )
-        await this.workouts.import(
-          owner,
-          await serverWorkouts.detail(summary.id),
-        );
+        !local ||
+        (summary.syncSequence ?? 0) > (local.syncSequence ?? 0) ||
+        Date.parse(summary.updatedAt) > Date.parse(local.updatedAt)
+      ) {
+        const detail = await serverWorkouts.detail(summary.id);
+        if (owner !== this.owner) return;
+        await this.workouts.import(owner, detail);
+      }
+    }
+    if (owner === this.owner) this.changed('workout');
   }
   identity() {
     if (!this.owner) throw new Error('IDENTITY_NOT_CACHED');
@@ -220,24 +233,25 @@ export class OfflineRuntime {
     });
   }
   async prepareProgramDelete(id: string) {
-    const owner = this.identity();
-    await this.engine.request(true);
-    const rows = await this.outbox.list(owner);
-    if (
-      rows.some((row) => {
-        const operation = JSON.parse(row.payload) as {
-          operationType: string;
-          payload: { programId?: string };
-        };
-        return (
-          operation.operationType === 'START_WORKOUT' &&
-          operation.payload.programId === id
-        );
-      })
-    )
-      throw new ApiClientError('PROGRAM_SYNC_PENDING');
-    if (this.identity() !== owner)
-      throw new ApiClientError('IDENTITY_CHANGED', 403);
+    return this.prepareProgramChange(id);
+  }
+  async prepareProgramChange(programId?: string) {
+    return prepareProgramChange({
+      owner: this.identity(),
+      currentOwner: () => this.owner,
+      outbox: this.outbox,
+      flush: () => this.engine.request(true),
+      ...(programId ? { programId } : {}),
+    });
+  }
+  async prepareProgramActivation(id: string) {
+    return prepareProgramChange({
+      owner: this.identity(),
+      currentOwner: () => this.owner,
+      outbox: this.outbox,
+      flush: () => this.engine.request(true),
+      activatingProgramId: id,
+    });
   }
   startEmom(sessionId: string, exerciseId: string) {
     return this.mutate((owner) =>

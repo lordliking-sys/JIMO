@@ -3,16 +3,25 @@ import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Play from 'lucide-react-native/icons/play';
+import Check from 'lucide-react-native/icons/check';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import Dumbbell from 'lucide-react-native/icons/dumbbell';
 import { Text, animePink, uiDepth } from '@jimo/ui';
 import { zonedDateKey } from '@jimo/schemas';
 import { SyncStatus } from '../db/Status';
-import { useHistory, useWorkoutMutation } from '../workouts/queries';
+import {
+  useHistory,
+  useWorkout,
+  useWorkoutMutation,
+} from '../workouts/queries';
 import { weekBounds, weekSchedule, localWeekday } from '../workouts/helpers';
 import { exerciseSummary } from '../programs/summary';
 import { MainButton, MainNotice, MainScreen, MainText } from './Surface';
-import { completedExerciseCount, homePlanForDate } from './helpers';
+import {
+  completedExerciseCount,
+  completedProgramExercises,
+  homePlanForDate,
+} from './helpers';
 import { useTraining } from './useTraining';
 import { useDayStart } from './useDayStart';
 import { WeekStrip } from './WeekStrip';
@@ -61,6 +70,26 @@ export function MainHome() {
       active.programId === program?.id &&
       active.programDayId === day?.id;
   const action = useDayStart(day?.id);
+  const completedSession = (history.data?.workouts ?? [])
+    .filter(
+      (workout) =>
+        workout.status === 'completed' &&
+        workout.programId === program?.id &&
+        workout.programDayId === day?.id &&
+        workout.completedAt &&
+        zonedDateKey(workout.completedAt, timeZone) === selectedKey,
+    )
+    .sort((a, b) =>
+      (b.completedAt ?? '').localeCompare(a.completedAt ?? ''),
+    )[0];
+  const completedDetail = useWorkout(
+    !selectedActive && completedSession ? completedSession.id : '',
+  );
+  const completedExercises = completedProgramExercises(
+    selectedActive ? active : completedDetail.data,
+    program?.id,
+    day?.id,
+  );
   const week = weekSchedule(
     program?.days ?? [],
     history.data?.workouts ?? [],
@@ -140,9 +169,14 @@ export function MainHome() {
         <WeekStrip
           week={week}
           selectedDate={selectedDate}
-          onSelect={(date) =>
-            setSelection({ week: weekKey, date: zonedDateKey(date, timeZone) })
-          }
+          onSelect={(date) => {
+            const dateKey = zonedDateKey(date, timeZone);
+            // Selecting Today resumes the live calendar; it must not pin
+            // yesterday's date when the app stays open across midnight.
+            setSelection(
+              dateKey === todayKey ? null : { week: weekKey, date: dateKey },
+            );
+          }}
         />
         {active && !selectedActive ? (
           <Pressable
@@ -331,9 +365,9 @@ export function MainHome() {
                   <Pressable
                     key={exercise.id}
                     accessibilityRole="button"
-                    accessibilityLabel={t('nextExerciseAction', {
+                    accessibilityLabel={`${t('nextExerciseAction', {
                       name: exercise.exercise.displayName,
-                    })}
+                    })}${completedExercises.has(exercise.id) ? ` · ${t('dayStates.completed')}` : ''}`}
                     disabled={action.pending || dataUnavailable}
                     onPress={open}
                     style={({ pressed }) => ({
@@ -368,7 +402,23 @@ export function MainHome() {
                         }
                       </Text>
                     </View>
-                    <ChevronRight size={20} color={animePink.primaryPink} />
+                    {completedExercises.has(exercise.id) ? (
+                      <View
+                        testID={`home-exercise-completed-${exercise.id}`}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 14,
+                          backgroundColor: animePink.primaryPink,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Check size={18} color="white" accessible={false} />
+                      </View>
+                    ) : (
+                      <ChevronRight size={20} color={animePink.primaryPink} />
+                    )}
                   </Pressable>
                 ))}
               </View>

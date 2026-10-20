@@ -233,8 +233,9 @@ export function QuickPlanPopup({
   };
   const { runtime } = useOffline();
   const [selected, setSelected] = useState<ProgramSummary | null>(null);
-  const activate = useProgramMutation((id: string) =>
-    programsApi.activate(id, locale),
+  const activate = useProgramMutation(
+    (id: string) => programsApi.activate(id, locale),
+    (id) => runtime.prepareProgramActivation(id),
   );
   return (
     <ProgramPopup

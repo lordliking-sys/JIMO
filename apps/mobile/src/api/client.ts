@@ -42,13 +42,22 @@ export function createApiClient(
     const cancel = () => controller.abort();
     options.signal?.addEventListener('abort', cancel, { once: true });
     if (options.signal?.aborted) cancel();
+    const aborted = new Promise<never>((_resolve, reject) => {
+      const fail = () =>
+        reject(new ApiClientError(timedOut ? 'TIMEOUT' : 'NETWORK_ERROR'));
+      if (controller.signal.aborted) fail();
+      else controller.signal.addEventListener('abort', fail, { once: true });
+    });
+    const provider = auth(),
+      generation = authGeneration();
     try {
       const multipart =
         typeof FormData !== 'undefined' && options.body instanceof FormData;
-      const provider = auth(),
-        generation = authGeneration();
       const send = async (refresh = false) => {
-        const token = await provider?.getToken(refresh);
+        const token = await Promise.race([
+          provider?.getToken(refresh),
+          aborted,
+        ]);
         if (generation !== authGeneration())
           throw new ApiClientError('IDENTITY_CHANGED', 403);
         // Offline renewal failure is not evidence of a revoked session.
@@ -75,18 +84,21 @@ export function createApiClient(
           signal: controller.signal,
         });
       };
-      let response = await send();
+      let response = await Promise.race([send(), aborted]);
       if (response.status === 401 && provider) {
-        response = await send(true);
+        response = await Promise.race([send(true), aborted]);
       }
       if (generation !== authGeneration())
         throw new ApiClientError('IDENTITY_CHANGED', 403);
       let json: unknown;
       try {
-        json = await response.json();
-      } catch {
+        json = await Promise.race([response.json(), aborted]);
+      } catch (error) {
+        if (error instanceof ApiClientError) throw error;
         throw new ApiClientError('INVALID_RESPONSE', response.status);
       }
+      if (generation !== authGeneration())
+        throw new ApiClientError('IDENTITY_CHANGED', 403);
       if (!response.ok) {
         const error = apiErrorSchema.safeParse(json);
         throw new ApiClientError(
@@ -101,7 +113,8 @@ export function createApiClient(
       return parsed.data;
     } catch (error) {
       if (error instanceof ApiClientError) {
-        if (error.status === 401) auth()?.unauthorized();
+        if (error.status === 401 && generation === authGeneration())
+          provider?.unauthorized();
         throw error;
       }
       throw new ApiClientError(timedOut ? 'TIMEOUT' : 'NETWORK_ERROR');

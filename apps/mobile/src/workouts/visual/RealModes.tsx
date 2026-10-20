@@ -1,26 +1,24 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { View, Pressable, AccessibilityInfo } from 'react-native';
+import { View, AccessibilityInfo } from 'react-native';
 import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'react-native-reanimated';
-import type { WorkoutDetail, WorkoutExercise, WorkoutSet } from '@jimo/schemas';
+import type { WorkoutDetail, WorkoutExercise } from '@jimo/schemas';
 import { emomClock } from '../modes';
 import { useWorkoutActions, useWorkoutMutation } from '../queries';
 import { setSummary } from '../helpers';
 import { workoutHaptic } from '../haptics';
 import { WorkoutSurface, InkText } from './Surface';
-import { EnsoTimer, CompletedSet, InkButton, ExerciseHero } from './components';
+import { EnsoTimer, InkButton, ExerciseHero } from './components';
 import { ink } from './theme';
 import { ErrorNotice } from '../../programs/components';
 
 export function PyramidSetTimeline({
   exercise,
   currentId,
-  onEdit,
 }: {
   exercise: WorkoutExercise;
   currentId: string;
-  onEdit(set: WorkoutSet): void;
 }) {
   const { t, i18n } = useTranslation('workouts');
   return (
@@ -42,12 +40,10 @@ export function PyramidSetTimeline({
           s.status === 'completed',
         );
         return (
-          <Pressable
+          <View
             key={s.id}
-            accessibilityRole="button"
+            accessible
             accessibilityLabel={`${t('set')} ${s.setNumber} · ${t(s.status === 'completed' ? 'completed' : s.id === currentId ? 'current' : 'pending')}`}
-            disabled={s.status !== 'completed'}
-            onPress={() => onEdit(s)}
             style={{
               minHeight: 48,
               padding: 10,
@@ -75,7 +71,7 @@ export function PyramidSetTimeline({
             {s.status === 'completed' ? (
               <Check color={ink.sage} size={22} />
             ) : null}
-          </Pressable>
+          </View>
         );
       })}
     </View>
@@ -86,15 +82,11 @@ export function EmomWorkout({
   exercise,
   now,
   header,
-  onEdit,
-  onContinue,
 }: {
   workout: WorkoutDetail;
   exercise: WorkoutExercise;
   now: number;
   header: ReactNode;
-  onEdit(set: WorkoutSet): void;
-  onContinue(): void;
 }) {
   const { t } = useTranslation('workouts'),
     api = useWorkoutActions(),
@@ -248,29 +240,6 @@ export function EmomWorkout({
             );
           })}
         </View>
-        {clock.finished ? (
-          <View testID="emom-summary" style={{ width: '100%', gap: 10 }}>
-            <InkText style={{ fontSize: 19, color: ink.secondary }}>
-              {t('emom.defaultActualNotice')}
-            </InkText>
-            {exercise.sets
-              .filter((s) => s.status === 'completed')
-              .map((s) => (
-                <CompletedSet
-                  key={s.id}
-                  exercise={exercise}
-                  set={s}
-                  onEdit={() => onEdit(s)}
-                />
-              ))}
-            <InkButton
-              primary
-              label={t('continue')}
-              disabled={needsReconcile || advance.isPending}
-              onPress={onContinue}
-            />
-          </View>
-        ) : null}
       </View>
     </WorkoutSurface>
   );

@@ -372,6 +372,34 @@ test('downloaded server workout seeds its sync sequence and remains operational 
     c.sqlite.close();
   }
 });
+test('a delayed download cannot roll back a set after its outbox operations were acknowledged', async () => {
+  const c = await setup();
+  try {
+    const original = await c.repo.start(owner, c.p, c.p.days[0]!.id);
+    const changed = await c.repo.save(
+      owner,
+      original.exercises[0]!.sets[0]!.id,
+      actual,
+    );
+    const batch = await c.outbox.batch(owner);
+    await c.outbox.acknowledge(owner, batch, {
+      acknowledged: batch.map((op) => op.operationId),
+      failed: [],
+    });
+    assert.equal((await c.outbox.list(owner)).length, 0);
+    assert.equal(
+      await c.repo.import(owner, { ...original, syncSequence: 1 }),
+      false,
+    );
+    assert.deepEqual(await c.repo.detail(owner, original.id), changed);
+    assert.equal(
+      await c.repo.import(owner, { ...changed, syncSequence: 2 }),
+      true,
+    );
+  } finally {
+    c.sqlite.close();
+  }
+});
 
 test('unknown SQLite schema version fails without clearing workout or queued operations', async () => {
   const c = await setup();
