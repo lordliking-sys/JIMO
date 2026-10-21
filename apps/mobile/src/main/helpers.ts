@@ -31,6 +31,30 @@ export function completedExerciseCount(workout: WorkoutDetail) {
       exercise.sets.some((set) => set.status === 'completed'),
   ).length;
 }
+/** Match the program entry, not its catalog exercise: duplicates are independent. */
+export function completedProgramExercises(
+  workout: WorkoutDetail | null | undefined,
+  programId: string | undefined,
+  dayId: string | undefined,
+) {
+  if (
+    !workout ||
+    workout.status === 'cancelled' ||
+    workout.programId !== programId ||
+    workout.programDayId !== dayId
+  )
+    return new Set<string>();
+  return new Set(
+    workout.exercises
+      .filter(
+        (exercise) =>
+          exercise.programExerciseId &&
+          exercise.sets.length > 0 &&
+          exercise.sets.every((set) => set.status === 'completed'),
+      )
+      .map((exercise) => exercise.programExerciseId!),
+  );
+}
 export function completedDay(
   day: DayDto,
   programId: string,

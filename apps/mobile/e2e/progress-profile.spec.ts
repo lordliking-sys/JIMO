@@ -33,7 +33,11 @@ async function safeInsets(page: Page) {
     };
   });
 }
-async function analyticsFixture(page: Page, locale = 'it') {
+async function analyticsFixture(
+  page: Page,
+  locale = 'it',
+  trainingSeconds = 9180,
+) {
   await workoutFixture(page, locale);
   const exerciseId = randomUUID(),
     sessionId = randomUUID(),
@@ -96,7 +100,7 @@ async function analyticsFixture(page: Page, locale = 'it') {
         skippedSets: 2,
         totalReps: 273,
         averageRpe: 8.2,
-        trainingSeconds: 9180,
+        trainingSeconds,
         sessionsPerWeek: 0.875,
         adherence: null,
       };
@@ -848,3 +852,40 @@ test.describe('isolated Profile component with account data (no Clerk or databas
     await expect(page.getByTestId('fixture-status-bar-dark')).toHaveCount(1);
   });
 });
+
+for (const device of devices)
+  test(`Long Progress totals stay compact and aligned ${device.width}`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize(device);
+    await safeInsets(page);
+    await analyticsFixture(page, 'it', 263 * 3600 + 18 * 60);
+    await page.goto('/progress');
+    const sets = page.getByTestId('completed-sets-stat-value'),
+      time = page.getByTestId('training-time-stat-value');
+    await expect(time).toHaveText('263h 18m');
+    await time.scrollIntoViewIfNeeded();
+    const a = (await sets.boundingBox())!,
+      b = (await time.boundingBox())!;
+    expect(Math.abs(a.y - b.y)).toBeLessThan(1);
+    expect(a.height).toBe(b.height);
+    for (const element of [sets, time]) {
+      expect(
+        await element.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+      ).toBe(true);
+      expect(
+        await element.evaluate((el) =>
+          parseFloat(getComputedStyle(el).fontSize),
+        ),
+      ).toBeLessThanOrEqual(22);
+      expect(
+        await element.evaluate(
+          (el) =>
+            el.clientHeight <= parseFloat(getComputedStyle(el).lineHeight) + 1,
+        ),
+      ).toBe(true);
+    }
+    await page.screenshot({
+      path: info.outputPath('compact-aligned-progress.png'),
+    });
+  });

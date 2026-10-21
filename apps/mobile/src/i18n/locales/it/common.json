@@ -10,6 +10,13 @@
   "retry": "Riprova",
   "loading": "Preparazione di JIMO…",
   "startupError": "Non è stato possibile caricare le preferenze. Riprova.",
+  "accountStartup": {
+    "network": "API non raggiungibile o connessione assente. Controlla rete, indirizzo API e porta sul PC, poi riprova.",
+    "configuration": "Indirizzo API development non configurato. Imposta EXPO_PUBLIC_API_URL e riavvia Metro con cache pulita.",
+    "session": "Sessione non valida o scaduta. Accedi di nuovo.",
+    "server": "API temporaneamente non disponibile. Controlla il terminale API e riprova.",
+    "generic": "Impossibile preparare l’account. Riprova."
+  },
   "saveError": "Non è stato possibile salvare le modifiche. Riprova.",
   "language": "Lingua",
   "languages": {

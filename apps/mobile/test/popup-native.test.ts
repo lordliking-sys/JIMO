@@ -63,3 +63,17 @@ test('actual popup native Modal wires Android back and keyboard dismissal, witho
     assert.equal(f.nativePopup.close, 0);
   }
 });
+test('Android Modal back dismisses the IME first and preserves the current form/step', async () => {
+  const f = await adapter();
+  for (const open of [() => f.openPopup(false, false, true), f.openOverlay]) {
+    open();
+    f.nativePopup.keyboardVisible = true;
+    f.nativePopup.modal!.onRequestClose();
+    assert.equal(f.nativePopup.keyboardDismissals, 1);
+    assert.equal(f.nativePopup.back, 0, 'first Back only dismisses keyboard');
+    assert.equal(f.nativePopup.close, 0);
+    f.nativePopup.modal!.onRequestClose();
+    assert.equal(f.nativePopup.back, 1, 'second Back returns one modal step');
+    assert.equal(f.nativePopup.close, 0);
+  }
+});

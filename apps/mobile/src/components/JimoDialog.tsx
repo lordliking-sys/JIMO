@@ -284,9 +284,14 @@ export function JimoDialog({
       statusBarTranslucent
       navigationBarTranslucent
       onDismiss={onDismiss}
-      onRequestClose={() =>
-        discard ? setDiscard(null) : request(back ? 'back' : 'close')
-      }
+      onRequestClose={() => {
+        if (Keyboard.isVisible()) {
+          Keyboard.dismiss();
+          return;
+        }
+        if (discard) setDiscard(null);
+        else request(back ? 'back' : 'close');
+      }}
     >
       <>
         <Animated.View

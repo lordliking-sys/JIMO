@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, IconButton, animePink } from '@jimo/ui';
 import type { ProgramSummary } from '@jimo/schemas';
 import Pencil from 'lucide-react-native/icons/pencil';
-import { usePrograms, useProgram } from '../api/queries';
+import { usePrograms } from '../api/queries';
 import { PendingReview } from '../imports/PendingReview';
 import { MainButton, MainNotice, MainScreen, MainText } from './Surface';
 import { weekdayNumbers } from '../programs/weekdays';
@@ -28,13 +28,9 @@ export function MainProgram() {
   const { t } = useTranslation(['main', 'programs', 'workouts']);
   const list = usePrograms(),
     { program: cached, runtime } = useTraining();
-  const summary = list.data?.programs.find((p) => p.status === 'active');
-  const cachedMatches =
-    !!cached.data &&
-    cached.data.status === 'active' &&
-    (!list.data || cached.data.id === summary?.id);
-  const detail = useProgram(cachedMatches ? '' : (summary?.id ?? '')),
-    program = cachedMatches ? cached.data : detail.data;
+  // Home, this screen and offline start share the same validated active detail.
+  // A slower/stale list response must never select a different active program.
+  const program = cached.data;
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const params = useLocalSearchParams<{ weekday?: string; openDay?: string }>();
   const requestedWeekday = Number(params.weekday),
@@ -50,13 +46,11 @@ export function MainProgram() {
     requestedWeekday <= 7
       ? { kind: 'day', weekday: requestedWeekday }
       : null);
-  const pending =
-    !program &&
-    (cached.isPending || list.isPending || (!!summary && detail.isPending));
-  const failed = !program && (list.error || detail.error || cached.error);
+  const pending = !program && (cached.isPending || list.isPending);
+  const failed = !program && (list.error || cached.error);
   const retry = () => {
     void list.refetch();
-    if (summary && !cachedMatches) void detail.refetch();
+    void cached.refetch();
     void runtime.engine.request(true);
   };
   const [closing, setClosing] = useState(false);
@@ -240,7 +234,15 @@ export function MainProgram() {
       ) : currentSheet ? (
         <QuickPlanPopup
           mode={currentSheet.kind}
-          programs={list.data?.programs ?? []}
+          programs={(list.data?.programs ?? []).map((item) => ({
+            ...item,
+            status:
+              item.id === program?.id
+                ? 'active'
+                : item.status === 'active'
+                  ? 'archived'
+                  : item.status,
+          }))}
           close={close}
           visible={!closing}
           onDismiss={finishClose}

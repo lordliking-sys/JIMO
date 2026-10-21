@@ -14,6 +14,7 @@ import { ProgramPopup, PopupButton } from './ProgramPopup';
 import { integerInput } from './helpers';
 import { ErrorNotice } from './components';
 import { DeleteProgram } from './DeleteProgram';
+import { useOffline } from '../db/Provider';
 
 /** Essential metadata only; days and prescriptions are edited from their own day. */
 export function EditPlanPopup({
@@ -28,6 +29,7 @@ export function EditPlanPopup({
   onDismiss(): void;
 }) {
   const { t } = useTranslation(['main', 'programs']),
+    { runtime } = useOffline(),
     locale = useApiLocale();
   const [name, setName] = useState(program.name),
     [description, setDescription] = useState(program.description ?? ''),
@@ -39,8 +41,9 @@ export function EditPlanPopup({
   const save = useProgramMutation((input: ProgramInput) =>
     programsApi.update(program.id, input, locale),
   );
-  const archiveMutation = useProgramMutation(() =>
-    programsApi.archive(program.id, locale),
+  const archiveMutation = useProgramMutation(
+    () => programsApi.archive(program.id, locale),
+    () => runtime.prepareProgramChange(program.id),
   );
   const busy = save.isPending || archiveMutation.isPending || deleting;
   const dirty =

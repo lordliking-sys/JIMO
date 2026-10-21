@@ -14,6 +14,7 @@ import { PrescriptionEditor } from './PrescriptionEditor';
 import { ExerciseThumbnail } from './ExerciseThumbnail';
 import { ErrorNotice } from './components';
 import { SortableExerciseList } from './SortableExerciseList';
+import { useOffline } from '../db/Provider';
 
 /** One native modal and an internal step stack; all writes use the existing mutation/cache path. */
 export function DayDialog({
@@ -32,7 +33,8 @@ export function DayDialog({
   onDismiss(): void;
 }) {
   const { t } = useTranslation(['programs', 'main']),
-    locale = useApiLocale();
+    locale = useApiLocale(),
+    { runtime } = useOffline();
   const [dayId, setDayId] = useState(
     initialDayId ?? program.days.find((d) => d.dayOfWeek === weekday)?.id,
   );
@@ -46,6 +48,7 @@ export function DayDialog({
   const entry = day?.exercises.find((e) => e.id === entryId);
   const mutate = useProgramMutation(
     (action: () => ReturnType<typeof programsApi.detail>) => action(),
+    () => runtime.prepareProgramChange(program.id),
   );
   const save = useProgramMutation((input: Prescription) =>
     programsApi.saveExercise(day!.id, entryId, input, locale),

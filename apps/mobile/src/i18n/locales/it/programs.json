@@ -1,4 +1,5 @@
 {
+  "networkError": "Connessione non disponibile. Le modifiche sullo schermo sono conservate: riconnettiti e riprova.",
   "title": "Programma",
   "empty": "Non hai ancora un programma.",
   "create": "Crea programma",
@@ -198,7 +199,7 @@
   "confirmDeleteProgram": "Eliminare definitivamente questo programma?",
   "deleteProgramExplanation": "Il programma e la sua struttura verranno rimossi. Lo storico degli allenamenti già eseguiti non verrà eliminato.",
   "daysHeading": "GIORNATE",
-  "deleteSyncPending": "Attendi la sincronizzazione degli allenamenti prima di eliminare il programma.",
+  "deleteSyncPending": "Attendi la sincronizzazione degli allenamenti prima di modificare la scheda.",
   "createWeekdayWorkout": "Crea allenamento per {{day}}",
   "delete": "Elimina",
   "reorder": "Riordina",

@@ -1,0 +1,36 @@
+# Review in Render before creating the service. Starter is a paid, non-sleeping plan.
+# This blueprint does not create databases or run migrations.
+services:
+  - type: web
+    name: jimo-api-development
+    branch: downloads/jimo-standalone-development-20261021
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /ready
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_ENV
+        value: development
+      - key: PORT
+        value: '10000'
+      - key: ALLOW_DEV_AUTH
+        value: 'false'
+      - key: DEV_USER_ID
+        value: ''
+      - key: AI_IMPORT_ENABLED
+        value: 'false'
+      - key: NEON_DEVELOPMENT_BRANCH_ID
+        value: br-purple-math-b1fsq2wb
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_ISSUER_URL
+        sync: false
+      - key: CLERK_AUTHORIZED_PARTIES
+        sync: false
+      - key: API_ALLOWED_ORIGINS
+        sync: false

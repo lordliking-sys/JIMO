@@ -122,6 +122,12 @@ export class WorkoutService {
     const sessionId = sql.raw('"workout_sessions"."id"');
     return {
       ...getTableColumns(workoutSessions),
+      // A corrected set changes the history detail even when the session row
+      // itself is unchanged. Expose its revision without a schema migration.
+      updatedAt:
+        sql<Date>`greatest(${workoutSessions.updatedAt}, (SELECT max(greatest(e.updated_at,s.updated_at)) FROM workout_exercises e LEFT JOIN workout_sets s ON s.workout_exercise_id=e.id WHERE e.workout_session_id=${sessionId}))`.mapWith(
+          workoutSessions.updatedAt,
+        ),
       syncSequence: sql<number>`(SELECT coalesce(max(sequence),0)::int FROM sync_operations WHERE session_id=${sessionId})`,
       exercisesCount: sql<number>`(SELECT count(*)::int FROM workout_exercises e WHERE e.workout_session_id=${sessionId})`,
       completedSets: sql<number>`(SELECT count(*)::int FROM workout_sets s JOIN workout_exercises e ON e.id=s.workout_exercise_id WHERE e.workout_session_id=${sessionId} AND s.status='completed')`,

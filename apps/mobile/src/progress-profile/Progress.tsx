@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { TextInput, View, useWindowDimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -44,6 +44,7 @@ import { VolumePanel } from './VolumePanel';
 import { PersonalRecordsPanel } from './PersonalRecordsPanel';
 import { ink } from './theme';
 export default function ProgressScreen() {
+  const { width, fontScale } = useWindowDimensions();
   const { t, i18n } = useTranslation(['progressProfile', 'progress']),
     router = useRouter(),
     { runtime } = useOffline();
@@ -181,7 +182,7 @@ export default function ProgressScreen() {
               <Copy>{t('progress:emptyPeriod')}</Copy>
               <Action
                 label={t('progress:goWorkout')}
-                onPress={() => router.replace('/')}
+                onPress={() => router.dismissTo('/')}
               />
             </PaperCard>
           ) : null}
@@ -203,7 +204,7 @@ export default function ProgressScreen() {
               />
               <View
                 style={{
-                  flexDirection: 'row',
+                  flexDirection: width / fontScale < 290 ? 'column' : 'row',
                   alignItems: 'stretch',
                   gap: 10,
                 }}

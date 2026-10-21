@@ -24,6 +24,7 @@ import { ProgramOverlay } from '../programs/ProgramOverlay';
 import { DayEditor } from '../programs/DayEditor';
 import { DeleteProgram } from '../programs/DeleteProgram';
 import { moved } from '../programs/helpers';
+import { useOffline } from '../db/Provider';
 export function ProgramManagement({
   id,
   dayAction,
@@ -40,6 +41,7 @@ export function ProgramManagement({
   onOpenDay?: (dayId: string) => void;
 }) {
   const router = useRouter(),
+    { runtime } = useOffline(),
     { t } = useTranslation('programs'),
     locale = useApiLocale(),
     query = useProgram(id),
@@ -95,7 +97,12 @@ export function ProgramManagement({
               variant="outline"
               label={t('activate')}
               busy={mutation.isPending}
-              onPress={() => run(() => programsApi.activate(id, locale))}
+              onPress={() =>
+                run(async () => {
+                  await runtime.prepareProgramActivation(id);
+                  return programsApi.activate(id, locale);
+                })
+              }
             />
           ) : null}
           {program.status !== 'archived' ? (
@@ -110,7 +117,11 @@ export function ProgramManagement({
                       ? 'confirmArchive'
                       : 'confirmArchiveAny',
                   ),
-                  () => run(() => programsApi.archive(id, locale)),
+                  () =>
+                    run(async () => {
+                      await runtime.prepareProgramChange(id);
+                      return programsApi.archive(id, locale);
+                    }),
                 )
               }
             />
@@ -180,7 +191,10 @@ export function ProgramManagement({
                     label: t('deleteDay'),
                     action: () =>
                       confirmation.ask(t('confirmDeleteDay'), () =>
-                        run(() => programsApi.removeDay(item.id, locale)),
+                        run(async () => {
+                          await runtime.prepareProgramChange(id);
+                          return programsApi.removeDay(item.id, locale);
+                        }),
                       ),
                   },
                 ]}

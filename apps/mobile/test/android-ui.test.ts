@@ -28,9 +28,7 @@ function adapter() {
             ): void;
           }) {
             build.onResolve({ filter: /^\.\/native-gradient-parser$/ }, () => ({
-              path: resolve(
-                'node_modules/react-native-svg/src/lib/extract/extractGradient.ts',
-              ),
+              path: require.resolve('react-native-svg/src/lib/extract/extractGradient.ts'),
             }));
             build.onResolve(
               {

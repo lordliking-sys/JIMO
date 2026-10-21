@@ -47,18 +47,27 @@ export class ProgramCacheRepository {
     expectedRevision?: number,
   ) {
     const program = input ? programDetailSchema.parse(input) : null;
-    await this.db.transaction(async (sql) => {
+    return this.db.transaction(async (sql) => {
       // A GET started before a successful edit/delete must not resurrect old data.
       if (
         expectedRevision !== undefined &&
         expectedRevision !== this.revision(owner)
       )
-        return;
+        return false;
+      const current = (
+        await sql.all<{ payload: string }>(
+          "SELECT payload FROM cached_programs WHERE owner_user_id=? AND status='active'",
+          [owner],
+        )
+      )[0];
+      if (program ? current?.payload === JSON.stringify(program) : !current)
+        return false;
       await sql.run(
         "UPDATE cached_programs SET status='cached' WHERE owner_user_id=? AND status='active'",
         [owner],
       );
       if (program) await this.save(sql, owner, program);
+      return true;
     });
   }
   async remove(owner: string, id: string) {

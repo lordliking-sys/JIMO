@@ -34,6 +34,7 @@ import {
 import { moved } from '../../../src/programs/helpers';
 import { exerciseSummary } from '../../../src/programs/summary';
 import { StartWorkout } from '../../../src/workouts/components';
+import { useOffline } from '../../../src/db/Provider';
 export default function DayDetail() {
   const { id, dayId, overlay, exerciseId, prescriptionId, backTo } =
       useLocalSearchParams<{
@@ -49,6 +50,7 @@ export default function DayDetail() {
     { t } = useTranslation('programs'),
     confirmation = useConfirmation();
   const router = useRouter();
+  const { runtime } = useOffline();
   const [userAction, setAction] = useState<
       ProgramExerciseDto | 'new' | 'custom' | null
     >(null),
@@ -56,6 +58,7 @@ export default function DayDetail() {
     [newDay, setNewDay] = useState(false);
   const mutation = useProgramMutation(
     (action: () => ReturnType<typeof programsApi.detail>) => action(),
+    () => runtime.prepareProgramChange(id),
   );
   const run = (
     action: () => ReturnType<typeof programsApi.detail>,

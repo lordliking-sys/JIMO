@@ -14,6 +14,7 @@ import { CustomExerciseEditor } from './CustomExerciseEditor';
 import { PrescriptionEditor } from './PrescriptionEditor';
 import { ProgramButton } from './presentation';
 import { useConfirmation } from './components';
+import { useOffline } from '../db/Provider';
 export function ExerciseActions({
   dayId,
   initial,
@@ -28,6 +29,7 @@ export function ExerciseActions({
   close(): void;
 }) {
   const locale = useApiLocale(),
+    { runtime } = useOffline(),
     { t } = useTranslation('programs'),
     confirmation = useConfirmation();
   const [step, setStep] = useState<'library' | 'custom' | 'editor'>(
@@ -39,8 +41,9 @@ export function ExerciseActions({
   const save = useProgramMutation((input: Prescription) =>
     programsApi.saveExercise(dayId, initial?.id, input, locale),
   );
-  const remove = useProgramMutation(() =>
-    programsApi.removeExercise(initial!.id, locale),
+  const remove = useProgramMutation(
+    () => programsApi.removeExercise(initial!.id, locale),
+    () => runtime.prepareProgramChange(),
   );
   const back = () => {
     if (save.isPending || remove.isPending) return;

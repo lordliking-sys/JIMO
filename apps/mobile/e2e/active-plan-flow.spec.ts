@@ -185,7 +185,14 @@ for (const viewport of viewports) {
     ).toEqual([`/programs/${f.source.program.id}`]);
     await page.getByRole('tab', { name: 'Progressi', exact: true }).click();
     await page.getByRole('tab', { name: 'Frequenza', exact: true }).click();
-    await page.getByRole('button', { name: /Storico originale/ }).click();
+    const history = page.getByLabel(/^Storico originale\./);
+    await expect(history).toBeVisible();
+    await expect(history).not.toHaveRole('button');
+    await history.click();
+    await expect(page).toHaveURL('/progress');
+    // Progress stays a single screen; the saved workout deep link still reads
+    // its immutable snapshot after the source program was deleted.
+    await page.goto(`/workout/${f.source.workout.id}`);
     await expect(
       page.getByText('Storico originale', { exact: true }).last(),
     ).toBeVisible();

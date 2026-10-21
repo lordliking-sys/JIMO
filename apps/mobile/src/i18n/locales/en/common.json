@@ -10,6 +10,13 @@
   "retry": "Try again",
   "loading": "Preparing JIMO…",
   "startupError": "Your preferences could not be loaded. Please try again.",
+  "accountStartup": {
+    "network": "API unreachable or no connection. Check the network, API address and PC port, then retry.",
+    "configuration": "Development API address is not configured. Set EXPO_PUBLIC_API_URL and restart Metro with a clear cache.",
+    "session": "Your session is invalid or expired. Sign in again.",
+    "server": "API temporarily unavailable. Check the API terminal and retry.",
+    "generic": "Unable to prepare your account. Please retry."
+  },
   "saveError": "Your changes could not be saved. Please try again.",
   "language": "Language",
   "languages": {

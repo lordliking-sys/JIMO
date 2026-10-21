@@ -36,8 +36,9 @@ export function PlanSwitcher({
     query = useProgram(selected ?? ''),
     confirmation = useConfirmation(),
     { runtime } = useOffline();
-  const activate = useProgramMutation((id: string) =>
-    programsApi.activate(id, locale),
+  const activate = useProgramMutation(
+    (id: string) => programsApi.activate(id, locale),
+    (id) => runtime.prepareProgramActivation(id),
   );
   const summary = programs.find((p) => p.id === selected),
     program = query.data ?? summary;

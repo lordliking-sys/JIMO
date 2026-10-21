@@ -21,10 +21,12 @@ import { usePreferences } from '../storage/PreferencesProvider';
 import { useAuthSession } from './SessionProvider';
 import { AccountProfileCache } from './profile-cache';
 import { initialProfilePatch } from './helpers';
+import { accountStartupIssue, type AccountStartupIssue } from './startup-issue';
 const Context = createContext<{
   profile: Profile | null;
   resolved: boolean;
   error: boolean;
+  startupIssue: AccountStartupIssue | null;
   retry(): void;
   update(input: ProfileUpdate): Promise<void>;
   logout(): Promise<void>;
@@ -38,8 +40,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     subject: string | null;
     profile: Profile | null;
     resolved: boolean;
-    error: boolean;
-  }>({ subject: null, profile: null, resolved: false, error: false });
+    error: AccountStartupIssue | null;
+  }>({ subject: null, profile: null, resolved: false, error: null });
   const [attempt, setAttempt] = useState(0);
   const localeRef = useRef(applyAccountProfile),
     prefsRef = useRef(preferences);
@@ -77,7 +79,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       if (!live) return;
       runtime.bindOwner(profile.id);
       boundSubject.current = subject;
-      setState({ subject, profile, resolved: true, error: false });
+      setState({ subject, profile, resolved: true, error: null });
       void runtime.engine.request(true);
     };
     void (async () => {
@@ -101,7 +103,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         });
         runtime.bindOwner(userId);
         boundSubject.current = subject;
-        setState({ subject, profile: null, resolved: true, error: false });
+        setState({ subject, profile: null, resolved: true, error: null });
         void runtime.engine.request(true);
         return;
       }
@@ -138,13 +140,28 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         if (!live) return;
         if (error instanceof ApiClientError && error.status === 401) {
           runtime.bindOwner(null);
-          setState({ subject, profile: null, resolved: false, error: true });
+          setState({
+            subject,
+            profile: null,
+            resolved: false,
+            error: accountStartupIssue(error),
+          });
         } else if (!stored)
-          setState({ subject, profile: null, resolved: false, error: true });
+          setState({
+            subject,
+            profile: null,
+            resolved: false,
+            error: accountStartupIssue(error),
+          });
       }
-    })().catch(() => {
+    })().catch((error: unknown) => {
       if (live)
-        setState({ subject, profile: null, resolved: false, error: true });
+        setState({
+          subject,
+          profile: null,
+          resolved: false,
+          error: accountStartupIssue(error),
+        });
     });
     return () => {
       live = false;
@@ -182,7 +199,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       value={{
         profile: current ? state.profile : null,
         resolved: current && state.resolved && runtime.owner !== null,
-        error: current && state.error,
+        error: current && state.error !== null,
+        startupIssue: current ? state.error : null,
         retry: () => setAttempt((a) => a + 1),
         update: async (input) => {
           if (!subject || !state.profile)
@@ -204,7 +222,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             if (runtime.owner !== owner)
               throw new ApiClientError('IDENTITY_CHANGED', 403);
             await localeRef.current(profile.locale);
-            setState({ subject, profile, resolved: true, error: false });
+            setState({ subject, profile, resolved: true, error: null });
             return;
           }
           const profile = await apiRequest('/me', profileSchema, {
@@ -216,7 +234,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
             throw new ApiClientError('IDENTITY_CHANGED', 403);
           await new AccountProfileCache(runtime).save(subject, profile);
           await localeRef.current(profile.locale);
-          setState({ subject, profile, resolved: true, error: false });
+          setState({ subject, profile, resolved: true, error: null });
         },
         logout: async () => {
           runtime.bindOwner(null);

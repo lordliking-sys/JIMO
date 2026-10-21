@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Text, Screen, Button, colors } from '@jimo/ui';
 import { openLocalDatabase } from './open';
 import { OfflineRuntime } from './runtime';
+import { invalidateLocal } from './invalidation';
 const Context = createContext<{
   runtime: OfflineRuntime;
   revision: number;
@@ -57,15 +58,17 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     if (!runtime) return;
     let progressRevision = runtime.progressRevision,
       previousOnline = runtime.online;
-    const unsubscribe = runtime.subscribe(() => {
+    const unsubscribe = runtime.subscribe((change) => {
       setRevision((v) => v + 1);
-      void cache.invalidateQueries({ queryKey: ['local'] });
+      void invalidateLocal(cache, runtime.owner, change);
+      if (change === 'reconcile')
+        void cache.invalidateQueries({ queryKey: ['programs', runtime.owner] });
       if (
         progressRevision !== runtime.progressRevision ||
         (!previousOnline && runtime.online)
       ) {
         progressRevision = runtime.progressRevision;
-        void cache.invalidateQueries({ queryKey: ['progress'] });
+        void cache.invalidateQueries({ queryKey: ['progress', runtime.owner] });
       }
       previousOnline = runtime.online;
     });
@@ -77,7 +80,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     const foreground = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         void runtime.engine.request(true);
-        void cache.invalidateQueries({ queryKey: ['progress'] });
+        void cache.invalidateQueries({ queryKey: ['progress', runtime.owner] });
       }
     });
     void runtime.engine.request(true);

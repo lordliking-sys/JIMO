@@ -7,6 +7,8 @@ import { Text } from '@jimo/ui';
 import { ProgramButton, programInk } from '../programs/presentation';
 import { exercisesApi } from '../api/exercises';
 import { useApiLocale } from '../api/queries';
+import { useOffline } from '../db/Provider';
+import { ApiClientError } from '../api/client';
 import {
   FormHeader,
   Field,
@@ -24,27 +26,35 @@ export function CustomExerciseEditor({
 }) {
   const { t } = useTranslation('programs'),
     locale = useApiLocale(),
-    cache = useQueryClient();
+    cache = useQueryClient(),
+    { runtime } = useOffline();
   const [name, setName] = useState(''),
     [tracking, setTracking] = useState<(typeof trackingModes)[number]>('reps'),
     [mode, setMode] = useState<(typeof manualLoadModes)[number] | null>(null),
     [invalid, setInvalid] = useState(false);
   const submitting = useRef(false);
   const mutation = useMutation({
+    networkMode: 'always',
+    onMutate: () => ({ owner: runtime.owner }),
     onSettled: () => {
       submitting.current = false;
     },
-    mutationFn: () =>
-      exercisesApi.create(
+    mutationFn: () => {
+      if (!runtime.online) throw new ApiClientError('NETWORK_ERROR');
+      return exercisesApi.create(
         customExerciseInputSchema.parse({
           name,
           trackingMode: tracking,
           defaultLoadMode: mode,
         }),
         locale,
-      ),
-    onSuccess: async (e) => {
-      await cache.invalidateQueries({ queryKey: ['exercises'] });
+      );
+    },
+    onSuccess: async (e, _input, context) => {
+      const owner = context?.owner;
+      if (!owner || owner !== runtime.owner) return;
+      await cache.invalidateQueries({ queryKey: ['exercises', owner] });
+      if (owner !== runtime.owner) return;
       onCreated(e);
     },
   });

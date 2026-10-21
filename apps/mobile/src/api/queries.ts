@@ -69,12 +69,20 @@ export function useExercises(search: string) {
 }
 export function useProgramMutation<T>(
   action: (input: T) => ReturnType<typeof programsApi.detail>,
+  prepare?: (input: T) => Promise<void>,
 ) {
   const { runtime } = useOffline();
   const cache = useQueryClient(),
     submitting = useRef(false);
   const mutation = useMutation({
-    mutationFn: action,
+    networkMode: 'always',
+    mutationFn: async (input: T) => {
+      // Program editing is online-only: do not leave a modal trapped in a
+      // paused mutation, or silently execute it after a later reconnection.
+      if (!runtime.online) throw new ApiClientError('NETWORK_ERROR');
+      await prepare?.(input);
+      return action(input);
+    },
     onMutate: () => ({ owner: runtime.owner }),
     onSettled: () => {
       submitting.current = false;
@@ -87,11 +95,10 @@ export function useProgramMutation<T>(
       await runtime.programs.applyDetail(owner, program);
       if (owner !== runtime.owner) return;
       cache.setQueryData(key, await runtime.programs.active(owner));
-      runtime.changed();
+      runtime.changed('program');
       await Promise.all([
         cache.invalidateQueries({ queryKey: ['programs', owner] }),
-        cache.invalidateQueries({ queryKey: ['program', owner] }),
-        cache.invalidateQueries({ queryKey: ['local', owner] }),
+        cache.invalidateQueries({ queryKey: ['program', owner, program.id] }),
       ]);
       void runtime.engine.request(true);
     },

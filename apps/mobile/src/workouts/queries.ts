@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { WorkoutDetail } from '@jimo/schemas';
 import { useOffline } from '../db/Provider';
+import { workoutMutationOptions } from './mutations';
 export function useWorkoutActions() {
   return useOffline().runtime;
 }
@@ -63,20 +64,7 @@ export function useWorkoutMutation<T>(
     { runtime } = useOffline(),
     busy = useRef(false);
   const mutation = useMutation({
-    mutationFn: action,
-    networkMode: 'always',
-    onSuccess: async (workout) => {
-      onSuccess?.(workout);
-      runtime.changed();
-      cache.setQueryData(
-        ['local', runtime.owner, 'workout', workout.id],
-        workout,
-      );
-      cache.setQueryData(['local', runtime.owner, 'active-workout'], {
-        workout: workout.status === 'in_progress' ? workout : null,
-      });
-      await cache.invalidateQueries({ queryKey: ['local', runtime.owner] });
-    },
+    ...workoutMutationOptions(action, cache, runtime, onSuccess),
     onSettled: () => {
       busy.current = false;
     },

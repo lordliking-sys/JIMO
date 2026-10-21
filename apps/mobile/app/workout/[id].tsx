@@ -157,24 +157,28 @@ function SetEditor({
       <ExerciseHero name={exercise.exerciseNameSnapshot} />
       <SeriesHeading current={set.setNumber} total={exercise.sets.length} />
       <TargetPill exercise={exercise} set={set} />
-      <ActualEditor exercise={exercise} draft={draft} onChange={setDraft} />
+      {exercise.workoutModeSnapshot === 'pyramid' ? (
+        <InkText style={{ fontSize: 14, color: ink.secondary }}>
+          {t('pyramidActualNotice')}
+        </InkText>
+      ) : (
+        <ActualEditor exercise={exercise} draft={draft} onChange={setDraft} />
+      )}
       {save.error ? <ErrorNotice error={save.error} retry={submit} /> : null}
       {skip.error ? (
         <ErrorNotice error={skip.error} retry={() => skip.mutate(undefined)} />
       ) : null}
       {exercise.workoutModeSnapshot === 'pyramid' ? (
-        <PyramidSetTimeline
-          exercise={exercise}
-          currentId={set.id}
-          onEdit={onEdit}
-        />
+        <PyramidSetTimeline exercise={exercise} currentId={set.id} />
       ) : null}
       {exercise.notes ? (
         <InkText style={{ color: ink.secondary, fontSize: 17 }}>
           {exercise.notes}
         </InkText>
       ) : null}
-      <SetIndicators exercise={exercise} currentId={set.id} onEdit={onEdit} />
+      {exercise.workoutModeSnapshot !== 'pyramid' ? (
+        <SetIndicators exercise={exercise} currentId={set.id} onEdit={onEdit} />
+      ) : null}
     </WorkoutSurface>
   );
 }
@@ -200,11 +204,10 @@ export default function WorkoutScreen() {
     reducedMotion = useReducedMotion(),
     confirm = useConfirmation();
   const [editing, setEditing] = useState<{
-      exerciseId: string;
-      setId: string;
-      rest: ReturnType<typeof recoverRest>;
-    } | null>(null),
-    [transition, setTransition] = useState<string | null>(null);
+    exerciseId: string;
+    setId: string;
+    rest: ReturnType<typeof recoverRest>;
+  } | null>(null);
   const closeCorrection = useCallback(() => setEditing(null), []);
   useSafeBack('/', editing ? closeCorrection : undefined);
   const [restPreference, setRestPreference] = useState<{
@@ -213,31 +216,6 @@ export default function WorkoutScreen() {
   } | null>(null);
   const [restSaving, setRestSaving] = useState(false),
     [restSaveError, setRestSaveError] = useState(false);
-  const [reviewSaveError, setReviewSaveError] = useState(false);
-  const [reviewed, setReviewed] = useState<{
-    key: string;
-    ids: string[];
-  } | null>(null);
-  const reviewKey = `emom-reviewed:${runtime.owner}:${id}`;
-  useEffect(() => {
-    let live = true;
-    if (!runtime.owner) return;
-    void runtime
-      .metadata(runtime.identity(), reviewKey)
-      .then((value) => {
-        if (live)
-          setReviewed({
-            key: reviewKey,
-            ids: value ? (JSON.parse(value) as string[]) : [],
-          });
-      })
-      .catch(() => {
-        if (live) setReviewed({ key: reviewKey, ids: [] });
-      });
-    return () => {
-      live = false;
-    };
-  }, [runtime, reviewKey]);
   const previousRest = useRef<string | null>(null),
     storageKey = `rest-skipped:${runtime.owner}:${id}`;
   const restReady = restPreference?.key === storageKey;
@@ -351,9 +329,6 @@ export default function WorkoutScreen() {
   );
   const errors = (
     <>
-      {reviewSaveError ? (
-        <InkText accessibilityRole="alert">{t('offline.saveFailed')}</InkText>
-      ) : null}
       {finish.error ? (
         <ErrorNotice error={finish.error} retry={finishAction} />
       ) : null}
@@ -374,11 +349,19 @@ export default function WorkoutScreen() {
         <WorkoutSummarySurface
           title={t(`workoutStatus.${workout.status}`)}
           footer={
-            <Button label={t('back')} onPress={() => router.replace('/')} />
+            <Button label={t('back')} onPress={() => router.dismissTo('/')} />
           }
         >
           <SyncStatus />
-          <SessionSummary workout={workout} />
+          <SessionSummary
+            workout={workout}
+            {...(workout.status === 'completed'
+              ? {
+                  onEdit: (exercise: WorkoutExercise, set: WorkoutSet) =>
+                    openCorrection(exercise.id, set.id),
+                }
+              : {})}
+          />
         </WorkoutSummarySurface>
       );
     if (!restReady)
@@ -388,19 +371,11 @@ export default function WorkoutScreen() {
           <InkText>{t('loading')}</InkText>
         </WorkoutSurface>
       );
-    const emom =
-      workout.exercises.find(
-        (e) =>
-          e.workoutModeSnapshot === 'emom' &&
-          e.emomStartedAt &&
-          (reviewed?.key !== reviewKey || !reviewed.ids.includes(e.id)),
-      ) ??
-      (next?.exercise.workoutModeSnapshot === 'emom' ? next.exercise : null);
-    if (emom)
+    if (next?.exercise.workoutModeSnapshot === 'emom')
       return (
         <EmomWorkout
           workout={workout}
-          exercise={emom}
+          exercise={next.exercise}
           now={now}
           header={
             <>
@@ -408,15 +383,6 @@ export default function WorkoutScreen() {
               {errors}
             </>
           }
-          onEdit={(s) => openCorrection(emom.id, s.id)}
-          onContinue={() => {
-            setReviewSaveError(false);
-            const ids = [...(reviewed?.ids ?? []), emom.id];
-            void runtime
-              .metadata(runtime.identity(), reviewKey, JSON.stringify(ids))
-              .then(() => setReviewed({ key: reviewKey, ids }))
-              .catch(() => setReviewSaveError(true));
-          }}
         />
       );
     if (rest && next)
@@ -501,29 +467,6 @@ export default function WorkoutScreen() {
           </View>
         </WorkoutSurface>
       );
-    if (transition && next)
-      return (
-        <WorkoutSurface
-          footer={
-            <InkButton
-              primary
-              label={t('continue')}
-              onPress={() => setTransition(null)}
-            />
-          }
-        >
-          {header}
-          {errors}
-          <InkText accessibilityRole="header" style={{ fontSize: 26 }}>
-            {t('exerciseDone')}
-          </InkText>
-          <InkText style={{ fontSize: 16, color: ink.secondary }}>
-            {t('nextExercise')}
-          </InkText>
-          <ExerciseHero name={transition} />
-          <TargetPill exercise={next.exercise} set={next.set} />
-        </WorkoutSurface>
-      );
     if (!next)
       return (
         <WorkoutSummarySurface
@@ -560,11 +503,7 @@ export default function WorkoutScreen() {
             </>
           }
           onCancel={() => {}}
-          onSaved={(updated) => {
-            const following = nextPending(updated);
-            if (following && following.exercise.id !== next.exercise.id)
-              setTransition(following.exercise.exerciseNameSnapshot);
-          }}
+          onSaved={() => {}}
         />
       </View>
     );

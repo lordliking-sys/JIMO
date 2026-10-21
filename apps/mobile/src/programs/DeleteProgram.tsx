@@ -1,12 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Modal, View } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@jimo/ui';
 import { useApiLocale } from '../api/queries';
 import { useOffline } from '../db/Provider';
 import { programsApi } from '../api/programs';
+import { ApiClientError } from '../api/client';
 import { ProgramButton, programInk } from './presentation';
 import { ErrorNotice } from './components';
 export function DeleteProgram({
@@ -28,9 +29,15 @@ export function DeleteProgram({
     cache = useQueryClient(),
     { runtime } = useOffline();
   const [open, setOpen] = useState(false);
+  const submitting = useRef(false);
   const mutation = useMutation({
+    networkMode: 'always',
+    onSettled: () => {
+      submitting.current = false;
+    },
     onMutate: () => ({ owner: runtime.owner }),
     mutationFn: async () => {
+      if (!runtime.online) throw new ApiClientError('NETWORK_ERROR');
       await runtime.prepareProgramDelete(id);
       return programsApi.remove(id, locale);
     },
@@ -42,11 +49,10 @@ export function DeleteProgram({
       await runtime.programs.remove(owner, id);
       if (owner !== runtime.owner) return;
       cache.setQueryData(key, await runtime.programs.active(owner));
-      runtime.changed();
-      cache.removeQueries({ queryKey: ['program', runtime.owner, id] });
+      runtime.changed('program');
+      cache.removeQueries({ queryKey: ['program', owner, id] });
       await Promise.all([
-        cache.invalidateQueries({ queryKey: ['programs'] }),
-        cache.invalidateQueries({ queryKey: ['local'] }),
+        cache.invalidateQueries({ queryKey: ['programs', owner] }),
       ]);
       void runtime.engine.request(true);
       setOpen(false);
@@ -84,7 +90,9 @@ export function DeleteProgram({
         disabled={disabled}
         style={{ backgroundColor: programInk.danger }}
         onPress={() => {
-          if (!mutation.isPending && !disabled) mutation.mutate();
+          if (submitting.current || disabled) return;
+          submitting.current = true;
+          mutation.mutate();
         }}
       />
     </View>

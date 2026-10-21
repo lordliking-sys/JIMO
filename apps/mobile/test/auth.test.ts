@@ -173,6 +173,65 @@ test('changing account rejects in-flight HTTP response before it can enter anoth
     (e) => e instanceof ApiClientError && e.code === 'IDENTITY_CHANGED',
   );
 });
+test('account change while decoding a response rejects old data and cannot sign out the new account', async () => {
+  for (const status of [200, 401]) {
+    let unauthorized = 0;
+    configureTokenProvider({
+      getToken: async () => 'fixture-old',
+      unauthorized: () => {},
+    });
+    const client = createApiClient('https://api.example.invalid', async () => {
+      const response = new Response('{}', { status });
+      response.json = async () => {
+        configureTokenProvider({
+          getToken: async () => 'fixture-new',
+          unauthorized: () => {
+            unauthorized++;
+          },
+        });
+        return status === 200
+          ? { owner: 'old' }
+          : { error: { code: 'INVALID_SESSION', message: 'Invalid session' } };
+      };
+      return response;
+    });
+    try {
+      await assert.rejects(
+        () => client('/me', z.unknown()),
+        (error) =>
+          error instanceof ApiClientError && error.code === 'IDENTITY_CHANGED',
+      );
+      assert.equal(unauthorized, 0);
+    } finally {
+      configureTokenProvider(null);
+    }
+  }
+});
+test('the request deadline also bounds token renewal and never sends after expiry', async () => {
+  let sent = 0,
+    unauthorized = 0;
+  const client = createApiClient(
+    'https://api.example.invalid',
+    async () => {
+      sent++;
+      return new Response('{}');
+    },
+    () => ({
+      getToken: () =>
+        new Promise((resolve) => setTimeout(() => resolve('fixture-late'), 25)),
+      unauthorized: () => {
+        unauthorized++;
+      },
+    }),
+  );
+  await assert.rejects(
+    () => client('/me', z.unknown(), { timeoutMs: 5 }),
+    (e) => e instanceof ApiClientError && e.code === 'TIMEOUT',
+  );
+  await new Promise((resolve) => setTimeout(resolve, 30));
+  assert.equal(sent, 0);
+  assert.equal(unauthorized, 0);
+});
 test('A logout → B → A preserves real SQLite workout, programs, progress and outbox namespaces after reopen', async () => {
   const c = sqliteAdapter(),
     a = randomUUID(),

@@ -226,6 +226,9 @@ test(
           const results = await Promise.all([send(batch), send(batch)]);
           assert.deepEqual(results[0]!.acknowledged, [batch[0]!.operationId]);
           assert.deepEqual(results[1]!.acknowledged, results[0]!.acknowledged);
+          // Five deliveries of the same operation, including concurrent retries.
+          for (let attempt = 2; attempt < 5; attempt++)
+            assert.deepEqual(await send(batch), results[0]);
           await outbox.acknowledge(a, batch, results[0]!);
           const server = workoutDetailSchema.parse(
             await request('GET', `/workouts/${localActive.id}`),
@@ -235,6 +238,7 @@ test(
             localActive.exercises.map((e) => [e.id, e.sets.map((s) => s.id)]),
           );
           assert.equal(server.startedAt, localActive.startedAt);
+          assert.equal(server.syncSequence, 1);
           assert.equal(server.exercises[0]!.sets[0]!.targetReps, 8);
           assert.equal(server.exercises[0]!.sets[0]!.targetLoadKg, '80.00');
         },
